@@ -8,9 +8,17 @@
 
 <div class="container">
 
-<h2>Candidate Dashboard</h2>
+<div class="header">
+    <h2>Candidate Dashboard</h2>
+    <a href="/logout">
+        <button class="logout-btn">Logout</button>
+    </a>
+</div>
 
-<p class="subtitle">Welcome <strong>{{ candidate }}</strong></p>
+<div class="dashboard-intro">
+    <p class="subtitle">Welcome, <strong>{{ candidate }}</strong></p>
+    <p class="subtitle">Candidate ID : <strong>{{ candidate_id }}</strong></p>
+</div>
 
 <div class="summary-grid">
     <div class="summary-card">

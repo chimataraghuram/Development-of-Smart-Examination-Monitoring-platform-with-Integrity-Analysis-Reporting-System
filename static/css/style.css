@@ -12,12 +12,39 @@ body{
 
 .container{
     width:90%;
-    max-width:450px;
+    max-width:900px;
     margin:50px auto;
     background:#fff;
     padding:30px;
     border-radius:12px;
     box-shadow:0 5px 15px rgba(0,0,0,.1);
+}
+
+.header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:12px;
+}
+
+.logout-btn{
+    float:right;
+    background:transparent;
+    color:#111827;
+    padding:6px 12px;
+    border:1px solid #cbd5e1;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:14px;
+    transition:.15s;
+}
+
+.logout-btn:hover{
+    background:#f8fafc;
+}
+
+.dashboard-intro{
+    margin-bottom:12px;
 }
 
 h1,h2{

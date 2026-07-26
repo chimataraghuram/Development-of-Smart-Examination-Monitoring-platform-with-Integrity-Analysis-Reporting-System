@@ -27,6 +27,9 @@ def capture_photo(candidate_id):
 
     camera = cv2.VideoCapture(0)
 
+    if not camera.isOpened():
+        return None
+
     while True:
 
         ret, frame = camera.read()
@@ -86,11 +89,6 @@ def register():
     # Password Validation
     if password == "":
         return "Password cannot be empty!"
-
-    photo_path = capture_photo(candidate_id)
-    if not photo_path or not os.path.exists(photo_path):
-        return "Photo capture failed. Please try again."
-
     # ---------- Database ----------
     try:
         with sqlite3.connect("database/exam.db") as connection:
@@ -107,14 +105,27 @@ def register():
             if user:
                 return "Email already registered! Please use another email."
 
-            # Insert Candidate
+            # Do not capture photo at registration time; use placeholder
+            photo_path = ""
+
+            # Debug prints to confirm values before insert
+            print(candidate_id)
+            print(name)
+            print(email)
+            print(photo_path)
+
+            # Insert Candidate (photo will be captured on Start Exam)
             cursor.execute("""
                 INSERT INTO Candidate(candidate_id, name, email, password, photo_path)
                 VALUES (?, ?, ?, ?, ?)
             """, (candidate_id, name, email, password, photo_path))
+
+            # Commit explicitly
+            connection.commit()
     except Exception as e:
-        print("Error registering candidate:", e)
-        return "Registration failed. Please try again."
+        import traceback
+        traceback.print_exc()
+        return f"Error: {e}"
 
     # Redirect to Login Page
     return redirect("/login")
@@ -212,6 +223,7 @@ def dashboard():
     return render_template(
         "dashboard.html",
         candidate=session["candidate_name"],
+        candidate_id=session["candidate_id"],
         browser_loss_count=browser_loss_count,
         face_missing_count=face_missing_count,
         face_detected_count=face_detected_count,
