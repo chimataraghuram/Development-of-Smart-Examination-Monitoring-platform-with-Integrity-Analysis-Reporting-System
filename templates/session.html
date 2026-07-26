@@ -1,33 +1,33 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Exam Session</title>
+<title>Exam Session</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
 
-<h2>Exam Session Management</h2>
+<div class="container">
+
+<h2>Exam Session</h2>
 
 <form action="/start_exam" method="POST">
-    <input type="submit" value="Start Exam">
+<button>Start Exam</button>
 </form>
-
-<br>
 
 <form action="/pause_exam" method="POST">
-    <input type="submit" value="Pause Exam">
+<button>Pause Exam</button>
 </form>
-
-<br>
 
 <form action="/resume_exam" method="POST">
-    <input type="submit" value="Resume Exam">
+<button>Resume Exam</button>
 </form>
-
-<br>
 
 <form action="/end_exam" method="POST">
-    <input type="submit" value="End Exam">
+<button>End Exam</button>
 </form>
+
+</div>
 
 </body>
 </html>

@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS Session (
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS EventLog(
     event_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    candidate_id INTEGER,
+    candidate_id TEXT,
     event_type TEXT,
     timestamp TEXT,
     remarks TEXT

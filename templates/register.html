@@ -1,33 +1,38 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <title>Candidate Registration</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+
+<div class="container">
 
 <h2>Candidate Registration</h2>
 
 <form action="/register" method="POST">
 
-    <label>Candidate ID</label><br>
-    <input type="text" name="candidate_id" required><br><br>
+<label>Candidate ID</label>
+<input type="text" name="candidate_id" required>
 
-    <label>Name</label><br>
-    <input type="text" name="name" required><br><br>
+<label>Name</label>
+<input type="text" name="name" required>
 
-    <label>Email</label><br>
-    <input type="email" name="email" required><br><br>
+<label>Email</label>
+<input type="email" name="email" required>
 
-    <label>Password</label><br>
-    <input type="password" name="password" required><br><br>
+<label>Password</label>
+<input type="password" name="password" required>
 
-    <input type="submit" value="Register">
+<button type="submit">Register</button>
 
 </form>
 
-<br>
+<div class="link">
+<a href="/login">Already Registered? Login</a>
+</div>
 
-<a href="/login">Already Registered? Login Here</a>
+</div>
 
 </body>
 </html>

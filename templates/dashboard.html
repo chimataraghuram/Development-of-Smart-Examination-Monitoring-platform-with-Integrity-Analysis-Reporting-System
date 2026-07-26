@@ -1,25 +1,60 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <title>Candidate Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 
-    <h2>Candidate Dashboard</h2>
+<div class="container">
 
-    <h3>Welcome {{ candidate }}</h3>
+<h2>Candidate Dashboard</h2>
 
-    <p>Login Successful!</p>
+<p class="subtitle">Welcome <strong>{{ candidate }}</strong></p>
 
-    <hr>
+<div class="summary-grid">
+    <div class="summary-card">
+        <h3>Latest Exam Summary</h3>
+        <p class="summary-item"><span>Status</span><strong>{{ session_status }}</strong></p>
+        <p class="summary-item"><span>Start Time</span><strong>{{ start_time }}</strong></p>
+        <p class="summary-item"><span>End Time</span><strong>{{ end_time }}</strong></p>
+    </div>
+    <div class="summary-card">
+        <h3>Session Events</h3>
+        <p class="summary-item"><span>Browser Focus Loss</span><strong>{{ browser_loss_count }}</strong></p>
+        <p class="summary-item"><span>Face Not Detected</span><strong>{{ face_missing_count }}</strong></p>
+        <p class="summary-item"><span>Face Detected</span><strong>{{ face_detected_count }}</strong></p>
+    </div>
+</div>
 
-    <h2>Online Exam Monitoring & Integrity Analytics Platform</h2>
+<div class="dashboard-actions">
+    <form action="/start_exam" method="POST">
+        <button type="submit" class="primary-btn">Start Exam</button>
+    </form>
+    <form action="/pause_exam" method="POST">
+        <button type="submit" class="secondary-btn">Pause Exam</button>
+    </form>
+    <form action="/resume_exam" method="POST">
+        <button type="submit" class="secondary-btn">Resume Exam</button>
+    </form>
+    <form action="/end_exam" method="POST">
+        <button type="submit" class="danger-btn">End Exam</button>
+    </form>
+</div>
 
-    <br>
+<div class="card">
+    <h3>Browser Monitoring</h3>
+    <p class="status"><strong>Browser Status</strong></p>
+    <p class="monitor-value" id="browser-status">Active</p>
+    <p class="status"><strong>Focus Loss Count</strong></p>
+    <p class="monitor-value" id="focus-count">0</p>
+    <p class="status"><strong>Last Focus Loss Time</strong></p>
+    <p class="monitor-value" id="last-focus">--</p>
+</div>
 
-    <a href="/session">
-        <button>Start Exam</button>
-    </a>
+<script src="{{ url_for('static', filename='js/browser_monitor.js') }}"></script>
+
+</div>
 
 </body>
 </html>
