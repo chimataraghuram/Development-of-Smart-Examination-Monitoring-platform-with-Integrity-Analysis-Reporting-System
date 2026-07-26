@@ -1,8 +1,14 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+
 <title>Integrity Report</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<link rel="stylesheet"
+href="{{ url_for('static',
+filename='css/style.css') }}">
+
 </head>
 
 <body>
@@ -13,21 +19,19 @@
 
 <div class="card">
 
-<p><b>Candidate ID:</b> {{candidate_id}}</p>
+<p>Integrity Score :
+<b>{{score}} / 100</b></p>
 
-<p><b>Browser Violations:</b> {{browser_lost}}</p>
+<p>Face Not Detected :
+{{face}}</p>
 
-<p><b>Face Violations:</b> {{face_missing}}</p>
-
-<p><b>Total Violations:</b> {{violations}}</p>
-
-<p><b>Integrity Score:</b> {{score}} / 100</p>
-
-<p><b>Status:</b> {{status}}</p>
+<p>Browser Focus Lost :
+{{browser}}</p>
 
 </div>
 
 </div>
 
 </body>
+
 </html>

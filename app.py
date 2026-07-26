@@ -6,6 +6,7 @@ import os
 import subprocess
 from pathlib import Path
 from datetime import datetime
+from utils.integrity_score import calculate_integrity_score
 
 app = Flask(__name__)
 app.secret_key = "infosys_exam_monitoring"
@@ -472,47 +473,19 @@ def admin_dashboard():
 def report():
 
     candidate_id = session.get("candidate_id")
-    browser_lost = 0
-    face_missing = 0
 
+    # Use shared utility to compute integrity score
     try:
-        with sqlite3.connect("database/exam.db") as connection:
-            cursor = connection.cursor()
-            cursor.execute("""
-                SELECT COUNT(*)
-                FROM EventLog
-                WHERE candidate_id=?
-                AND event_type='Browser Focus Lost'
-            """, (candidate_id,))
-            browser_lost = cursor.fetchone()[0]
-
-            cursor.execute("""
-                SELECT COUNT(*)
-                FROM EventLog
-                WHERE candidate_id=?
-                AND event_type='Face Not Detected'
-            """, (candidate_id,))
-            face_missing = cursor.fetchone()[0]
+        result = calculate_integrity_score(candidate_id)
     except Exception as e:
-        print("Error loading report:", e)
-
-    violations = browser_lost + face_missing
-
-    score = max(0, 100 - violations * 2)
-
-    status = "PASSED"
-
-    if score < 75:
-        status = "REVIEW REQUIRED"
+        print("Error calculating integrity score:", e)
+        result = {"score": 0, "face_missing": 0, "browser_lost": 0}
 
     return render_template(
         "report.html",
-        candidate_id=candidate_id,
-        browser_lost=browser_lost,
-        face_missing=face_missing,
-        violations=violations,
-        score=score,
-        status=status
+        score=result["score"],
+        face=result["face_missing"],
+        browser=result["browser_lost"]
     )
 
 
