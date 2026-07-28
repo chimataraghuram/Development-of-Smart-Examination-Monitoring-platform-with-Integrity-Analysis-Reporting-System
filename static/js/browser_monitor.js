@@ -1,4 +1,5 @@
 let focusLossCount = 0;
+let lostState = false;
 
 function sendBrowserEvent(eventType) {
     fetch("/browser_event", {
@@ -14,7 +15,12 @@ function sendBrowserEvent(eventType) {
     });
 }
 
-window.addEventListener("blur", function () {
+function updateInactiveState() {
+    if (lostState) {
+        return;
+    }
+
+    lostState = true;
     let statusEl = document.getElementById("browser-status");
     if (statusEl) statusEl.innerHTML = "Inactive";
 
@@ -26,14 +32,32 @@ window.addEventListener("blur", function () {
     let lastEl = document.getElementById("last-focus");
     if (lastEl) lastEl.innerHTML = currentTime;
 
-    console.log("Browser Lost Focus");
+    console.log("Browser Lost Focus / Tab changed");
     sendBrowserEvent("lost");
-});
+}
 
-window.addEventListener("focus", function () {
+function updateActiveState() {
+    if (!lostState) {
+        return;
+    }
+
+    lostState = false;
     let statusEl = document.getElementById("browser-status");
     if (statusEl) statusEl.innerHTML = "Active";
 
     console.log("Browser Active");
     sendBrowserEvent("regained");
-});
+}
+
+if (typeof document.hidden !== "undefined") {
+    document.addEventListener("visibilitychange", function () {
+        if (document.hidden) {
+            updateInactiveState();
+        } else {
+            updateActiveState();
+        }
+    });
+} else {
+    window.addEventListener("blur", updateInactiveState);
+    window.addEventListener("focus", updateActiveState);
+}

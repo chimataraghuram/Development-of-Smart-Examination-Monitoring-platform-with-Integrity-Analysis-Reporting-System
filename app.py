@@ -181,7 +181,12 @@ def dashboard():
     browser_loss_count = 0
     face_missing_count = 0
     face_detected_count = 0
+    total_events = 0
+    integrity_score = 0
+    integrity_tagline = "No score yet"
+    donut_style = "background: #e2e8f0;"
 
+    reset_dashboard = session.pop("dashboard_reset", False)
     try:
         with sqlite3.connect("database/exam.db") as connection:
             cursor = connection.cursor()
@@ -198,28 +203,132 @@ def dashboard():
                 latest_session["end_time"] = session_row[1] or "N/A"
                 latest_session["status"] = session_row[2] or "N/A"
 
-            cursor.execute("""
-                SELECT COUNT(*)
-                FROM EventLog
-                WHERE candidate_id = ? AND event_type = 'Browser Focus Lost'
-            """, (candidate_id,))
-            browser_loss_count = cursor.fetchone()[0] or 0
+            if reset_dashboard:
+                browser_loss_count = 0
+                face_missing_count = 0
+                face_detected_count = 0
+                latest_session = {"start_time": "N/A", "end_time": "N/A", "status": "No Session"}
+            else:
+                event_filter = ""
+                event_params = (candidate_id,)
+                if latest_session["start_time"] and latest_session["start_time"] != "N/A":
+                    event_filter = "AND timestamp >= ?"
+                    event_params = (candidate_id, latest_session["start_time"])
 
-            cursor.execute("""
-                SELECT COUNT(*)
-                FROM EventLog
-                WHERE candidate_id = ? AND event_type = 'Face Not Detected'
-            """, (candidate_id,))
-            face_missing_count = cursor.fetchone()[0] or 0
+                cursor.execute(f"""
+                    SELECT COUNT(*)
+                    FROM EventLog
+                    WHERE candidate_id = ? AND event_type = 'Browser Focus Lost'
+                    {event_filter}
+                """, event_params)
+                browser_loss_count = cursor.fetchone()[0] or 0
 
-            cursor.execute("""
-                SELECT COUNT(*)
-                FROM EventLog
-                WHERE candidate_id = ? AND event_type = 'Face Detected'
-            """, (candidate_id,))
-            face_detected_count = cursor.fetchone()[0] or 0
+                cursor.execute(f"""
+                    SELECT COUNT(*)
+                    FROM EventLog
+                    WHERE candidate_id = ? AND event_type = 'Face Not Detected'
+                    {event_filter}
+                """, event_params)
+                face_missing_count = cursor.fetchone()[0] or 0
+
+                cursor.execute(f"""
+                    SELECT COUNT(*)
+                    FROM EventLog
+                    WHERE candidate_id = ? AND event_type = 'Face Detected'
+                    {event_filter}
+                """, event_params)
+                face_detected_count = cursor.fetchone()[0] or 0
     except Exception as e:
         print("Error loading dashboard summary:", e)
+
+    total_events = browser_loss_count + face_missing_count + face_detected_count
+
+    def format_time(value):
+        if not value or value == "N/A":
+            return "—"
+        try:
+            dt = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+            return dt.strftime("%d %b %Y %I:%M:%S %p")
+        except Exception:
+            return value
+
+    def compute_duration(start_value, end_value):
+        if not start_value or start_value == "N/A":
+            return "00:00:00"
+        try:
+            start_dt = datetime.strptime(start_value, "%Y-%m-%d %H:%M:%S")
+            if end_value and end_value != "N/A":
+                end_dt = datetime.strptime(end_value, "%Y-%m-%d %H:%M:%S")
+            else:
+                end_dt = datetime.now()
+            delta = end_dt - start_dt
+            seconds = max(int(delta.total_seconds()), 0)
+            hours, remainder = divmod(seconds, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            return f"{hours:02}:{minutes:02}:{seconds:02}"
+        except Exception:
+            return "00:00:00"
+
+    formatted_start_time = format_time(latest_session["start_time"])
+    formatted_end_time = format_time(latest_session["end_time"])
+    duration = compute_duration(latest_session["start_time"], latest_session["end_time"])
+
+    session_status = latest_session["status"]
+    if session_status in ("Started", "Resumed"):
+        status_text = "Active"
+        status_note = "Exam in progress"
+        status_class = "active"
+    elif session_status == "Paused":
+        status_text = "Paused"
+        status_note = "Exam paused"
+        status_class = "paused"
+    elif session_status == "Ended":
+        status_text = "Completed"
+        status_note = "Exam finished"
+        status_class = "completed"
+    else:
+        status_text = "No session"
+        status_note = "No active exam"
+        status_class = "inactive"
+
+    browser_pct = 0
+    face_missing_pct = 0
+    face_detected_pct = 0
+    if total_events > 0:
+        browser_pct = round(browser_loss_count * 100 / total_events, 1)
+        face_missing_pct = round(face_missing_count * 100 / total_events, 1)
+        face_detected_pct = round(face_detected_count * 100 / total_events, 1)
+        start = 0
+        mid = browser_pct
+        end = browser_pct + face_missing_pct
+        donut_style = (
+            f"background: conic-gradient(#2563eb 0% {mid}%, #ef4444 {mid}% {end}%, #22c55e {end}% 100%);"
+        )
+
+    try:
+        result = calculate_integrity_score(candidate_id)
+        integrity_score = result.get("score", 0)
+        if reset_dashboard:
+            integrity_score = 1000
+            integrity_tagline = "Perfect Score"
+        elif integrity_score == 1000:
+            integrity_tagline = "Perfect Score"
+        else:
+            integrity_tagline = "Integrity review recommended"
+    except Exception as e:
+        print("Error calculating integrity score:", e)
+        integrity_score = 1000 if reset_dashboard else 0
+        integrity_tagline = "Perfect Score" if reset_dashboard else "Unable to load score"
+
+    if reset_dashboard:
+        donut_style = "background: #e2e8f0;"
+        total_events = 0
+        status_text = "No session"
+        status_note = "No active exam"
+        status_class = "inactive"
+        duration = "00:00:00"
+        formatted_start_time = "—"
+        formatted_end_time = "—"
 
     return render_template(
         "dashboard.html",
@@ -228,10 +337,31 @@ def dashboard():
         browser_loss_count=browser_loss_count,
         face_missing_count=face_missing_count,
         face_detected_count=face_detected_count,
-        session_status=latest_session["status"],
-        start_time=latest_session["start_time"],
-        end_time=latest_session["end_time"]
+        total_events=total_events,
+        browser_pct=browser_pct,
+        face_missing_pct=face_missing_pct,
+        face_detected_pct=face_detected_pct,
+        donut_style=donut_style,
+        integrity_score=integrity_score,
+        integrity_tagline=integrity_tagline,
+        status_text=status_text,
+        status_note=status_note,
+        status_class=status_class,
+        duration=duration,
+        formatted_start_time=formatted_start_time,
+        formatted_end_time=formatted_end_time,
+        current_date=datetime.now().strftime("%d %b %Y"),
+        current_time=datetime.now().strftime("%I:%M:%S %p"),
+        reset_dashboard=reset_dashboard
     )
+
+
+# ---------------- Reset Dashboard ----------------
+@app.route("/reset_dashboard", methods=["POST"])
+@login_required
+def reset_dashboard():
+    session["dashboard_reset"] = True
+    return redirect(url_for("dashboard"))
 
 
 # ---------------- Session Page ----------------
