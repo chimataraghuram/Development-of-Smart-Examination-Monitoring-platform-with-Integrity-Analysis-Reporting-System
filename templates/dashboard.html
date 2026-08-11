@@ -1,152 +1,1028 @@
-﻿<!DOCTYPE html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>Candidate Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ExamMonitor · Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #241255;
+            color: #f0f0ff;
+            min-height: 100vh;
+            padding: 20px 30px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .header .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .header .brand-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #7c4dff, #448aff);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #fff;
+        }
+        .header .brand-text {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #f0f0ff, #b8aaff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header .user-area {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .header .user-area .welcome {
+            font-size: 15px;
+            color: rgba(255,255,255,0.5);
+        }
+        .header .user-area .welcome span {
+            color: #b8aaff;
+            font-weight: 600;
+        }
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-btn {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 40px;
+            padding: 10px 20px;
+            color: #f0f0ff;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.3s;
+        }
+        .dropdown-btn:hover { background: rgba(255,255,255,0.1); }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 110%;
+            background: #1a1040;
+            min-width: 220px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.06);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            z-index: 10;
+            overflow: hidden;
+        }
+        .dropdown-content.show { display: block; }
+        .dropdown-content a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            transition: 0.2s;
+            cursor: pointer;
+        }
+        .dropdown-content a:hover { background: rgba(255,255,255,0.06); color: #fff; }
+        .dropdown-content a:last-child { border-bottom: none; color: #ff6b6b; }
+        .dropdown-content a:last-child:hover { background: rgba(255,107,107,0.1); }
+
+        .exam-controls {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.03);
+            padding: 16px 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.04);
+            align-items: center;
+        }
+        .exam-controls .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Inter', sans-serif;
+        }
+        .exam-controls .btn-start { background: #51cf66; color: #0b0e1a; }
+        .exam-controls .btn-start:hover { background: #69db7c; transform:scale(1.02); }
+        .exam-controls .btn-start:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+        .exam-controls .btn-toggle-pause { background: #fcc419; color: #0b0e1a; }
+        .exam-controls .btn-toggle-pause:hover { background: #ffd43b; transform:scale(1.02); }
+        .exam-controls .btn-toggle-pause:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+        .exam-controls .btn-toggle-pause.resume { background: #4dabf7; color: #0b0e1a; }
+        .exam-controls .btn-toggle-pause.resume:hover { background: #74c0fc; }
+        .exam-controls .btn-end { background: #ff6b6b; color: #fff; }
+        .exam-controls .btn-end:hover { background: #ff8787; transform:scale(1.02); }
+        .exam-controls .btn-end:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+
+        .integrity-score {
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            min-width: 140px;
+        }
+        .integrity-score .score-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.6);
+        }
+        .integrity-score .score-display {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+            font-size: 22px;
+            font-weight: 700;
+        }
+        .integrity-score .score-display #scoreValue { color: #51cf66; }
+        .integrity-score .score-display .score-label {
+            font-size: 14px;
+            font-weight: 400;
+            color: rgba(255,255,255,0.3);
+        }
+        .integrity-score .score-bar {
+            width: 1000px;
+            height: 6px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .integrity-score .score-bar .score-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .camera-section {
+            margin: 20px 0 30px 0;
+            background: rgba(255,255,255,0.02);
+            border-radius: 20px;
+            padding: 16px;
+            border: 1px solid rgba(255,255,255,0.04);
+            display: none;
+        }
+        .camera-section.active { display: block; }
+        .camera-section .camera-container {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
+        }
+        .camera-section .camera-container video {
+            width: 100%;
+            display: block;
+        }
+        .camera-section .camera-container canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .content-panels { flex: 1; }
+        .panel { display: none; animation: fadeSlide 0.3s ease; }
+        .panel.active { display: block; }
+        @keyframes fadeSlide {
+            0% { opacity:0; transform:translateY(12px); }
+            100% { opacity:1; transform:translateY(0); }
+        }
+        .panel h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: rgba(255,255,255,0.8);
+        }
+        .panel .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .panel .info-card {
+            background: rgba(255,255,255,0.04);
+            border-radius: 16px;
+            padding: 18px 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .panel .info-card .label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .panel .info-card .value {
+            font-size: 22px;
+            font-weight: 600;
+            margin-top: 6px;
+            color: #f0f0ff;
+        }
+        .panel .info-card .value.small { font-size: 16px; }
+        .table-wrap {
+            overflow-x: auto;
+            margin-top: 12px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        table { width:100%; border-collapse:collapse; font-size:14px; }
+        th {
+            text-align:left;
+            padding:14px 16px;
+            color:rgba(255,255,255,0.4);
+            font-weight:600;
+            border-bottom:1px solid rgba(255,255,255,0.04);
+        }
+        td {
+            padding:12px 16px;
+            border-bottom:1px solid rgba(255,255,255,0.03);
+            color:rgba(255,255,255,0.8);
+        }
+        tr:last-child td { border-bottom:none; }
+        .chart-container {
+            max-width: 400px;
+            margin: 20px auto;
+            background: rgba(255,255,255,0.02);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: rgba(20,12,50,0.92);
+            backdrop-filter: blur(16px);
+            padding: 14px 32px;
+            border-radius: 60px;
+            border: 1px solid rgba(255,255,255,0.06);
+            color: #fff;
+            font-weight: 500;
+            font-size: 14px;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+            z-index: 999;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.34,1.56,0.64,1);
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+            pointer-events: auto;
+        }
+        .toast.success { border-color: rgba(81,207,102,0.3); }
+        .toast.error { border-color: rgba(255,107,107,0.3); }
+        .toast i { font-size: 18px; }
+        .toast.success i { color: #51cf66; }
+        .toast.error i { color: #ff6b6b; }
+        @media (max-width: 768px) {
+            body { padding:16px; }
+            .header { flex-direction:column; align-items:stretch; gap:12px; }
+            .header .user-area { justify-content:space-between; }
+            .exam-controls { flex-wrap:wrap; }
+            .integrity-score { margin-left:0; width:100%; align-items:flex-start; }
+            .camera-section .camera-container { max-width: 100%; }
+        }
+    </style>
 </head>
 <body>
-
-<div class="dashboard-shell">
-    <header class="dashboard-header">
-        <div class="header-left">
-            <div class="brand-name">Exam Monitor</div>
-            <div class="brand-subtitle">Dashboard</div>
+    <!-- Header -->
+    <header class="header">
+        <div class="brand">
+            <div class="brand-icon"><i class="fas fa-graduation-cap"></i></div>
+            <div class="brand-text">ExamMonitor</div>
         </div>
-        <div class="header-right">
-            <div class="header-info">
-                <span>{{ current_date }}</span>
-                <span>{{ current_time }}</span>
+        <div class="user-area">
+            <span class="welcome">Welcome, <span id="userNameDisplay">User</span></span>
+            <div class="dropdown">
+                <button class="dropdown-btn" id="dropdownToggle">
+                    <i class="fas fa-bars"></i> Menu <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="dropdown-content" id="dropdownMenu">
+                    <a data-panel="candidate"><i class="fas fa-user"></i> Candidate Information</a>
+                    <a data-panel="session"><i class="fas fa-history"></i> Session Information</a>
+                    <a data-panel="stats"><i class="fas fa-chart-pie"></i> Monitoring Statistics</a>
+                    <a id="generateReportBtn"><i class="fas fa-file-alt"></i> Generate Report</a>
+                    <a id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
             </div>
-            <a href="/logout" class="logout-btn">Logout</a>
         </div>
     </header>
 
-    <section class="hero-panel">
-        <div>
-            <p class="hero-title">Dashboard</p>
-            <p class="hero-subtitle">Welcome, <strong>{{ candidate }}</strong></p>
-            <p class="hero-subtitle">Candidate ID: <strong>{{ candidate_id }}</strong></p>
-        </div>
-    </section>
-
-    <section class="dashboard-stats">
-        <article class="stat-card score-card">
-            <p class="stat-card-title">Integrity Score</p>
-            <div class="stat-card-value">{{ integrity_score }} / 1000</div>
-            <p class="stat-card-note">{{ integrity_tagline }}</p>
-        </article>
-        <article class="stat-card status-card">
-            <p class="stat-card-title">Status</p>
-            <span class="status-pill {{ status_class }}">{{ status_text }}</span>
-            <p class="stat-card-note">{{ status_note }}</p>
-        </article>
-        <article class="stat-card duration-card">
-            <p class="stat-card-title">Duration</p>
-            <div class="stat-card-value">{{ duration }}</div>
-            <p class="stat-card-note">Time elapsed</p>
-        </article>
-        <article class="stat-card event-card">
-            <p class="stat-card-title">Events</p>
-            <div class="stat-card-value">{{ total_events }}</div>
-            <p class="stat-card-note">Total events</p>
-        </article>
-    </section>
-
-    <section class="summary-section">
-        <div class="summary-card card">
-            <div class="section-heading">
-                <h3>Exam Summary</h3>
-            </div>
-            <div class="summary-list">
-                <div class="summary-item"><span>Start Time</span><strong>{{ formatted_start_time }}</strong></div>
-                <div class="summary-item"><span>End Time</span><strong>{{ formatted_end_time }}</strong></div>
-                <div class="summary-item"><span>Total Duration</span><strong>{{ duration }}</strong></div>
-                <div class="summary-item"><span>Status</span><strong>{{ status_text }}</strong></div>
-            </div>
-            <a href="/report" class="summary-action">View Details</a>
-        </div>
-
-        <div class="events-card panel card">
-            <div class="section-heading">
-                <h3>Events Overview</h3>
-            </div>
-            <div class="events-overview">
-                <div class="donut-wrapper">
-                    <div class="donut-chart" style="{{ donut_style }}"></div>
-                    <div class="donut-center">
-                        <span>{{ total_events }}</span>
-                        <small>Total</small>
-                    </div>
-                </div>
-                <div class="event-breakdown">
-                    <div class="breakdown-row">
-                        <span class="dot blue"></span>
-                        <div>
-                            <p>Browser Focus Lost</p>
-                            <strong>{{ browser_loss_count }}</strong>
-                        </div>
-                    </div>
-                    <div class="breakdown-row">
-                        <span class="dot red"></span>
-                        <div>
-                            <p>Face Not Detected</p>
-                            <strong>{{ face_missing_count }}</strong>
-                        </div>
-                    </div>
-                    <div class="breakdown-row">
-                        <span class="dot green"></span>
-                        <div>
-                            <p>Face Detected</p>
-                            <strong>{{ face_detected_count }}</strong>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="action-panel">
-        <form action="/start_exam" method="POST"><button type="submit" class="primary-btn">Start Exam</button></form>
-        <form action="/pause_exam" method="POST"><button type="submit" class="secondary-btn">Pause Exam</button></form>
-        <form action="/resume_exam" method="POST"><button type="submit" class="secondary-btn">Resume Exam</button></form>
-        <form action="/end_exam" method="POST"><button type="submit" class="danger-btn">End Exam</button></form>
-        <form action="/reset_dashboard" method="POST"><button type="submit" class="tertiary-btn">Reset Dashboard</button></form>
-        <a href="/report" class="report-btn">View Report</a>
-    </section>
-
-    <section class="monitoring-section">
-        <div class="monitor-card">
-            <p class="monitor-title">Camera Status</p>
-            <p class="monitor-value active">Active</p>
-            <p class="monitor-note">Monitoring video feed</p>
-        </div>
-        <div class="monitor-card">
-            <p class="monitor-title">Browser Status</p>
-            <p class="monitor-value active">Active</p>
-            <p class="monitor-note">Tracking browser activity</p>
-        </div>
-        <div class="monitor-card">
-            <p class="monitor-title">Connection Status</p>
-            <p class="monitor-value active">Connected</p>
-            <p class="monitor-note">Real-time monitoring active</p>
-        </div>
-    </section>
-
-    <section class="rules-section card">
-        <h3>Integrity Score Rules</h3>
-        <div class="rule-grid">
-            <div class="rule-card">
-                <p class="rule-title">Face Not Detected</p>
-                <p>-100 points for each occurrence</p>
-            </div>
-            <div class="rule-card">
-                <p class="rule-title">Browser Focus Lost</p>
-                <p>-100 points for each occurrence</p>
-            </div>
-        </div>
-        <p class="rule-note">Your integrity score starts at 1000 and decreases by 100 for each violation.</p>
-    </section>
+        <!-- Content Panels -->
+    <div class="content-panels">
+        <div class="panel active" id="panelCandidate">
+            <h2>Candidate Information</h2>
+            <div class="info-grid">
+                <div class="info-card"><div class="label">ID</div><div class="value" id="candId">-</div></div>
+                <div class="info-card"><div class="label">Name</div><div class="value" id="candName">-</div></div>
+                <div class="info-card"><div class="label">Session ID</div><div class="value" id="candSession">-</div></div>
+                <div class="info-card"><div class="label">Final Score</div><div class="value" id="candScore">0</div></div>
+                <div class="info-card"><div class="label">Remark</div><div class="value small" id="candRemark">Not yet started</div></div>
+                <div class="info-card">
+    <i class="fas fa-user-check"></i> Face Presence: <span id="faceRatio">-</span>%
 </div>
+            </div>
+        </div>
+        <div class="panel" id="panelSession">
+            <h2>Session Information</h2>
+            <div class="info-grid">
+                <div class="info-card"><div class="label">Session Duration</div><div class="value" id="sessionDuration">00:00</div></div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Event Type</th><th>Timestamp</th><th>Score Deducted</th></tr></thead>
+                    <tbody id="eventLogBody">
+                        <tr><td colspan="3" style="text-align:center;color:rgba(255,255,255,0.3);">No events yet</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="panel" id="panelStats">
+            <h2>Monitoring Statistics</h2>
+            <div class="info-grid">
+                <div class="info-card"><div class="label">Face Absence Count</div><div class="value" id="faceAbsenceCount">0</div></div>
+                <div class="info-card"><div class="label">Multiple Faces Count</div><div class="value" id="multipleFacesCount">0</div></div>
+                <div class="info-card"><div class="label">Total Suspicious Events</div><div class="value" id="totalSuspicious">0</div></div>
+                <div class="info-card"><div class="label">Session Duration</div><div class="value" id="statsDuration">00:00</div></div>
+            </div>
+            <div class="chart-container">
+                <canvas id="pieChart" width="300" height="300"></canvas>
+            </div>
+        </div>
+    </div>
 
+
+    <!-- Exam Controls -->
+    <div class="exam-controls">
+        <button class="btn btn-start" id="startExamBtn"><i class="fas fa-play"></i> Start Exam</button>
+        <button class="btn btn-toggle-pause" id="togglePauseBtn" disabled><i class="fas fa-pause"></i> Pause</button>
+        <button class="btn btn-end" id="endExamBtn" disabled><i class="fas fa-stop"></i> End Exam</button>
+        
+    </div>
+
+    <!-- Camera Preview -->
+    <div class="camera-section" id="cameraSection">
+        <div class="camera-container">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="overlayCanvas"></canvas>
+        </div>
+    </div>
+<div class="integrity-score">
+            <div class="score-header"><i class="fas fa-shield-alt"></i> Integrity Score</div>
+            <div class="score-display">
+                <span id="scoreValue">100</span>
+                <span class="score-label">/ 100</span>
+            </div>
+            <div class="score-bar">
+                <div id="scoreBar" class="score-bar-fill" style="width:100%; background: linear-gradient(90deg, #51cf66, #69db7c);"></div>
+            </div>
+            <div class="risk-label">
+    <i class="fas fa-tag"></i> Risk Level: <span id="riskLabel" style="font-weight:700;">-</span>
+</div>
+        </div>
+
+
+    <!-- Toast -->
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMsg">Ready</span>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // DOM refs
+            const userNameDisplay = document.getElementById('userNameDisplay');
+            const candId = document.getElementById('candId');
+            const candName = document.getElementById('candName');
+            const candSession = document.getElementById('candSession');
+            const candScore = document.getElementById('candScore');
+            const candRemark = document.getElementById('candRemark');
+            const sessionDurationEl = document.getElementById('sessionDuration');
+            const statsDurationEl = document.getElementById('statsDuration');
+            const eventLogBody = document.getElementById('eventLogBody');
+            const faceAbsenceCountEl = document.getElementById('faceAbsenceCount');
+            const multipleFacesCountEl = document.getElementById('multipleFacesCount');
+            const totalSuspiciousEl = document.getElementById('totalSuspicious');
+            const scoreValue = document.getElementById('scoreValue');
+            const scoreBar = document.getElementById('scoreBar');
+            const startBtn = document.getElementById('startExamBtn');
+            const togglePauseBtn = document.getElementById('togglePauseBtn');
+            const endBtn = document.getElementById('endExamBtn');
+            const video = document.getElementById('video');
+            const cameraSection = document.getElementById('cameraSection');
+            const overlayCanvas = document.getElementById('overlayCanvas');
+            const ctx = overlayCanvas.getContext('2d');
+            const dropdownToggle = document.getElementById('dropdownToggle');
+            const dropdownMenu = document.getElementById('dropdownMenu');
+            const generateReportBtn = document.getElementById('generateReportBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const pieCanvas = document.getElementById('pieChart');
+
+            // State
+            let currentUser = null;
+            let stats = null;
+            let allEvents = [];        // raw events from server
+            let sessionEvents = [];    // filtered for current session
+            let examRunning = false;
+            let examPaused = false;
+            let cameraStream = null;
+            let timerInterval = null;
+            let faceDetectionInterval = null;
+            let sessionStartTime = null;
+            let totalPausedDuration = 0;
+            let elapsedSeconds = 0;
+            let faceNotDetectedLogged = false;
+            let faceNotDetectedStart = null;
+            let faceAbsenceTriggered = false;
+            const DETECTION_INTERVAL = 2000;
+
+            // Helper functions
+            function apiFetch(url, options = {}) {
+                return fetch(url, {
+                    ...options,
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
+                });
+            }
+
+            function showToast(msg, type = 'success') {
+                toast.className = 'toast ' + type;
+                toastMsg.textContent = msg;
+                const icon = toast.querySelector('i');
+                icon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+                toast.classList.add('show');
+                clearTimeout(toast._timer);
+                toast._timer = setTimeout(() => toast.classList.remove('show'), 3500);
+            }
+
+            function formatTime(sec) {
+                const m = Math.floor(sec / 60);
+                const s = Math.floor(sec % 60);
+                return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            }
+
+            // Filter events for current session
+            function filterSessionEvents(events, startedAt, endedAt) {
+                if (!startedAt) return [];
+                const start = new Date(startedAt).getTime();
+                const end = endedAt ? new Date(endedAt).getTime() : Date.now();
+                return events.filter(ev => {
+                    const ts = new Date(ev.timestamp).getTime();
+                    return ts >= start && ts <= end;
+                });
+            }
+
+            // Load dashboard
+            function loadDashboard() {
+                apiFetch('/api/dashboard/student')
+                    .then(res => {
+                        if (!res.ok) {
+                            if (res.status === 401) window.location.href = '/login';
+                            throw new Error('Failed to load dashboard');
+                        }
+                        return res.json();
+                    })
+                    .then(data => {
+                        currentUser = data.user;
+                        stats = data.stats || {};
+                        allEvents = data.events || [];
+                        examRunning = data.exam_running || false;
+                        const integrityScore = data.integrity_score !== undefined ? data.integrity_score : 100;
+
+                        // ---- Filter events for current session ----
+                        const startedAt = stats.started_at;
+                        const endedAt = stats.ended_at;
+                        sessionEvents = filterSessionEvents(allEvents, startedAt, endedAt);
+
+                        // Compute session duration from stats timestamps
+                        let sessionDurationSec = 0;
+                        if (startedAt) {
+                            const start = new Date(startedAt).getTime();
+                            const end = endedAt ? new Date(endedAt).getTime() : Date.now();
+                            sessionDurationSec = Math.floor((end - start) / 1000);
+                        }
+
+                        // ---- Update UI ----
+                        userNameDisplay.textContent = currentUser ? currentUser.name : 'User';
+                        candId.textContent = currentUser ? (currentUser.student_id || 'N/A') : 'N/A';
+                        candName.textContent = currentUser ? currentUser.name : 'N/A';
+                        candSession.textContent = currentUser ? (currentUser.session_id || 'N/A') : 'N/A';
+                        document.getElementById('faceRatio').textContent = data.face_ratio !== undefined ? data.face_ratio : 'N/A';
+                        // Candidate final score / remark
+                        const finalScore = data.final_score;
+                        if (examRunning) {
+                            candScore.textContent = 'In Progress';
+                            candRemark.textContent = 'Exam ongoing';
+                        } else if (sessionEvents.length === 0 && !startedAt) {
+                            candScore.textContent = '0';
+                            candRemark.textContent = 'Not yet started';
+                        } else if (finalScore !== null && finalScore !== undefined && !examRunning) {
+                            candScore.textContent = finalScore;
+                            let remark = '';
+                            if (finalScore >= 90) remark = 'Excellent';
+                            else if (finalScore >= 70) remark = 'Good';
+                            else if (finalScore >= 50) remark = 'Fair';
+                            else remark = 'Needs Improvement';
+                            candRemark.textContent = remark;
+                        } else {
+                            candScore.textContent = '0';
+                            candRemark.textContent = 'No session';
+                        }
+                          // inside loadDashboard() after setting score
+                        document.getElementById('riskLabel').textContent = data.risk_label || 'N/A';
+                        
+                        // ---- Statistics from sessionEvents only ----
+                        let faceAbsenceCount = 0, multipleFacesCount = 0, totalSuspicious = 0;
+                        sessionEvents.forEach(ev => {
+                            if (ev.type === 'Face Absence') faceAbsenceCount++;
+                            else if (ev.type === 'Multiple Faces') multipleFacesCount++;
+                            // Count any event with deduction > 0 as suspicious
+                            if (ev.deducted > 0) totalSuspicious++;
+                        });
+                        faceAbsenceCountEl.textContent = faceAbsenceCount;
+                        multipleFacesCountEl.textContent = multipleFacesCount;
+                        totalSuspiciousEl.textContent = totalSuspicious;
+
+                        // Integrity score
+                        scoreValue.textContent = integrityScore;
+                        scoreBar.style.width = integrityScore + '%';
+                        if (integrityScore >= 70) {
+                            scoreBar.style.background = 'linear-gradient(90deg, #51cf66, #69db7c)';
+                        } else if (integrityScore >= 40) {
+                            scoreBar.style.background = 'linear-gradient(90deg, #fcc419, #ffd43b)';
+                        } else {
+                            scoreBar.style.background = 'linear-gradient(90deg, #ff6b6b, #ff8787)';
+                        }
+
+                        // Session duration display
+                        const durationFormatted = formatTime(sessionDurationSec);
+                        sessionDurationEl.textContent = durationFormatted;
+                        statsDurationEl.textContent = durationFormatted;
+                        elapsedSeconds = sessionDurationSec;
+
+                        // Event log and pie chart (using sessionEvents)
+                        renderEventLog(sessionEvents);
+                        drawPieChart(sessionEvents);
+
+                        // ---- Exam state handling ----
+                        if (examRunning) {
+                            // Start camera if not already
+                            if (!cameraStream) {
+                                startCamera().catch(err => console.warn('Auto-start camera failed:', err));
+                            }
+                            // Start timer if not running
+                            if (!timerInterval) {
+                                sessionStartTime = Date.now() - totalPausedDuration;
+                                startTimer();
+                            }
+                            startBtn.disabled = true;
+                            togglePauseBtn.disabled = false;
+                            togglePauseBtn.textContent = 'Pause';
+                            togglePauseBtn.classList.remove('resume');
+                            togglePauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                            endBtn.disabled = false;
+                        } else {
+                            // Exam not running – stop everything
+                            if (cameraStream) stopCamera();
+                            if (timerInterval) {
+                                clearInterval(timerInterval);
+                                timerInterval = null;
+                            }
+                            startBtn.disabled = false;
+                            togglePauseBtn.disabled = true;
+                            togglePauseBtn.textContent = 'Pause';
+                            togglePauseBtn.classList.remove('resume');
+                            togglePauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                            endBtn.disabled = true;
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        showToast('Error loading dashboard', 'error');
+                    });
+            }
+
+            function renderEventLog(eventsArray) {
+                if (!eventsArray || eventsArray.length === 0) {
+                    eventLogBody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:rgba(255,255,255,0.3);">No events in this session</td></tr>`;
+                    return;
+                }
+                let html = '';
+                eventsArray.slice().reverse().forEach(ev => {
+                    html += `<tr>
+                        <td>${ev.type}</td>
+                        <td>${ev.timestamp}</td>
+                        <td>${ev.deducted || 0}</td>
+                    </tr>`;
+                });
+                eventLogBody.innerHTML = html;
+            }
+
+            function drawPieChart(eventsArray) {
+                const ctx = pieCanvas.getContext('2d');
+                const w = pieCanvas.width;
+                const h = pieCanvas.height;
+                const radius = Math.min(w, h) / 2 - 20;
+                const cx = w / 2;
+                const cy = h / 2;
+                ctx.clearRect(0, 0, w, h);
+
+                const counts = {
+                    'Face Absence': 0,
+                    'Multiple Faces': 0,
+                    'Browser Focus Loss': 0,
+                    'Tab Switching': 0,
+                    'Face Not Detected': 0,
+                };
+                (eventsArray || []).forEach(ev => {
+                    if (ev.type === 'Face Absence') counts['Face Absence']++;
+                    else if (ev.type === 'Multiple Faces') counts['Multiple Faces']++;
+                    else if (ev.type === 'Browser Focus Loss') counts['Browser Focus Loss']++;
+                    else if (ev.type === 'Tab Switching') counts['Tab Switching']++;
+                    else if (ev.type === 'Face Not Detected') counts['Face Not Detected']++;
+                });
+
+                const labels = Object.keys(counts);
+                const values = Object.values(counts);
+                const total = values.reduce((a, b) => a + b, 0);
+                if (total === 0) {
+                    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+                    ctx.font = '16px Inter';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('No data', cx, cy);
+                    return;
+                }
+
+                const colors = ['#ff6b6b', '#fcc419', '#4dabf7', '#ff922b', '#845ef7'];
+                let startAngle = -Math.PI / 2;
+                values.forEach((val, i) => {
+                    const sliceAngle = (val / total) * 2 * Math.PI;
+                    ctx.beginPath();
+                    ctx.moveTo(cx, cy);
+                    ctx.arc(cx, cy, radius, startAngle, startAngle + sliceAngle);
+                    ctx.closePath();
+                    ctx.fillStyle = colors[i % colors.length];
+                    ctx.fill();
+                    const midAngle = startAngle + sliceAngle / 2;
+                    const labelRadius = radius * 0.65;
+                    const x = cx + Math.cos(midAngle) * labelRadius;
+                    const y = cy + Math.sin(midAngle) * labelRadius;
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '12px Inter';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(val, x, y);
+                    startAngle += sliceAngle;
+                });
+                let legendY = h - 20;
+                ctx.font = '11px Inter';
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                let legendX = 10;
+                labels.forEach((label, i) => {
+                    ctx.fillStyle = colors[i % colors.length];
+                    ctx.fillRect(legendX, legendY - 6, 12, 12);
+                    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                    ctx.fillText(`${label} (${counts[label]})`, legendX + 16, legendY);
+                    legendX += ctx.measureText(`${label} (${counts[label]})`).width + 30;
+                });
+            }
+
+            function logEventToServer(type, deducted, screenshotBase64 = null) {
+                const payload = { type, deducted };
+                if (screenshotBase64) payload.screenshot = screenshotBase64;
+                return apiFetch('/api/events', {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    loadDashboard();  // refresh after logging
+                    return data;
+                });
+            }
+
+            function captureScreenshot() {
+                if (!cameraStream) return null;
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                const c = canvas.getContext('2d');
+                c.drawImage(video, 0, 0, canvas.width, canvas.height);
+                return canvas.toDataURL('image/png');
+            }
+
+            // --- Face detection handlers ---
+            function handleNoFace() {
+                if (!faceNotDetectedLogged) {
+                    faceNotDetectedLogged = true;
+                    const screenshot = captureScreenshot();
+                    logEventToServer('Face Not Detected', 2, screenshot);
+                }
+                if (faceNotDetectedStart === null) {
+                    faceNotDetectedStart = Date.now();
+                } else {
+                    const elapsed = (Date.now() - faceNotDetectedStart) / 1000;
+                    if (elapsed > 5 && !faceAbsenceTriggered) {
+                        faceAbsenceTriggered = true;
+                        const screenshot = captureScreenshot();
+                        logEventToServer('Face Absence', 5, screenshot);
+                    }
+                }
+                
+            }
+
+            function handleSingleFace() {
+                faceNotDetectedLogged = false;
+                faceNotDetectedStart = null;
+                faceAbsenceTriggered = false;
+                
+            }
+
+            function handleMultipleFaces(faceCount) {
+                const screenshot = captureScreenshot();
+                logEventToServer('Multiple Faces', 7, screenshot);
+                faceNotDetectedLogged = false;
+                faceNotDetectedStart = null;
+                faceAbsenceTriggered = false;
+               
+            }
+
+            // --- Server-side face detection loop ---
+            function detectFacesOnServer() {
+                if (!examRunning || examPaused || !cameraStream) return;
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                const c = canvas.getContext('2d');
+                c.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = canvas.toDataURL('image/jpeg', 0.8);
+
+                apiFetch('/api/detect_faces', {
+                    method: 'POST',
+                    body: JSON.stringify({ image: imageData })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        console.warn('Detection error:', data.error);
+                        return;
+                    }
+                    const faceCount = data.face_count || 0;
+                    const boxes = data.boxes || [];
+                    ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+                    const scaleX = overlayCanvas.width / video.videoWidth;
+                    const scaleY = overlayCanvas.height / video.videoHeight;
+                    
+                    if (faceCount === 0) {
+                        handleNoFace();
+                    } else if (faceCount > 1) {
+                        handleMultipleFaces(faceCount);
+                    } else {
+                        handleSingleFace();
+                    }
+                })
+                .catch(err => console.warn('Detection request failed:', err));
+            }
+
+            // Timer
+            function startTimer() {
+                if (timerInterval) clearInterval(timerInterval);
+                if (!sessionStartTime) {
+                    sessionStartTime = Date.now() - totalPausedDuration;
+                }
+                timerInterval = setInterval(() => {
+                    if (examRunning && !examPaused) {
+                        const now = Date.now();
+                        elapsedSeconds = (now - sessionStartTime - totalPausedDuration) / 1000;
+                        updateDurationDisplay();
+                    }
+                }, 1000);
+            }
+
+            function updateDurationDisplay() {
+                const sec = Math.floor(elapsedSeconds);
+                const formatted = formatTime(sec);
+                sessionDurationEl.textContent = formatted;
+                statsDurationEl.textContent = formatted;
+            }
+
+            // Camera
+            function startCamera() {
+                return navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(stream => {
+                        cameraStream = stream;
+                        video.srcObject = stream;
+                        video.play();
+                        video.onloadedmetadata = () => {
+                            overlayCanvas.width = video.videoWidth;
+                            overlayCanvas.height = video.videoHeight;
+                        };
+                        cameraSection.classList.add('active');
+                        if (faceDetectionInterval) clearInterval(faceDetectionInterval);
+                        faceDetectionInterval = setInterval(detectFacesOnServer, DETECTION_INTERVAL);
+                        return stream;
+                    });
+            }
+
+            function stopCamera() {
+                if (cameraStream) {
+                    cameraStream.getTracks().forEach(track => track.stop());
+                    cameraStream = null;
+                    video.srcObject = null;
+                    cameraSection.classList.remove('active');
+                }
+                if (faceDetectionInterval) {
+                    clearInterval(faceDetectionInterval);
+                    faceDetectionInterval = null;
+                }
+                ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+            }
+
+            // Exam actions
+            function startExam() {
+                if (examRunning) return;
+                apiFetch('/api/exam/start', { method: 'POST' })
+                    .then(res => {
+                        if (!res.ok) throw new Error('Failed to start exam');
+                        return res.json();
+                    })
+                    .then(() => {
+                        startCamera().then(() => {
+                            examRunning = true;
+                            examPaused = false;
+                            startBtn.disabled = true;
+                            togglePauseBtn.disabled = false;
+                            togglePauseBtn.textContent = 'Pause';
+                            togglePauseBtn.classList.remove('resume');
+                            togglePauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                            endBtn.disabled = false;
+                            totalPausedDuration = 0;
+                            sessionStartTime = Date.now();
+                            startTimer();
+                            showToast('Exam started!', 'success');
+                            loadDashboard();
+                        }).catch(err => {
+                            showToast('Camera access denied: ' + err.message, 'error');
+                        });
+                    })
+                    .catch(err => showToast(err.message, 'error'));
+            }
+
+            function togglePause() {
+                if (!examRunning) return;
+                if (examPaused) {
+                    startCamera().then(() => {
+                        examPaused = false;
+                        togglePauseBtn.textContent = 'Pause';
+                        togglePauseBtn.classList.remove('resume');
+                        togglePauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                        showToast('Exam resumed', 'success');
+                    }).catch(err => {
+                        showToast('Failed to resume camera: ' + err.message, 'error');
+                    });
+                } else {
+                    stopCamera();
+                    examPaused = true;
+                    togglePauseBtn.textContent = 'Resume';
+                    togglePauseBtn.classList.add('resume');
+                    togglePauseBtn.innerHTML = '<i class="fas fa-play"></i> Resume';
+                    totalPausedDuration += (Date.now() - sessionStartTime - totalPausedDuration) - elapsedSeconds * 1000;
+                    showToast('Exam paused', 'success');
+                }
+            }
+
+            function endExam() {
+                if (!examRunning) return;
+                apiFetch('/api/exam/end', { method: 'POST' })
+                    .then(res => {
+                        if (!res.ok) throw new Error('Failed to end exam');
+                        return res.json();
+                    })
+                    .then(() => {
+                        examRunning = false;
+                        examPaused = false;
+                        stopCamera();
+                        if (timerInterval) {
+                            clearInterval(timerInterval);
+                            timerInterval = null;
+                        }
+                        startBtn.disabled = false;
+                        togglePauseBtn.disabled = true;
+                        togglePauseBtn.textContent = 'Pause';
+                        togglePauseBtn.classList.remove('resume');
+                        togglePauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                        endBtn.disabled = true;
+                        loadDashboard();
+                        showToast('Exam ended.', 'success');
+                    })
+                    .catch(err => showToast(err.message, 'error'));
+            }
+
+            // Focus handlers
+            function setupFocusHandlers() {
+                window.addEventListener('blur', () => {
+                    if (!examRunning || examPaused) return;
+                    logEventToServer('Browser Focus Loss', 3, null);
+                });
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden && examRunning && !examPaused) {
+                        logEventToServer('Tab Switching', 5, null);
+                    }
+                });
+            }
+
+            function logout() {
+                if (examRunning) {
+                    if (!confirm('Exam is running. Logout will lose progress. Continue?')) return;
+                }
+                apiFetch('/api/logout', { method: 'POST' })
+                    .then(() => window.location.href = '/login')
+                    .catch(() => window.location.href = '/login');
+            }
+
+            function generateReport() {
+                window.location.href = '/report';
+            }
+
+            // Event listeners
+            dropdownToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                dropdownMenu.classList.toggle('show');
+            });
+            document.addEventListener('click', function() {
+                dropdownMenu.classList.remove('show');
+            });
+
+            document.querySelectorAll('.dropdown-content a[data-panel]').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const panel = this.dataset.panel;
+                    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                    document.getElementById('panel' + panel.charAt(0).toUpperCase() + panel.slice(1)).classList.add('active');
+                    dropdownMenu.classList.remove('show');
+                });
+            });
+
+            startBtn.addEventListener('click', startExam);
+            togglePauseBtn.addEventListener('click', togglePause);
+            endBtn.addEventListener('click', endExam);
+            logoutBtn.addEventListener('click', logout);
+            generateReportBtn.addEventListener('click', generateReport);
+
+            // Init
+            loadDashboard();
+            setupFocusHandlers();
+        })();
+    </script>
 </body>
 </html>

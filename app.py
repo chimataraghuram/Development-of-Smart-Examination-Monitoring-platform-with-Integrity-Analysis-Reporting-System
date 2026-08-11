@@ -1,631 +1,419 @@
-from flask import Flask, render_template, request, redirect, session, url_for
-import sqlite3
-import re
-import cv2
 import os
-import subprocess
-from pathlib import Path
+import base64
+import hashlib
+import sqlite3
+import logging
+from flask import Flask, request, jsonify, send_from_directory, session, redirect, url_for, render_template
+from flask_cors import CORS
+from functools import wraps
 from datetime import datetime
-from utils.integrity_score import calculate_integrity_score
+import cv2
+import numpy as np
+import database as db
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-app.secret_key = "infosys_exam_monitoring"
+app.secret_key = 'exam'   # Keep this consistent
+CORS(app, supports_credentials=True)
 
+app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'evidence')
+# Session configuration – critical for local development
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE='Lax',
+    SESSION_COOKIE_SECURE=False,   # False for HTTP (localhost)
+    SESSION_COOKIE_PATH='/',
+    PERMANENT_SESSION_LIFETIME=3600,  # 1 hour
+)
 
-def login_required(view_func):
-    def wrapper(*args, **kwargs):
-        if not session.get("candidate_id"):
-            return redirect(url_for("login_page"))
-        return view_func(*args, **kwargs)
-    wrapper.__name__ = view_func.__name__
-    return wrapper
+# Configuration
+UPLOAD_FOLDER = 'evidence'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-def capture_photo(candidate_id):
+# Initialize database
+db.init_db()
 
-    if not os.path.exists("photos"):
-        os.makedirs("photos")
+# ---------- Helper functions ----------
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            logger.warning("Session missing, redirecting to login")
+            return redirect(url_for('login_page'))
+        logger.debug(f"Session valid: user_id={session['user_id']}")
+        return f(*args, **kwargs)
+    return decorated_function
 
-    camera = cv2.VideoCapture(0)
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login_page'))
+        user = db.get_user_by_id(session['user_id'])
+        if not user or user['role'] != 'admin':
+            return jsonify({'error': 'Admin access required'}), 403
+        return f(*args, **kwargs)
+    return decorated_function
 
-    if not camera.isOpened():
-        return None
+# ---------- Serve HTML pages using render_template ----------
+@app.route('/')
+def index():
+    return redirect(url_for('login_page'))
 
-    while True:
+@app.route('/register')
+@app.route('/register.html')
+def register_page():
+    return render_template('register.html')
 
-        ret, frame = camera.read()
-
-        cv2.imshow("Capture Photo", frame)
-
-        key = cv2.waitKey(1)
-
-        if key == ord('c'):
-
-            photo_path = f"photos/{candidate_id}.jpg"
-
-            cv2.imwrite(photo_path, frame)
-
-            break
-
-    camera.release()
-    cv2.destroyAllWindows()
-
-    return photo_path
-
-
-# ---------------- Home ----------------
-@app.route("/")
-def home():
-    if session.get("candidate_id"):
-        return redirect(url_for("dashboard"))
-    return render_template("register.html")
-
-
-# ---------------- Candidate Registration ----------------
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    if request.method == "GET":
-        if session.get("candidate_id"):
-            return redirect(url_for("dashboard"))
-        return render_template("register.html")
-
-
-    candidate_id = request.form["candidate_id"].strip()
-    name = request.form["name"].strip()
-    email = request.form["email"].strip()
-    password = request.form["password"]
-
-    # ---------- Validation ----------
-
-    # Empty Fields
-    if candidate_id == "" or name == "" or email == "" or password == "":
-        return "All fields are required!"
-
-    # Email Validation
-    email_pattern = r'^[\w\.-]+@[\w\.-]+\.\w+$'
-
-    if not re.match(email_pattern, email):
-        return "Invalid Email Format!"
-
-    # Password Validation
-    if password == "":
-        return "Password cannot be empty!"
-    # ---------- Database ----------
-    try:
-        with sqlite3.connect("database/exam.db") as connection:
-            cursor = connection.cursor()
-
-            # Check Duplicate Email
-            cursor.execute(
-                "SELECT * FROM Candidate WHERE email=?",
-                (email,)
-            )
-
-            user = cursor.fetchone()
-
-            if user:
-                return "Email already registered! Please use another email."
-
-            # Do not capture photo at registration time; use placeholder
-            photo_path = ""
-
-            # Debug prints to confirm values before insert
-            print(candidate_id)
-            print(name)
-            print(email)
-            print(photo_path)
-
-            # Insert Candidate (photo will be captured on Start Exam)
-            cursor.execute("""
-                INSERT INTO Candidate(candidate_id, name, email, password, photo_path)
-                VALUES (?, ?, ?, ?, ?)
-            """, (candidate_id, name, email, password, photo_path))
-
-            # Commit explicitly
-            connection.commit()
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return f"Error: {e}"
-
-    # Redirect to Login Page
-    return redirect("/login")
-
-
-# ---------------- Login Page ----------------
-@app.route("/login")
+@app.route('/login')
+@app.route('/login.html')
 def login_page():
-    if session.get("candidate_id"):
-        return redirect(url_for("dashboard"))
-    return render_template("login.html")
+    return render_template('login.html')
 
-
-# ---------------- Login ----------------
-@app.route("/login", methods=["POST"])
-def login():
-
-    email = request.form["email"]
-    password = request.form["password"]
-
-    try:
-        with sqlite3.connect("database/exam.db") as connection:
-            cursor = connection.cursor()
-            cursor.execute(
-                "SELECT candidate_id, name FROM Candidate WHERE email=? AND password=?",
-                (email, password)
-            )
-            user = cursor.fetchone()
-    except Exception as e:
-        print("Error logging in:", e)
-        return "Login failed. Please try again."
-
-    if user:
-        # store candidate_id and name in session for later use
-        session['candidate_id'] = user[0]
-        session['candidate_name'] = user[1]
-        return redirect("/dashboard")
-    else:
-        return "Invalid Email or Password"
-
-
-# ---------------- Candidate Dashboard ----------------
-@app.route("/dashboard")
+@app.route('/dashboard')
+@app.route('/dashboard.html')
 @login_required
-def dashboard():
-    candidate_id = session["candidate_id"]
-    latest_session = {
-        "start_time": "N/A",
-        "end_time": "N/A",
-        "status": "No Session"
-    }
-    browser_loss_count = 0
-    face_missing_count = 0
-    face_detected_count = 0
-    total_events = 0
-    integrity_score = 0
-    integrity_tagline = "No score yet"
-    donut_style = "background: #e2e8f0;"
+def dashboard_page():
+    return render_template('dashboard.html')
 
-    reset_dashboard = session.pop("dashboard_reset", False)
+@app.route('/admin_dashboard')
+@app.route('/admin_dashboard.html')
+@admin_required
+def admin_dashboard_page():
+    return render_template('admin_dashboard.html')
+
+@app.route('/report')
+@app.route('/report.html')
+@login_required
+def report_page():
+    return render_template('report.html')
+
+# Load Haar cascade once
+CASCADE_PATH = 'haarcascade_frontalface_default.xml'
+face_cascade = cv2.CascadeClassifier(CASCADE_PATH)
+
+@app.route('/api/detect_faces', methods=['POST'])
+def detect_faces():
     try:
-        with sqlite3.connect("database/exam.db") as connection:
-            cursor = connection.cursor()
-            cursor.execute("""
-                SELECT start_time, end_time, status
-                FROM Session
-                WHERE candidate_id = ?
-                ORDER BY session_id DESC
-                LIMIT 1
-            """, (candidate_id,))
-            session_row = cursor.fetchone()
-            if session_row:
-                latest_session["start_time"] = session_row[0] or "N/A"
-                latest_session["end_time"] = session_row[1] or "N/A"
-                latest_session["status"] = session_row[2] or "N/A"
+        data = request.json
+        image_b64 = data.get('image')
+        if not image_b64:
+            return jsonify({'error': 'No image provided'}), 400
 
-            if reset_dashboard:
-                browser_loss_count = 0
-                face_missing_count = 0
-                face_detected_count = 0
-                latest_session = {"start_time": "N/A", "end_time": "N/A", "status": "No Session"}
-            else:
-                event_filter = ""
-                event_params = (candidate_id,)
-                if latest_session["start_time"] and latest_session["start_time"] != "N/A":
-                    event_filter = "AND timestamp >= ?"
-                    event_params = (candidate_id, latest_session["start_time"])
+        if ',' in image_b64:
+            image_b64 = image_b64.split(',')[1]
+        image_data = base64.b64decode(image_b64)
+        np_arr = np.frombuffer(image_data, np.uint8)
+        img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
-                cursor.execute(f"""
-                    SELECT COUNT(*)
-                    FROM EventLog
-                    WHERE candidate_id = ? AND event_type = 'Browser Focus Lost'
-                    {event_filter}
-                """, event_params)
-                browser_loss_count = cursor.fetchone()[0] or 0
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=3, minSize=(30, 30))
 
-                cursor.execute(f"""
-                    SELECT COUNT(*)
-                    FROM EventLog
-                    WHERE candidate_id = ? AND event_type = 'Face Not Detected'
-                    {event_filter}
-                """, event_params)
-                face_missing_count = cursor.fetchone()[0] or 0
-
-                cursor.execute(f"""
-                    SELECT COUNT(*)
-                    FROM EventLog
-                    WHERE candidate_id = ? AND event_type = 'Face Detected'
-                    {event_filter}
-                """, event_params)
-                face_detected_count = cursor.fetchone()[0] or 0
-    except Exception as e:
-        print("Error loading dashboard summary:", e)
-
-    total_events = browser_loss_count + face_missing_count + face_detected_count
-
-    def format_time(value):
-        if not value or value == "N/A":
-            return "—"
-        try:
-            dt = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
-            return dt.strftime("%d %b %Y %I:%M:%S %p")
-        except Exception:
-            return value
-
-    def compute_duration(start_value, end_value):
-        if not start_value or start_value == "N/A":
-            return "00:00:00"
-        try:
-            start_dt = datetime.strptime(start_value, "%Y-%m-%d %H:%M:%S")
-            if end_value and end_value != "N/A":
-                end_dt = datetime.strptime(end_value, "%Y-%m-%d %H:%M:%S")
-            else:
-                end_dt = datetime.now()
-            delta = end_dt - start_dt
-            seconds = max(int(delta.total_seconds()), 0)
-            hours, remainder = divmod(seconds, 3600)
-            minutes, seconds = divmod(remainder, 60)
-            return f"{hours:02}:{minutes:02}:{seconds:02}"
-        except Exception:
-            return "00:00:00"
-
-    formatted_start_time = format_time(latest_session["start_time"])
-    formatted_end_time = format_time(latest_session["end_time"])
-    duration = compute_duration(latest_session["start_time"], latest_session["end_time"])
-
-    session_status = latest_session["status"]
-    if session_status in ("Started", "Resumed"):
-        status_text = "Active"
-        status_note = "Exam in progress"
-        status_class = "active"
-    elif session_status == "Paused":
-        status_text = "Paused"
-        status_note = "Exam paused"
-        status_class = "paused"
-    elif session_status == "Ended":
-        status_text = "Completed"
-        status_note = "Exam finished"
-        status_class = "completed"
-    else:
-        status_text = "No session"
-        status_note = "No active exam"
-        status_class = "inactive"
-
-    browser_pct = 0
-    face_missing_pct = 0
-    face_detected_pct = 0
-    if total_events > 0:
-        browser_pct = round(browser_loss_count * 100 / total_events, 1)
-        face_missing_pct = round(face_missing_count * 100 / total_events, 1)
-        face_detected_pct = round(face_detected_count * 100 / total_events, 1)
-        start = 0
-        mid = browser_pct
-        end = browser_pct + face_missing_pct
-        donut_style = (
-            f"background: conic-gradient(#2563eb 0% {mid}%, #ef4444 {mid}% {end}%, #22c55e {end}% 100%);"
-        )
-
-    try:
-        result = calculate_integrity_score(candidate_id)
-        integrity_score = result.get("score", 0)
-        if reset_dashboard:
-            integrity_score = 1000
-            integrity_tagline = "Perfect Score"
-        elif integrity_score == 1000:
-            integrity_tagline = "Perfect Score"
+        # Robust conversion to list
+        if isinstance(faces, np.ndarray):
+            boxes = faces.tolist()
         else:
-            integrity_tagline = "Integrity review recommended"
+            # faces is likely a tuple of arrays (or empty tuple)
+            boxes = [list(face) for face in faces] if faces else []
+
+        return jsonify({'face_count': len(faces), 'boxes': boxes}), 200
     except Exception as e:
-        print("Error calculating integrity score:", e)
-        integrity_score = 1000 if reset_dashboard else 0
-        integrity_tagline = "Perfect Score" if reset_dashboard else "Unable to load score"
+        print('Face detection error:', e)
+        return jsonify({'error': str(e)}), 500
+    
+# ---------- Authentication ----------
+@app.route('/api/register', methods=['POST'])
+def register():
+    data = request.json
+    logger.debug(f"Registration data: {data}")
+    
+    role = data.get('role')
+    name = data.get('name')
+    email = data.get('email')
+    password = data.get('password')
 
-    if reset_dashboard:
-        donut_style = "background: #e2e8f0;"
-        total_events = 0
-        status_text = "No session"
-        status_note = "No active exam"
-        status_class = "inactive"
-        duration = "00:00:00"
-        formatted_start_time = "—"
-        formatted_end_time = "—"
+    if not all([role, name, email, password]):
+        return jsonify({'error': 'Missing required fields'}), 400
+    if not email.endswith('@gmail.com'):
+        return jsonify({'error': 'Email must be @gmail.com'}), 400
+    if len(password) != 6:
+        return jsonify({'error': 'Password must be exactly 6 characters'}), 400
 
-    return render_template(
-        "dashboard.html",
-        candidate=session["candidate_name"],
-        candidate_id=session["candidate_id"],
-        browser_loss_count=browser_loss_count,
-        face_missing_count=face_missing_count,
-        face_detected_count=face_detected_count,
-        total_events=total_events,
-        browser_pct=browser_pct,
-        face_missing_pct=face_missing_pct,
-        face_detected_pct=face_detected_pct,
-        donut_style=donut_style,
-        integrity_score=integrity_score,
-        integrity_tagline=integrity_tagline,
-        status_text=status_text,
-        status_note=status_note,
-        status_class=status_class,
-        duration=duration,
-        formatted_start_time=formatted_start_time,
-        formatted_end_time=formatted_end_time,
-        current_date=datetime.now().strftime("%d %b %Y"),
-        current_time=datetime.now().strftime("%I:%M:%S %p"),
-        reset_dashboard=reset_dashboard
-    )
-
-
-# ---------------- Reset Dashboard ----------------
-@app.route("/reset_dashboard", methods=["POST"])
-@login_required
-def reset_dashboard():
-    session["dashboard_reset"] = True
-    return redirect(url_for("dashboard"))
-
-
-# ---------------- Session Page ----------------
-@app.route("/session")
-@login_required
-def session_page():
-    return render_template(
-        "session.html",
-        candidate=session["candidate_name"]
-    )
-
-
-# ---------------- Exam Page ----------------
-@app.route("/exam")
-@login_required
-def exam():
-    return render_template(
-        "exam.html",
-        candidate=session["candidate_name"]
-    )
-
-# ---------------- Start Exam ----------------
-@app.route("/start_exam", methods=["POST"])
-@login_required
-def start_exam():
-    candidate_id = session["candidate_id"]
-    start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # Check email exists
+    if db.get_user_by_email(email):
+        return jsonify({'error': 'Email already registered'}), 400
 
     try:
-        with sqlite3.connect("database/exam.db") as connection:
-            cursor = connection.cursor()
-            cursor.execute("""
-                INSERT INTO Session(candidate_id, start_time, status)
-                VALUES (?, ?, ?)
-            """, (candidate_id, start_time, "Started"))
+        if role == 'student':
+            student_id = data.get('student_id')
+            session_id = data.get('session_id')
+            if not student_id or not session_id:
+                return jsonify({'error': 'Student ID and Session ID required'}), 400
+            if not student_id.isdigit() or len(student_id) != 4:
+                return jsonify({'error': 'Student ID must be exactly 4 numbers'}), 400
+            if not (len(session_id) == 6 and session_id[:4].isalpha() and session_id[4:].isdigit()):
+                return jsonify({'error': 'Session ID must be 4 letters + 2 numbers'}), 400
+
+            user_id = db.create_user(email, password, name, role, student_id, session_id)
+            logger.info(f"Created student with ID: {user_id}")
+            # Auto-login
+            session['user_id'] = user_id
+            session['role'] = role
+            session['name'] = name
+            logger.info(f"Session set after registration: {dict(session)}")
+            return jsonify({
+                'message': 'Student registered successfully',
+                'role': 'student',
+                'user_id': user_id,
+                'auto_login': True
+            }), 201
+
+        elif role == 'admin':
+            user_id = db.create_user(email, password, name, role)
+            logger.info(f"Created admin with ID: {user_id}")
+            session['user_id'] = user_id
+            session['role'] = role
+            session['name'] = name
+            logger.info(f"Session set after registration: {dict(session)}")
+            return jsonify({
+                'message': 'Admin registered successfully',
+                'role': 'admin',
+                'user_id': user_id,
+                'auto_login': True
+            }), 201
+
+        else:
+            return jsonify({'error': 'Invalid role'}), 400
+
+    except sqlite3.IntegrityError as e:
+        logger.error(f"IntegrityError: {e}")
+        return jsonify({'error': 'Student ID or email already used'}), 400
     except Exception as e:
-        print("Error starting exam:", e)
-        return "Failed to start exam. Please try again."
+        logger.error(f"Registration error: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
 
-    # mark exam as running so the face detection subprocess knows to continue
-    try:
-        project_dir = Path(__file__).resolve().parent
-        status_path = project_dir / "exam_status.txt"
-        with open(status_path, "w", encoding="utf-8") as f:
-            f.write("RUNNING")
-    except Exception as e:
-        print("Error writing exam status file:", e)
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.json
+    email = data.get('email')
+    password = data.get('password')
+    logger.debug(f"Login attempt: email={email}")
 
-    # start face detection process for this candidate (use full script path)
-    try:
-        project_dir = Path(__file__).resolve().parent
+    if not email or not password:
+        return jsonify({'error': 'Email and password required'}), 400
+    if not email.endswith('@gmail.com'):
+        return jsonify({'error': 'Email must be @gmail.com'}), 400
+    if len(password) != 6:
+        return jsonify({'error': 'Password must be exactly 6 characters'}), 400
 
-        face_detection_script = (
-            project_dir /
-            "scripts" /
-            "face_detection.py"
-        )
+    user = db.get_user_by_email(email)
+    if user['password'] != password: 
+        logger.warning(f"Invalid credentials for {email}")
+        return jsonify({'error': 'Invalid credentials'}), 401
 
-        subprocess.Popen([
-            "python",
-            str(face_detection_script),
-            "--candidate-id",
-            str(candidate_id)
-        ])
-    except Exception as e:
-        print("Error launching face detection:", e)
+    session['user_id'] = user['id']
+    session['role'] = user['role']
+    session['name'] = user['name']
+    logger.info(f"Session after login: {dict(session)}")
 
-    return redirect("/exam")
+    return jsonify({
+        'id': user['id'],
+        'email': user['email'],
+        'name': user['name'],
+        'role': user['role'],
+        'student_id': user['student_id'],
+        'session_id': user['session_id']
+    }), 200
 
-# ---------------- Pause Exam ----------------
-@app.route("/pause_exam", methods=["POST"])
-@login_required
-def pause_exam():
-    try:
-        with sqlite3.connect("database/exam.db") as connection:
-            cursor = connection.cursor()
-            cursor.execute("""
-                UPDATE Session
-                SET status=?
-                WHERE session_id=(SELECT MAX(session_id) FROM Session)
-            """, ("Paused",))
-    except Exception as e:
-        print("Error pausing exam:", e)
-        return "Failed to pause exam. Please try again."
-
-    return "Exam Paused Successfully!"
-
-# ---------------- Resume Exam ----------------
-@app.route("/resume_exam", methods=["POST"])
-@login_required
-def resume_exam():
-    try:
-        with sqlite3.connect("database/exam.db") as connection:
-            cursor = connection.cursor()
-            cursor.execute("""
-                UPDATE Session
-                SET status=?
-                WHERE session_id=(SELECT MAX(session_id) FROM Session)
-            """, ("Resumed",))
-    except Exception as e:
-        print("Error resuming exam:", e)
-        return "Failed to resume exam. Please try again."
-
-    return "Exam Resumed Successfully!"
-
-# ---------------- End Exam ----------------
-@app.route("/end_exam", methods=["POST"])
-@login_required
-def end_exam():
-    end_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    try:
-        with sqlite3.connect("database/exam.db") as connection:
-            cursor = connection.cursor()
-            cursor.execute("""
-                UPDATE Session
-                SET end_time=?, status=?
-                WHERE session_id=(SELECT MAX(session_id) FROM Session)
-            """, (end_time, "Ended"))
-    except Exception as e:
-        print("Error ending exam:", e)
-        return "Failed to end exam. Please try again."
-
-    try:
-        project_dir = Path(__file__).resolve().parent
-        status_path = project_dir / "exam_status.txt"
-        with open(status_path, "w", encoding="utf-8") as f:
-            f.write("STOP")
-    except Exception as e:
-        print("Error writing exam status file:", e)
-
-    return redirect("/dashboard")
-
-
-# ---------------- Browser Event ----------------
-@app.route("/browser_event", methods=["POST"])
-@login_required
-def browser_event():
-
-    data = request.get_json()
-
-    event_type = data["event"]
-
-    candidate_id = session["candidate_id"]
-
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    if event_type == "lost":
-        event_name = "Browser Focus Lost"
-        remarks = "Candidate switched away from exam"
-    else:
-        event_name = "Browser Focus Regained"
-        remarks = "Candidate returned to exam"
-
-    try:
-        with sqlite3.connect("database/exam.db") as connection:
-            cursor = connection.cursor()
-            cursor.execute("""
-                INSERT INTO EventLog(candidate_id, event_type, timestamp, remarks)
-                VALUES (?, ?, ?, ?)
-            """, (candidate_id, event_name, timestamp, remarks))
-    except Exception as e:
-        print("Error logging browser event:", e)
-        return {"message": "Failed to log event"}, 500
-
-    return {"message": "Event Logged Successfully"}
-
-
-# ---------------- Event Logs ----------------
-@app.route("/event_logs")
-@login_required
-def event_logs():
-    try:
-        with sqlite3.connect("database/exam.db") as connection:
-            cursor = connection.cursor()
-            cursor.execute("""
-                SELECT candidate_id, event_type, timestamp, remarks
-                FROM EventLog
-                ORDER BY timestamp DESC
-            """)
-            logs = cursor.fetchall()
-    except Exception as e:
-        print("Error loading event logs:", e)
-        logs = []
-
-    return render_template(
-        "event_logs.html",
-        logs=logs
-    )
-
-
-@app.route("/admin")
-@login_required
-def admin_dashboard():
-    total_candidates = 0
-    browser_events = 0
-    face_events = 0
-    total_events = 0
-
-    try:
-        with sqlite3.connect("database/exam.db") as connection:
-            cursor = connection.cursor()
-
-            cursor.execute("SELECT COUNT(*) FROM Candidate")
-            total_candidates = cursor.fetchone()[0]
-
-            cursor.execute("""
-                SELECT COUNT(*)
-                FROM EventLog
-                WHERE event_type='Browser Focus Lost'
-            """)
-            browser_events = cursor.fetchone()[0]
-
-            cursor.execute("""
-                SELECT COUNT(*)
-                FROM EventLog
-                WHERE event_type='Face Not Detected'
-            """)
-            face_events = cursor.fetchone()[0]
-
-            cursor.execute("SELECT COUNT(*) FROM EventLog")
-            total_events = cursor.fetchone()[0]
-    except Exception as e:
-        print("Error loading admin dashboard:", e)
-
-    return render_template(
-        "admin.html",
-        total_candidates=total_candidates,
-        browser_events=browser_events,
-        face_events=face_events,
-        total_events=total_events
-    )
-
-
-
-# ---------------- Integrity Report ----------------
-@app.route("/report")
-@login_required
-def report():
-
-    candidate_id = session.get("candidate_id")
-
-    # Use shared utility to compute integrity score
-    try:
-        result = calculate_integrity_score(candidate_id)
-    except Exception as e:
-        print("Error calculating integrity score:", e)
-        result = {"score": 0, "face_missing": 0, "browser_lost": 0}
-
-    return render_template(
-        "report.html",
-        score=result["score"],
-        face=result["face_missing"],
-        browser=result["browser_lost"]
-    )
-
-
-# ---------------- Logout ----------------
-@app.route("/logout")
-@login_required
+@app.route('/api/logout', methods=['POST'])
 def logout():
     session.clear()
-    return redirect(url_for("login_page"))
+    return jsonify({'message': 'Logged out'}), 200
 
+# ---------- Student Dashboard API ----------
+ #@app.route('/api/dashboard/student', methods=['GET'])
+#@login_required
+#def student_dashboard():
+   # user_id = session['user_id']
+   # user = db.get_user_by_id(user_id)
+   # stats = db.get_user_stats(user_id)
+   # events = db.get_events_by_user(user_id)
 
-if __name__ == "__main__":
-    app.run(debug=True)
+   # return jsonify({
+       # 'user': dict(user) if user else None,
+       # 'stats': dict(stats) if stats else None,
+       # 'events': [dict(e) for e in events],
+       # 'exam_running': bool(stats['exam_running']) if stats else False,
+       # 'integrity_score': stats['integrity_score'] if stats else 100,
+       # 'final_score': stats['integrity_score'] if stats and not stats['exam_running'] else None
+    #}), 200 
+
+@app.route('/api/dashboard/student', methods=['GET'])
+@login_required
+def student_dashboard():
+    user_id = session['user_id']
+    user = db.get_user_by_id(user_id)
+    stats = db.get_user_stats(user_id)
+    events = db.get_events_by_user(user_id)
+
+    # Use the scorer
+    from integrity_scorer import IntegrityScorer
+    stats_dict = dict(stats) if stats else {}
+    events_list = [dict(e) for e in events] if events else []
+    scorer = IntegrityScorer(events_list, stats_dict)
+    scorer = scorer.compute()
+
+    return jsonify({
+        'user': dict(user) if user else None,
+        'stats': stats_dict,
+        'events': events_list,
+        'exam_running': bool(stats_dict.get('exam_running', False)),
+        'integrity_score': scorer['score'],  # normalized
+        'final_score': scorer['score'] if not stats_dict.get('exam_running') else None,
+        'risk_label': scorer['risk_label'],
+        'face_ratio': scorer['face_ratio'],
+        'total_deduction': scorer['total_deduction'],
+        'event_counts': scorer['event_counts'],
+    }), 200
+    
+# ---------- Admin Dashboard API ----------
+@app.route('/api/dashboard/admin', methods=['GET'])
+@admin_required
+def admin_dashboard():
+    # 1. Get the global stats and analytics (Total candidates, Active, Avg Integrity, etc.)
+    dashboard_data = db.get_admin_dashboard_data()
+    
+    # 2. Read the filter parameters sent from your frontend
+    candidate_id = request.args.get('candidate_id')
+    event_type = request.args.get('event_type')
+    date_str = request.args.get('date')
+    
+    # 3. Fetch the EVENTS using your new filtered function
+    filtered_events = db.get_filtered_events(candidate_id, event_type, date_str)
+    
+    # 4. Construct the final response
+    response_data = {
+        "stats": dashboard_data['stats'],
+        "analytics": dashboard_data['analytics'],
+        "students": dashboard_data['students'],
+        "events": filtered_events  # <--- Replaces the unfiltered events with your filtered ones!
+    }
+    
+    return jsonify(response_data), 200
+# ---------- Event Logging ----------
+@app.route('/api/events', methods=['POST'])
+@login_required
+def log_event():
+    user_id = session['user_id']
+    data = request.json
+    event_type = data.get('type')
+    deducted = data.get('deducted', 0)
+    screenshot_base64 = data.get('screenshot')
+
+    if not event_type:
+        return jsonify({'error': 'Event type required'}), 400
+
+    # Fetch the user to get student_id
+    user = db.get_user_by_id(user_id)
+    # Use student_id if it exists, otherwise fallback to user_id
+    candidate_folder_id = user['student_id'] if user and user['student_id'] else user_id
+
+    screenshot_path = None
+    if screenshot_base64 and screenshot_base64.startswith('data:image'):
+        header, encoded = screenshot_base64.split(',', 1)
+        ext = header.split(';')[0].split('/')[1]
+        filename = f"{event_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{ext}"
+        # Use candidate_folder_id for the folder name
+        user_folder = os.path.join(app.config['UPLOAD_FOLDER'], str(candidate_folder_id))
+        os.makedirs(user_folder, exist_ok=True)
+        file_path = os.path.join(user_folder, filename)
+        with open(file_path, 'wb') as f:
+            f.write(base64.b64decode(encoded))
+        # Store path relative to UPLOAD_FOLDER using candidate_folder_id
+        screenshot_path = f"{candidate_folder_id}/{filename}"
+        db.save_evidence(user_id, screenshot_path)
+
+    event_id = db.log_event(user_id, event_type, deducted, screenshot_path)
+    db.update_stats_after_event(user_id, deducted, event_type)
+
+    return jsonify({'message': 'Event logged', 'event_id': event_id, 'screenshot_path': screenshot_path}), 201
+
+# ---------- Evidence serving ----------
+@app.route('/evidence/<path:filepath>')
+@login_required
+def serve_evidence(filepath):
+    user = db.get_user_by_id(session['user_id'])
+    full_path = os.path.join(app.config['UPLOAD_FOLDER'], filepath)
+    
+    # Admin can see everything
+    if user['role'] == 'admin':
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filepath)
+    
+    # For students: check that the filepath starts with their student_id or user_id
+    allowed_prefixes = []
+    if user['student_id']:   # if student_id exists and is not None
+        allowed_prefixes.append(str(user['student_id']))
+    allowed_prefixes.append(str(user['id']))  # fallback to internal ID
+    
+    if not any(filepath.startswith(prefix + '/') for prefix in allowed_prefixes):
+        return jsonify({'error': 'Forbidden'}), 403
+    
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filepath)
+# ---------- Report ----------
+@app.route('/api/report/<int:user_id>', methods=['GET'])
+@login_required
+def get_report(user_id):
+    user = db.get_user_by_id(session['user_id'])
+    if session['user_id'] != user_id and user['role'] != 'admin':
+        return jsonify({'error': 'Forbidden'}), 403
+
+    target_user = db.get_user_by_id(user_id)
+    stats = db.get_user_stats(user_id)
+    events = db.get_events_by_user(user_id)
+
+    return jsonify({
+        'user': dict(target_user) if target_user else None,
+        'stats': dict(stats) if stats else None,
+        'events': [dict(e) for e in events]
+    }), 200
+
+# ---------- Exam control ----------
+@app.route('/api/exam/start', methods=['POST'])
+@login_required
+def start_exam():
+    db.set_exam_running(session['user_id'], True)
+    return jsonify({'message': 'Exam started'}), 200
+
+@app.route('/api/exam/end', methods=['POST'])
+@login_required
+def end_exam():
+    db.set_exam_running(session['user_id'], False)
+    return jsonify({'message': 'Exam ended'}), 200
+
+# app.py (add after your existing routes)
+
+@app.route('/api/integrity_report/<int:user_id>', methods=['GET'])
+@login_required
+def integrity_report(user_id):
+    current_user = db.get_user_by_id(session['user_id'])
+    if session['user_id'] != user_id and current_user['role'] != 'admin':
+        return jsonify({'error': 'Forbidden'}), 403
+
+    report = db.get_integrity_report(user_id)
+    return jsonify(report), 200
+
+@app.route('/admin_logs')
+@admin_required
+def admin_logs_page():
+    return render_template('admin_logs.html')
+
+# ---------- Run ----------
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)

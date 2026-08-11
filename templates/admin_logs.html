@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ExamMonitor · Event Logs</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Inter',sans-serif; background:linear-gradient(135deg, #2d0a6e, #44159b); color:#f0f0ff; min-height:100vh; padding:24px 32px; }
+        .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; flex-wrap:wrap; gap:16px; }
+        .header h1 { font-size:28px; font-weight:700; background:linear-gradient(135deg,#f0f0ff,#b8aaff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; display:flex; align-items:center; gap:12px; }
+        .header .user-info { display:flex; align-items:center; gap:20px; }
+        .header .user-info span { color:rgba(255,255,255,0.5); font-size:15px; }
+        .header .user-info span i { margin-right:6px; }
+        .btn-back { padding:10px 24px; border:none; border-radius:40px; background:rgba(77,171,247,0.15); color:#4dabf7; font-weight:600; cursor:pointer; transition:all 0.3s ease; font-size:14px; display:flex; align-items:center; gap:8px; text-decoration:none; }
+        .btn-back:hover { background:rgba(77,171,247,0.25); transform:scale(1.02); }
+        .btn-logout { padding:10px 24px; border:none; border-radius:40px; background:rgba(255,107,107,0.15); color:#ff6b6b; font-weight:600; cursor:pointer; transition:all 0.3s ease; font-size:14px; display:flex; align-items:center; gap:8px; }
+        .btn-logout:hover { background:rgba(255,107,107,0.25); transform:scale(1.02); }
+
+        .card {
+            background: rgba(255,255,255,0.04);
+            border-radius: 16px;
+            padding: 20px 22px;
+            border: 1px solid rgba(255,255,255,0.04);
+            backdrop-filter: blur(4px);
+            margin-bottom: 24px;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: rgba(255,255,255,0.7);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-row { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; margin-bottom:16px; }
+        .filter-group { flex:1 1 150px; min-width:120px; }
+        .filter-group label { display:block; font-size:12px; color:rgba(255,255,255,0.3); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.3px; }
+        .filter-group input, .filter-group select { width:100%; padding:8px 12px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); border-radius:10px; color:#f0f0ff; font-size:14px; outline:none; transition:border 0.3s; }
+        .filter-group input:focus, .filter-group select:focus { border-color:#7c4dff; }
+        .filter-group input::placeholder { color:rgba(255,255,255,0.2); }
+        .filter-group select option { background:#1a1040; }
+        .btn-filter { padding:8px 20px; background:#7c4dff; border:none; border-radius:40px; color:#fff; font-weight:600; cursor:pointer; transition:0.3s; font-size:14px; height:40px; display:flex; align-items:center; gap:6px; }
+        .btn-filter:hover { background:#6c3ce0; transform:scale(1.02); }
+        .btn-reset { background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.4); }
+        .btn-reset:hover { background:rgba(255,255,255,0.1); }
+
+        .table-wrap { overflow-x:auto; margin-top:12px; background:rgba(255,255,255,0.02); border-radius:12px; border:1px solid rgba(255,255,255,0.04); }
+        table { width:100%; border-collapse:collapse; font-size:14px; }
+        th { text-align:left; padding:12px 14px; color:rgba(255,255,255,0.3); font-weight:600; border-bottom:1px solid rgba(255,255,255,0.04); white-space:nowrap; }
+        td { padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.03); color:rgba(255,255,255,0.8); }
+        tr:last-child td { border-bottom:none; }
+        .event-candidate { font-weight:500; color:#b8aaff; }
+        .screenshot-btn { background:rgba(77,171,247,0.15); border:none; color:#4dabf7; padding:4px 12px; border-radius:20px; cursor:pointer; font-size:12px; transition:0.3s; }
+        .screenshot-btn:hover { background:rgba(77,171,247,0.25); }
+        .no-screenshot { color:rgba(255,255,255,0.2); font-style:italic; font-size:12px; }
+
+        .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(6px); display:none; align-items:center; justify-content:center; z-index:1000; }
+        .modal-overlay.active { display:flex; }
+        .modal-box { background:#1a1040; border-radius:24px; padding:24px; max-width:90%; max-height:90%; border:1px solid rgba(255,255,255,0.05); box-shadow:0 20px 60px rgba(0,0,0,0.6); position:relative; }
+        .modal-box img { max-width:100%; max-height:70vh; border-radius:12px; display:block; }
+        .modal-close { position:absolute; top:12px; right:16px; background:rgba(255,255,255,0.1); border:none; color:#fff; font-size:24px; cursor:pointer; border-radius:50%; width:40px; height:40px; display:flex; align-items:center; justify-content:center; transition:0.3s; }
+        .modal-close:hover { background:rgba(255,255,255,0.2); }
+
+        .toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(80px); background:rgba(20,12,50,0.92); backdrop-filter:blur(16px); padding:14px 32px; border-radius:60px; border:1px solid rgba(255,255,255,0.06); color:#fff; font-weight:500; font-size:14px; box-shadow:0 16px 48px rgba(0,0,0,0.5); z-index:999; opacity:0; transition:all 0.5s cubic-bezier(0.34,1.56,0.64,1); pointer-events:none; display:flex; align-items:center; gap:12px; }
+        .toast.show { opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; }
+        .toast.success { border-color:rgba(81,207,102,0.3); }
+        .toast.error { border-color:rgba(255,107,107,0.3); }
+        .toast i { font-size:18px; }
+        .toast.success i { color:#51cf66; }
+        .toast.error i { color:#ff6b6b; }
+
+        @media (max-width:600px) { body { padding:16px; } .filter-row { flex-direction:column; } .filter-group { flex:1 1 100%; } }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <h1><i class="fas fa-list-ul" style="color:#7c4dff;"></i> Event Logs</h1>
+        <div class="user-info">
+            <span><i class="fas fa-user"></i> <span id="adminName">Admin</span></span>
+            <a href="/admin_dashboard" class="btn-back"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+            <button class="btn-logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+    </header>
+
+    <div class="card">
+        <div class="card-title"><i class="fas fa-filter"></i> Event Filter</div>
+        <div class="filter-row">
+            <div class="filter-group">
+                <label>Candidate ID</label>
+                <input type="text" id="filterCandidate" placeholder="e.g. 1234" />
+            </div>
+            <div class="filter-group">
+                <label>Event Type</label>
+                <select id="filterEventType">
+                    <option value="">All</option>
+                    <option value="Face Absence">Face Absence</option>
+                    <option value="Multiple Faces">Multiple Faces</option>
+                    <option value="Browser Focus Loss">Browser Focus Loss</option>
+                    <option value="Tab Switching">Tab Switching</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Date</label>
+                <input type="date" id="filterDate" />
+            </div>
+            <button class="btn-filter" id="applyFilterBtn"><i class="fas fa-search"></i> Apply</button>
+            <button class="btn-filter btn-reset" id="resetFilterBtn"><i class="fas fa-undo"></i> Reset</button>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Candidate</th><th>Event Type</th><th>Timestamp</th><th>Deducted</th><th>Screenshot</th></tr></thead>
+                <tbody id="eventTableBody">
+                    <tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,0.3);">Apply filters to view events</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Evidence Modal -->
+    <div class="modal-overlay" id="evidenceModal">
+        <div class="modal-box">
+            <button class="modal-close" id="modalCloseBtn">&times;</button>
+            <img id="modalImage" src="" alt="Screenshot" />
+            <div id="modalError" style="display:none; color: #ff6b6b; text-align: center; padding: 20px; font-weight: bold;"></div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMsg">Ready</span>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            const filterCandidate = document.getElementById('filterCandidate');
+            const filterEventType = document.getElementById('filterEventType');
+            const filterDate = document.getElementById('filterDate');
+            const applyFilterBtn = document.getElementById('applyFilterBtn');
+            const resetFilterBtn = document.getElementById('resetFilterBtn');
+            const eventTableBody = document.getElementById('eventTableBody');
+            const modalOverlay = document.getElementById('evidenceModal');
+            const modalImage = document.getElementById('modalImage');
+            const modalCloseBtn = document.getElementById('modalCloseBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+
+            function showToast(msg, type = 'success') {
+                toast.className = 'toast ' + type;
+                toastMsg.textContent = msg;
+                const icon = toast.querySelector('i');
+                icon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+                toast.classList.add('show');
+                clearTimeout(toast._timer);
+                toast._timer = setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3500);
+            }
+
+            function parseDate(dateStr) {
+                if (!dateStr) return null;
+                try {
+                    const parts = dateStr.split(' ');
+                    if (parts.length !== 2) return null;
+                    const datePart = parts[0].split('-');
+                    const timePart = parts[1].split(':');
+                    const year = parseInt(datePart[0]);
+                    const month = parseInt(datePart[1]) - 1;
+                    const day = parseInt(datePart[2]);
+                    const hours = parseInt(timePart[0]);
+                    const minutes = parseInt(timePart[1]);
+                    const seconds = parseInt(timePart[2]);
+                    return new Date(year, month, day, hours, minutes, seconds);
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            function apiFetch(url, options = {}) {
+                return fetch(url, {
+                    ...options,
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
+                });
+            }
+
+            // Load events and store, but don't display until apply
+            function loadEvents() {
+                apiFetch('/api/dashboard/admin')
+                    .then(res => {
+                        if (!res.ok) {
+                            if (res.status === 401) window.location.href = '/login';
+                            throw new Error('Failed to load events');
+                        }
+                        return res.json();
+                    })
+                    .then(data => {
+                        window._allEvents = data.events || [];
+                        // Table already shows "Apply filters to view events"
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        showToast('Error loading events', 'error');
+                    });
+            }
+
+            function renderEvents(events) {
+                if (!events || events.length === 0) {
+                    eventTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,0.3);">No events found</td></tr>`;
+                    return;
+                }
+                events.sort((a, b) => {
+                    const da = parseDate(a.timestamp);
+                    const db = parseDate(b.timestamp);
+                    if (!da || !db) return 0;
+                    return db - da;
+                });
+                let html = '';
+                events.forEach(e => {
+                    let screenshotHtml = '';
+                    if (e.screenshot_path) {
+                        const path = e.screenshot_path;
+                        screenshotHtml = `<button class="screenshot-btn" data-path="${path}"><i class="fas fa-image"></i> View</button>`;
+                    } else {
+                        screenshotHtml = `<span class="no-screenshot">No</span>`;
+                    }
+                    html += `<tr>
+                        <td><span class="event-candidate">${e.student_id || e.user_id}</span></td>
+                        <td>${e.type}</td>
+                        <td>${e.timestamp}</td>
+                        <td>${e.deducted || 0}</td>
+                        <td>${screenshotHtml}</td>
+                    </tr>`;
+                });
+                eventTableBody.innerHTML = html;
+
+                document.querySelectorAll('.screenshot-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const path = this.dataset.path;
+                        if (path) {
+                            const img = document.getElementById('modalImage');
+                            img.style.display = 'block';
+                            const errDiv = document.getElementById('modalError');
+                            errDiv.style.display = 'none';
+                            img.onerror = function() {
+                                this.style.display = 'none';
+                                errDiv.style.display = 'block';
+                                errDiv.innerText = "❌ Failed to load image.\nCheck the Network tab (F12) for 404 or 403 errors.";
+                            };
+                            img.onload = function() {
+                                errDiv.style.display = 'none';
+                            };
+                            modalImage.src = `/evidence/${path}`;
+                            modalOverlay.classList.add('active');
+                        }
+                    });
+                });
+            }
+
+            function applyFilters() {
+                const events = window._allEvents || [];
+                const candidateId = filterCandidate.value.trim();
+                const eventType = filterEventType.value;
+                const dateVal = filterDate.value;
+                let filtered = events;
+                if (candidateId) {
+                    filtered = filtered.filter(e =>
+                        (e.student_id && e.student_id.toString().toLowerCase().includes(candidateId.toLowerCase())) ||
+                        (e.user_id && e.user_id.toString().toLowerCase().includes(candidateId.toLowerCase()))
+                    );
+                }
+                if (eventType) {
+                    filtered = filtered.filter(e => e.type === eventType);
+                }
+                if (dateVal) {
+                    const selectedDate = new Date(dateVal + 'T00:00:00');
+                    filtered = filtered.filter(e => {
+                        const d = parseDate(e.timestamp);
+                        if (!d) return false;
+                        return d.getFullYear() === selectedDate.getFullYear() &&
+                               d.getMonth() === selectedDate.getMonth() &&
+                               d.getDate() === selectedDate.getDate();
+                    });
+                }
+                renderEvents(filtered);
+            }
+
+            function resetFilters() {
+                filterCandidate.value = '';
+                filterEventType.value = '';
+                filterDate.value = '';
+                // Show all events
+                renderEvents(window._allEvents || []);
+            }
+
+            function logout() {
+                apiFetch('/api/logout', { method: 'POST' })
+                    .then(() => { window.location.href = '/login'; })
+                    .catch(() => { window.location.href = '/login'; });
+            }
+
+            // Init
+            document.addEventListener('DOMContentLoaded', function() {
+                loadEvents();
+                applyFilterBtn.addEventListener('click', applyFilters);
+                resetFilterBtn.addEventListener('click', resetFilters);
+                logoutBtn.addEventListener('click', logout);
+
+                modalCloseBtn.addEventListener('click', () => modalOverlay.classList.remove('active'));
+                modalOverlay.addEventListener('click', (e) => {
+                    if (e.target === modalOverlay) modalOverlay.classList.remove('active');
+                });
+
+                document.querySelectorAll('.filter-group input, .filter-group select').forEach(el => {
+                    el.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') applyFilters();
+                    });
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

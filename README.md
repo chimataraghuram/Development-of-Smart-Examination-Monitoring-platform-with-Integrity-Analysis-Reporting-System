@@ -1,4 +1,4 @@
-# 🎓 Online Exam Monitoring & Integrity Analytics Platform
+# 🎓 Development of Smart Examination Monitoring platform with Integrity Analysis Reporting System
 
 An AI-powered Online Exam Monitoring System developed as part of an internship project. The platform helps monitor candidates during online examinations using computer vision and event logging to improve exam integrity.
 
@@ -64,7 +64,7 @@ All events are stored in an SQLite database.
 ## 📂 Project Structure
 
 ```
-Online-Exam-Monitoring-Integrity-Analytics-Platform
+Development-of-Smart-Examination-Monitoring-platform-with-Integrity-Analysis-Reporting-System
 │
 ├── app.py
 ├── requirements.txt
@@ -113,7 +113,7 @@ git clone <repository-url>
 Move into the project directory:
 
 ```bash
-cd Online-Exam-Monitoring-Integrity-Analytics-Platform
+cd Development-of-Smart-Examination-Monitoring-platform-with-Integrity-Analysis-Reporting-System
 ```
 
 Install dependencies:

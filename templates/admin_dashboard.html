@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ExamMonitor · Admin Dashboard</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Inter',sans-serif; background:linear-gradient(135deg, #2d0a6e, #44159b); color:#f0f0ff; min-height:100vh; padding:24px 32px; }
+        .admin-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; flex-wrap:wrap; gap:16px; }
+        .admin-header h1 { font-size:28px; font-weight:700; background:linear-gradient(135deg,#f0f0ff,#b8aaff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; display:flex; align-items:center; gap:12px; }
+        .admin-header .user-info { display:flex; align-items:center; gap:20px; }
+        .admin-header .user-info span { color:rgba(255,255,255,0.5); font-size:15px; }
+        .admin-header .user-info span i { margin-right:6px; }
+        .btn-logout { padding:10px 24px; border:none; border-radius:40px; background:rgba(255,107,107,0.15); color:#ff6b6b; font-weight:600; cursor:pointer; transition:all 0.3s ease; font-size:14px; display:flex; align-items:center; gap:8px; }
+        .btn-logout:hover { background:rgba(255,107,107,0.25); transform:scale(1.02); }
+
+        .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:18px; margin-bottom:32px; }
+        .stat-card { background:rgba(255,255,255,0.04); border-radius:16px; padding:18px 20px; border:1px solid rgba(255,255,255,0.04); backdrop-filter:blur(4px); }
+        .stat-card .label { font-size:13px; color:rgba(255,255,255,0.3); font-weight:500; letter-spacing:0.3px; }
+        .stat-card .value { font-size:28px; font-weight:700; margin-top:6px; color:#f0f0ff; }
+        .stat-card .value.green { color:#51cf66; }
+        .stat-card .value.blue { color:#4dabf7; }
+        .stat-card .value.purple { color:#b8aaff; }
+        .stat-card .value.orange { color:#fcc419; }
+        .stat-card .value.red { color:#ff6b6b; }
+
+        .card {
+            background: rgba(255,255,255,0.04);
+            border-radius: 16px;
+            padding: 20px 22px;
+            border: 1px solid rgba(255,255,255,0.04);
+            backdrop-filter: blur(4px);
+            margin-bottom: 24px;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: rgba(255,255,255,0.7);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Side-by-side layout for Integrity Analytics and Risk Distribution */
+        .analytics-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 768px) {
+            .analytics-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .analytics-list { list-style:none; padding:0; }
+        .analytics-list li { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03); font-size:15px; }
+        .analytics-list li:last-child { border-bottom:none; }
+        .analytics-list .label { color:rgba(255,255,255,0.4); }
+        .analytics-list .value { font-weight:600; color:#f0f0ff; }
+
+        /* Risk Distribution */
+        .risk-distribution {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .risk-chart-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .risk-chart-container canvas {
+            max-width: 180px;
+            max-height: 180px;
+        }
+        .risk-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 14px;
+        }
+        .risk-legend .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .risk-legend .color-box {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+        .risk-tiles {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .risk-tile {
+            background: rgba(255,255,255,0.04);
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.06);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .risk-tile:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+        .risk-tile .count {
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .risk-tile .label {
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 2px;
+        }
+        .risk-tile .percent {
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.3);
+        }
+        .risk-tile.low .count { color: #51cf66; }
+        .risk-tile.medium .count { color: #fcc419; }
+        .risk-tile.high .count { color: #ff6b6b; }
+
+        /* Candidate List Modal */
+        .candidate-list-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            z-index: 1001;
+            justify-content: center;
+            align-items: center;
+        }
+        .candidate-list-modal.active {
+            display: flex;
+        }
+        .candidate-list-modal .modal-content {
+            background: #1a1040;
+            border-radius: 24px;
+            padding: 28px 32px;
+            max-width: 480px;
+            width: 90%;
+            max-height: 70vh;
+            border: 1px solid rgba(255,255,255,0.06);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+            overflow-y: auto;
+            position: relative;
+        }
+        .candidate-list-modal .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .candidate-list-modal .modal-close {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.4);
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .candidate-list-modal .candidate-item {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            display: flex;
+            justify-content: space-between;
+            font-size: 15px;
+        }
+        .candidate-list-modal .candidate-item:last-child {
+            border-bottom: none;
+        }
+        .candidate-list-modal .candidate-item .id {
+            color: rgba(255,255,255,0.4);
+            font-weight: 500;
+        }
+        .candidate-list-modal .candidate-item .name {
+            color: #f0f0ff;
+        }
+
+        /* existing modal & toast */
+        .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(6px); display:none; align-items:center; justify-content:center; z-index:1000; }
+        .modal-overlay.active { display:flex; }
+        .modal-box { background:#1a1040; border-radius:24px; padding:24px; max-width:90%; max-height:90%; border:1px solid rgba(255,255,255,0.05); box-shadow:0 20px 60px rgba(0,0,0,0.6); position:relative; }
+        .modal-box img { max-width:100%; max-height:70vh; border-radius:12px; display:block; }
+        .modal-close { position:absolute; top:12px; right:16px; background:rgba(255,255,255,0.1); border:none; color:#fff; font-size:24px; cursor:pointer; border-radius:50%; width:40px; height:40px; display:flex; align-items:center; justify-content:center; transition:0.3s; }
+        .modal-close:hover { background:rgba(255,255,255,0.2); }
+
+        .toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(80px); background:rgba(20,12,50,0.92); backdrop-filter:blur(16px); padding:14px 32px; border-radius:60px; border:1px solid rgba(255,255,255,0.06); color:#fff; font-weight:500; font-size:14px; box-shadow:0 16px 48px rgba(0,0,0,0.5); z-index:999; opacity:0; transition:all 0.5s cubic-bezier(0.34,1.56,0.64,1); pointer-events:none; display:flex; align-items:center; gap:12px; }
+        .toast.show { opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; }
+        .toast.success { border-color:rgba(81,207,102,0.3); }
+        .toast.error { border-color:rgba(255,107,107,0.3); }
+        .toast i { font-size:18px; }
+        .toast.success i { color:#51cf66; }
+        .toast.error i { color:#ff6b6b; }
+
+        @media (max-width:600px) { body { padding:16px; } .stats-grid { grid-template-columns:1fr 1fr; } }
+    </style>
+</head>
+<body>
+
+    <header class="admin-header">
+        <h1><i class="fas fa-user-shield" style="color:#7c4dff;"></i> Admin Dashboard</h1>
+        <div class="user-info">
+            <span><i class="fas fa-user"></i> <span id="adminName">Admin</span></span>
+            <button class="btn-logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+    </header>
+
+    <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><div class="label">Total Candidates</div><div class="value blue" id="totalCandidates">0</div></div>
+        <div class="stat-card"><div class="label">Active Sessions</div><div class="value green" id="activeSessions">0</div></div>
+        <div class="stat-card"><div class="label">Completed Sessions</div><div class="value purple" id="completedSessions">0</div></div>
+        <div class="stat-card"><div class="label">Average Integrity Score</div><div class="value orange" id="avgIntegrity">0</div></div>
+        <div class="stat-card"><div class="label">Total Suspicious Events</div><div class="value red" id="totalSuspiciousEvents">0</div></div>
+    </div>
+
+    <!-- Side‑by‑side row: Integrity Analytics & Risk Distribution -->
+    <div class="analytics-row">
+        <!-- Integrity Analytics card with View Logs link -->
+        <div class="card">
+            <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+                <span><i class="fas fa-chart-line"></i> Integrity Analytics</span>
+                
+            </div>
+            <ul class="analytics-list" id="analyticsList">
+                <li><span class="label">Total Face Absence Events</span><span class="value" id="totalFaceAbsence">0</span></li>
+                <li><span class="label">Total Browser Focus Loss</span><span class="value" id="totalFocusLoss">0</span></li>
+                <li><span class="label">Highest Integrity Score</span><span class="value" id="highestIntegrity">0</span></li>
+                <li><span class="label">Lowest Integrity Score</span><span class="value" id="lowestIntegrity">0</span></li>
+                <li><span class="label">Average Integrity Score</span><span class="value" id="averageIntegrity">0</span></li>
+            </ul>
+        </div>
+
+        <!-- Risk Distribution with Pie Chart -->
+        <div class="card">
+            <div class="card-title"><i class="fas fa-chart-pie"></i> Risk Distribution</div>
+            <div class="risk-distribution">
+                <div class="risk-chart-container">
+                    <canvas id="riskPieChart" width="180" height="180"></canvas>
+                    <div class="risk-legend" id="riskLegend">
+                        <!-- dynamically filled -->
+                    </div>
+                </div>
+                <div class="risk-tiles">
+                    <div class="risk-tile low" data-risk="Low Risk">
+                        <div class="count" id="lowCount">0</div>
+                        <div class="label">🟢 Low</div>
+                        <div class="percent" id="lowPercent">0%</div>
+                    </div>
+                    <div class="risk-tile medium" data-risk="Medium Risk">
+                        <div class="count" id="mediumCount">0</div>
+                        <div class="label">🟡 Medium</div>
+                        <div class="percent" id="mediumPercent">0%</div>
+                    </div>
+                    <div class="risk-tile high" data-risk="High Risk">
+                        <div class="count" id="highCount">0</div>
+                        <div class="label">🔴 High</div>
+                        <div class="percent" id="highPercent">0%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Candidate List Modal -->
+    <div class="candidate-list-modal" id="candidateModal">
+        <div class="modal-content">
+            <div class="modal-title">
+                <span id="modalRiskTitle">Risk Candidates</span>
+                <button class="modal-close" id="modalCloseBtnCandidate">&times;</button>
+            </div>
+            <div id="candidateListContainer">
+                <!-- dynamically filled -->
+            </div>
+        </div>
+    </div>
+    <a href="/admin_logs" class="btn-filter" style="padding:6px 18px; font-size:13px; height:auto; background:rgba(77,171,247,0.15); color:#4dabf7; text-decoration:none; display:inline-flex; align-items:center; gap:6px; border-radius:40px;">
+        <i class="fas fa-list-ul"></i> View Logs
+
+    <!-- Evidence modal -->
+    <div class="modal-overlay" id="evidenceModal">
+        <div class="modal-box">
+            <button class="modal-close" id="modalCloseBtn">&times;</button>
+            <img id="modalImage" src="" alt="Screenshot" />
+            <div id="modalError" style="display:none; color: #ff6b6b; text-align: center; padding: 20px; font-weight: bold;"></div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMsg">Ready</span>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ----- DOM refs (existing) -----
+            const totalCandidates = document.getElementById('totalCandidates');
+            const activeSessions = document.getElementById('activeSessions');
+            const completedSessions = document.getElementById('completedSessions');
+            const avgIntegrity = document.getElementById('avgIntegrity');
+            const totalSuspiciousEvents = document.getElementById('totalSuspiciousEvents');
+            const totalFaceAbsence = document.getElementById('totalFaceAbsence');
+            const totalFocusLoss = document.getElementById('totalFocusLoss');
+            const highestIntegrity = document.getElementById('highestIntegrity');
+            const lowestIntegrity = document.getElementById('lowestIntegrity');
+            const averageIntegrity = document.getElementById('averageIntegrity');
+            const modalOverlay = document.getElementById('evidenceModal');
+            const modalImage = document.getElementById('modalImage');
+            const modalCloseBtn = document.getElementById('modalCloseBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+
+            // NEW refs
+            const candidateModal = document.getElementById('candidateModal');
+            const modalCloseCandidate = document.getElementById('modalCloseBtnCandidate');
+            const candidateListContainer = document.getElementById('candidateListContainer');
+            const modalRiskTitle = document.getElementById('modalRiskTitle');
+            const riskPieChart = document.getElementById('riskPieChart');
+            const ctx = riskPieChart.getContext('2d');
+
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+
+            // ----- helpers -----
+            function apiFetch(url, options = {}) {
+                return fetch(url, {
+                    ...options,
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
+                });
+            }
+
+            function showToast(msg, type = 'success') {
+                toast.className = 'toast ' + type;
+                toastMsg.textContent = msg;
+                const icon = toast.querySelector('i');
+                icon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+                toast.classList.add('show');
+                clearTimeout(toast._timer);
+                toast._timer = setTimeout(() => { toast.classList.remove('show'); }, 3500);
+            }
+
+            // ----- Draw Pie Chart -----
+            function drawPieChart(low, medium, high, total) {
+                const width = riskPieChart.width;
+                const height = riskPieChart.height;
+                const radius = Math.min(width, height) / 2 - 10;
+                const cx = width / 2;
+                const cy = height / 2;
+                ctx.clearRect(0, 0, width, height);
+
+                if (total === 0) {
+                    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+                    ctx.font = '14px Inter';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('No data', cx, cy);
+                    return;
+                }
+
+                const slices = [
+                    { label: 'Low', value: low, color: '#51cf66' },
+                    { label: 'Medium', value: medium, color: '#fcc419' },
+                    { label: 'High', value: high, color: '#ff6b6b' }
+                ].filter(s => s.value > 0);
+
+                let startAngle = -Math.PI / 2;
+                slices.forEach(slice => {
+                    const sliceAngle = (slice.value / total) * 2 * Math.PI;
+                    ctx.beginPath();
+                    ctx.moveTo(cx, cy);
+                    ctx.arc(cx, cy, radius, startAngle, startAngle + sliceAngle);
+                    ctx.closePath();
+                    ctx.fillStyle = slice.color;
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    startAngle += sliceAngle;
+                });
+
+                // Build legend
+                const legendContainer = document.getElementById('riskLegend');
+                let legendHtml = '';
+                slices.forEach(slice => {
+                    legendHtml += `<div class="legend-item">
+                        <div class="color-box" style="background:${slice.color};"></div>
+                        <span>${slice.label} (${Math.round((slice.value/total)*100)}%)</span>
+                    </div>`;
+                });
+                legendContainer.innerHTML = legendHtml;
+            }
+
+            // ----- Render Risk Distribution (tiles + pie) -----
+            function renderRiskDistribution(students) {
+                if (!students || students.length === 0) {
+                    document.getElementById('lowCount').textContent = '0';
+                    document.getElementById('mediumCount').textContent = '0';
+                    document.getElementById('highCount').textContent = '0';
+                    document.getElementById('lowPercent').textContent = '0%';
+                    document.getElementById('mediumPercent').textContent = '0%';
+                    document.getElementById('highPercent').textContent = '0%';
+                    drawPieChart(0, 0, 0, 0);
+                    return;
+                }
+                let low = 0, medium = 0, high = 0;
+                students.forEach(s => {
+                    const risk = s.risk_label || 'N/A';
+                    if (risk === 'Low Risk') low++;
+                    else if (risk === 'Medium Risk') medium++;
+                    else if (risk === 'High Risk') high++;
+                });
+                const total = students.length;
+                const lowPct = total ? Math.round((low/total)*100) : 0;
+                const medPct = total ? Math.round((medium/total)*100) : 0;
+                const highPct = total ? Math.round((high/total)*100) : 0;
+
+                document.getElementById('lowCount').textContent = low;
+                document.getElementById('mediumCount').textContent = medium;
+                document.getElementById('highCount').textContent = high;
+                document.getElementById('lowPercent').textContent = lowPct + '%';
+                document.getElementById('mediumPercent').textContent = medPct + '%';
+                document.getElementById('highPercent').textContent = highPct + '%';
+
+                drawPieChart(low, medium, high, total);
+            }
+
+            // ----- Show Candidates by Risk -----
+            function showCandidatesByRisk(riskLabel) {
+                const students = window._students || [];
+                const filtered = students.filter(s => (s.risk_label || 'N/A') === riskLabel);
+                const container = document.getElementById('candidateListContainer');
+                const modal = document.getElementById('candidateModal');
+                document.getElementById('modalRiskTitle').textContent = `${riskLabel} Candidates (${filtered.length})`;
+
+                if (filtered.length === 0) {
+                    container.innerHTML = '<div style="text-align:center; color:rgba(255,255,255,0.3); padding:20px;">No candidates in this category.</div>';
+                } else {
+                    let html = '';
+                    filtered.forEach(s => {
+                        html += `<div class="candidate-item">
+                            <span class="id">${s.student_id || 'N/A'}</span>
+                            <span class="name">${s.name || 'Unknown'}</span>
+                        </div>`;
+                    });
+                    container.innerHTML = html;
+                }
+                modal.classList.add('active');
+            }
+
+            // ----- load admin dashboard data -----
+            function loadAdminDashboard() {
+                apiFetch('/api/dashboard/admin')
+                    .then(res => {
+                        if (!res.ok) {
+                            if (res.status === 401) window.location.href = '/login';
+                            throw new Error('Failed to load admin data');
+                        }
+                        return res.json();
+                    })
+                    .then(data => {
+                        const stats = data.stats || {};
+                        totalCandidates.textContent = stats.total_candidates || 0;
+                        activeSessions.textContent = stats.active_sessions || 0;
+                        completedSessions.textContent = stats.completed_sessions || 0;
+                        avgIntegrity.textContent = stats.average_integrity || 0;
+                        totalSuspiciousEvents.textContent = stats.total_suspicious_events || 0;
+
+                        const analytics = data.analytics || {};
+                        totalFaceAbsence.textContent = analytics.total_face_absence || 0;
+                        totalFocusLoss.textContent = analytics.total_focus_loss || 0;
+                        highestIntegrity.textContent = analytics.highest_integrity || 0;
+                        lowestIntegrity.textContent = analytics.lowest_integrity || 0;
+                        averageIntegrity.textContent = analytics.average_integrity || 0;
+
+                        window._students = data.students || [];
+                        renderRiskDistribution(window._students);
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        showToast('Error loading admin dashboard', 'error');
+                    });
+            }
+
+            // ----- logout -----
+            function logout() {
+                apiFetch('/api/logout', { method: 'POST' })
+                    .then(() => { window.location.href = '/login'; })
+                    .catch(() => { window.location.href = '/login'; });
+            }
+
+            // ----- init -----
+            function init() {
+                loadAdminDashboard();
+
+                logoutBtn.addEventListener('click', logout);
+
+                // Evidence modal close
+                modalCloseBtn.addEventListener('click', () => modalOverlay.classList.remove('active'));
+                modalOverlay.addEventListener('click', (e) => {
+                    if (e.target === modalOverlay) modalOverlay.classList.remove('active');
+                });
+
+                // Risk tile clicks
+                document.querySelectorAll('.risk-tile').forEach(tile => {
+                    tile.addEventListener('click', function() {
+                        const risk = this.dataset.risk;
+                        showCandidatesByRisk(risk);
+                    });
+                });
+
+                // Candidate modal close
+                modalCloseCandidate.addEventListener('click', function() {
+                    document.getElementById('candidateModal').classList.remove('active');
+                });
+                candidateModal.addEventListener('click', function(e) {
+                    if (e.target === this) this.classList.remove('active');
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', init);
+        })();
+    </script>
+</body>
+</html>

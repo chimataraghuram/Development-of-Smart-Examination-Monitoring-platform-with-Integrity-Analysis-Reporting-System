@@ -1,37 +1,598 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-
-<title>Integrity Report</title>
-
-<link rel="stylesheet"
-href="{{ url_for('static',
-filename='css/style.css') }}">
-
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ExamMonitor · Report</title>
+    <!-- Google Font & Font Awesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <!-- Libraries for PDF & Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #6b3f74;
+            color: #f0f0ff;
+            padding: 30px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .report-container {
+            max-width: 1100px;
+            width: 100%;
+            background: rgba(10, 10, 30, 0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 32px;
+            padding: 40px 44px;
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #f0f0ff, #b8aaff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 6px;
+        }
+        .report-sub {
+            color: rgba(255,255,255,0.3);
+            font-size: 14px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 16px;
+        }
+        .section { margin-bottom: 32px; }
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-title i { color: #7c4dff; font-size: 18px; }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+        .info-card {
+            background: rgba(141, 25, 102, 0.04);
+            border-radius: 14px;
+            padding: 16px 18px;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        .info-card .label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .info-card .value {
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        .info-card .value.small { font-size: 16px; }
+        .table-wrap {
+            overflow-x: auto;
+            background: rgba(255,255,255,0.02);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.04);
+            margin-top: 8px;
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th {
+            text-align: left;
+            padding: 14px 16px;
+            color: rgba(255,255,255,0.4);
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            color: rgba(255,255,255,0.85);
+            vertical-align: middle;
+        }
+        tr:last-child td { border-bottom: none; }
+        .screenshot-link {
+            color: #4dabf7;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .no-screenshot { color: rgba(255,255,255,0.25); font-style: italic; }
+        .btn-group {
+            display: flex;
+            gap: 16px;
+            justify-content: flex-end;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-pdf { background: #ff6b6b; color: #fff; }
+        .btn-pdf:hover { background: #ff8787; transform: scale(1.02); }
+        .btn-excel { background: #51cf66; color: #0b0e1a; }
+        .btn-excel:hover { background: #69db7c; transform: scale(1.02); }
+        .btn-back { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); }
+        .btn-back:hover { background: rgba(255,255,255,0.12); color: #fff; }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: rgba(20,12,50,0.92);
+            backdrop-filter: blur(16px);
+            padding: 14px 32px;
+            border-radius: 60px;
+            border: 1px solid rgba(255,255,255,0.06);
+            color: #fff;
+            font-weight: 500;
+            font-size: 14px;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+            z-index: 999;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+            pointer-events: auto;
+        }
+        .toast.success { border-color: rgba(81,207,102,0.3); }
+        .toast.error { border-color: rgba(255,107,107,0.3); }
+        .toast i { font-size: 18px; }
+        @media (max-width: 600px) {
+            .report-container { padding: 20px 16px; }
+            h1 { font-size: 24px; }
+            .info-grid { grid-template-columns: 1fr; }
+            .btn-group { flex-direction: column; align-items: stretch; }
+            .btn { justify-content: center; }
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="container">
+    <div class="report-container" id="reportContainer">
+        <h1><i class="fas fa-file-alt" style="margin-right:12px;color:#7c4dff;"></i>Exam Report</h1>
+        <div class="report-sub">Generated from database · <span id="reportTimestamp"></span></div>
 
-<h2>Integrity Report</h2>
+        <!-- Candidate Information -->
+        <div class="section">
+            <div class="section-title"><i class="fas fa-user-graduate"></i> Candidate Information</div>
+            <div class="info-grid" id="candidateInfo">
+                <div class="info-card"><div class="label">Name</div><div class="value" id="repName">-</div></div>
+                <div class="info-card"><div class="label">ID</div><div class="value" id="repId">-</div></div>
+                <div class="info-card"><div class="label">Session ID</div><div class="value" id="repSession">-</div></div>
+                <div class="info-card"><div class="label">Final Score</div><div class="value" id="repScore">-</div></div>
+                <div class="info-card"><div class="label">Remark</div><div class="value small" id="repRemark">-</div></div>
+            </div>
+        </div>
 
-<div class="card">
+        <!-- Session Information -->
+        <div class="section">
+            <div class="section-title"><i class="fas fa-clock"></i> Session Information</div>
+            <div class="info-grid" id="sessionInfo">
+                <div class="info-card"><div class="label">Start Time</div><div class="value small" id="repStart">-</div></div>
+                <div class="info-card"><div class="label">End Time</div><div class="value small" id="repEnd">-</div></div>
+                <div class="info-card"><div class="label">Duration</div><div class="value" id="repDuration">-</div></div>
+                <div class="info-card"><div class="label">Status</div><div class="value small" id="repStatus">-</div></div>
+            </div>
+        </div>
 
-<p>Integrity Score :
-<b>{{score}} / 1000</b></p>
-
-<p>Face Not Detected :
-{{face}}</p>
-
-<p>Browser Focus Lost :
-{{browser}}</p>
-
+        <!-- Monitoring Statistics -->
+        <div class="section">
+            <div class="section-title"><i class="fas fa-chart-pie"></i> Monitoring Statistics</div>
+            <div class="info-grid" id="statsInfo">
+                <div class="info-card"><div class="label">Face Absence Count</div><div class="value" id="repFaceAbsence">0</div></div>
+                <div class="info-card"><div class="label">Browser Focus Loss Count</div><div class="value" id="repFocusLoss">0</div></div>
+                <div class="info-card"><div class="label">Total Suspicious Events</div><div class="value" id="repTotalSuspicious">0</div></div>
+                <div class="info-card">
+    <div class="label">Risk Level</div>
+    <div class="value" id="repRisk">-</div>
 </div>
-
+<div class="info-card">
+    <div class="label">Face Presence Ratio</div>
+    <div class="value" id="repFaceRatio">-</div>
 </div>
+            </div>
+        </div>
+
+        <!-- Event Summary -->
+        <div class="section">
+            <div class="section-title"><i class="fas fa-list-ul"></i> Event Summary</div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Event Type</th><th>Timestamp</th><th>Score Deducted</th><th>Screenshot</th></tr></thead>
+                    <tbody id="eventTableBody"><tr><td colspan="4" style="text-align:center;color:rgba(255,255,255,0.3);">Loading events...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="btn-group">
+            <button class="btn btn-back" id="backBtn"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
+            <button class="btn btn-pdf" id="downloadPdfBtn"><i class="fas fa-file-pdf"></i> Download PDF</button>
+            <button class="btn btn-excel" id="downloadExcelBtn"><i class="fas fa-file-excel"></i> Download Excel</button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"><i class="fas fa-check-circle"></i><span id="toastMsg">Ready</span></div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            function showToast(msg, type = 'success') {
+                const toast = document.getElementById('toast');
+                const toastMsg = document.getElementById('toastMsg');
+                toast.className = 'toast ' + type;
+                toastMsg.textContent = msg;
+                const icon = toast.querySelector('i');
+                icon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+                toast.classList.add('show');
+                clearTimeout(toast._timer);
+                toast._timer = setTimeout(() => { toast.classList.remove('show'); }, 3500);
+            }
+
+            function apiFetch(url, options = {}) {
+                return fetch(url, {
+                    ...options,
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
+                });
+            }
+
+            // ----- Load report data -----
+            function loadReport() {
+                apiFetch('/api/dashboard/student')
+                    .then(res => {
+                        if (!res.ok) {
+                            if (res.status === 401) {
+                                window.location.href = '/login';
+                                return;
+                            }
+                            throw new Error('Failed to load report data');
+                        }
+                        return res.json();
+                    })
+                    .then(data => {
+                        const user = data.user;
+                        const stats = data.stats || {};
+                        const events = data.events || [];
+                        const integrity = data.integrity_score || 100;
+                        const finalScore = data.final_score;
+
+                        // Candidate info
+                        document.getElementById('repName').textContent = user ? user.name : 'N/A';
+                        document.getElementById('repId').textContent = user ? (user.student_id || 'N/A') : 'N/A';
+                        document.getElementById('repSession').textContent = user ? (user.session_id || 'N/A') : 'N/A';
+                        const scoreDisplay = finalScore !== null && finalScore !== undefined ? finalScore : integrity;
+                        document.getElementById('repScore').textContent = scoreDisplay;
+                        let remark = '';
+                        if (scoreDisplay >= 90) remark = 'Excellent';
+                        else if (scoreDisplay >= 70) remark = 'Good';
+                        else if (scoreDisplay >= 50) remark = 'Fair';
+                        else remark = 'Needs Improvement';
+                        document.getElementById('repRemark').textContent = remark;
+
+                        // Session timing
+                        let startTime = stats.started_at || (events.length > 0 ? events[0].timestamp : null);
+                        let endTime = stats.ended_at || (events.length > 0 ? events[events.length-1].timestamp : null);
+                        document.getElementById('repStart').textContent = startTime || 'N/A';
+                        document.getElementById('repEnd').textContent = endTime || 'N/A';
+                        let durationStr = 'N/A';
+                        if (startTime && endTime) {
+                            const start = new Date(startTime);
+                            const end = new Date(endTime);
+                            const diffSec = Math.floor((end - start) / 1000);
+                            if (diffSec > 0) {
+                                const h = Math.floor(diffSec / 3600);
+                                const m = Math.floor((diffSec % 3600) / 60);
+                                const s = diffSec % 60;
+                                durationStr = `${h}h ${m}m ${s}s`;
+                            } else {
+                                durationStr = '0s';
+                            }
+                        } else if (stats.started_at) {
+                            const start = new Date(stats.started_at);
+                            const now = new Date();
+                            const diffSec = Math.floor((now - start) / 1000);
+                            const h = Math.floor(diffSec / 3600);
+                            const m = Math.floor((diffSec % 3600) / 60);
+                            const s = diffSec % 60;
+                            durationStr = `${h}h ${m}m ${s}s (ongoing)`;
+                        }
+                        document.getElementById('repDuration').textContent = durationStr;
+                        const status = data.exam_running ? 'In Progress' : (events.length > 0 ? 'Completed' : 'Not Started');
+                        document.getElementById('repStatus').textContent = status;
+
+                        // Statistics
+                        document.getElementById('repFaceAbsence').textContent = stats.face_absence_count || 0;
+                        document.getElementById('repFocusLoss').textContent = stats.focus_loss_count || 0;
+                        document.getElementById('repTotalSuspicious').textContent = stats.total_suspicious || 0;
+                        document.getElementById('repRisk').textContent = data.risk_label || 'N/A';
+                        document.getElementById('repFaceRatio').textContent = data.face_ratio !== undefined ? data.face_ratio + '%' : 'N/A';
+                        // Events table
+                        const tbody = document.getElementById('eventTableBody');
+                        if (events.length === 0) {
+                            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:rgba(255,255,255,0.3);">No events recorded</td></tr>`;
+                        } else {
+                            let html = '';
+                            events.forEach(ev => {
+                                const screenshotHtml = ev.screenshot_path ?
+                                    `<span class="screenshot-link" onclick="window.open('/evidence/${ev.screenshot_path}')">📷 View</span>` :
+                                    `<span class="no-screenshot">No</span>`;
+                                html += `<tr>
+                                    <td>${ev.type}</td>
+                                    <td>${ev.timestamp}</td>
+                                    <td>${ev.deducted || 0}</td>
+                                    <td>${screenshotHtml}</td>
+                                </tr>`;
+                            });
+                            tbody.innerHTML = html;
+                        }
+
+                        document.getElementById('reportTimestamp').textContent = new Date().toLocaleString();
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        showToast('Error loading report: ' + err.message, 'error');
+                    });
+            }
+
+            // ----- Download PDF -----
+            function downloadPDF() {
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF('p', 'pt', 'a4');
+                    const margin = 40;
+                    let y = margin;
+                    const pageWidth = doc.internal.pageSize.getWidth();
+
+                    // Title
+                    doc.setFontSize(22);
+                    doc.setTextColor(100, 80, 255);
+                    doc.text('Exam Report', margin, y);
+                    y += 30;
+                    doc.setFontSize(12);
+                    doc.setTextColor(100);
+                    doc.text('Generated: ' + new Date().toLocaleString(), margin, y);
+                    y += 30;
+
+                    // Candidate Info
+                    doc.setFontSize(16);
+                    doc.setTextColor(0);
+                    doc.text('Candidate Information', margin, y);
+                    y += 20;
+                    const candData = [
+                        ['Name', document.getElementById('repName').textContent],
+                        ['ID', document.getElementById('repId').textContent],
+                        ['Session ID', document.getElementById('repSession').textContent],
+                        ['Final Score', document.getElementById('repScore').textContent],
+                        ['Remark', document.getElementById('repRemark').textContent]
+                    ];
+                    doc.autoTable({
+                        startY: y,
+                        head: [['Field', 'Value']],
+                        body: candData,
+                        margin: { left: margin, right: margin },
+                        theme: 'striped',
+                        styles: { fontSize: 10 },
+                        headStyles: { fillColor: [100, 80, 255] }
+                    });
+                    y = doc.lastAutoTable.finalY + 20;
+
+                    // Session Info
+                    doc.setFontSize(16);
+                    doc.text('Session Information', margin, y);
+                    y += 20;
+                    const sessionData = [
+                        ['Start Time', document.getElementById('repStart').textContent],
+                        ['End Time', document.getElementById('repEnd').textContent],
+                        ['Duration', document.getElementById('repDuration').textContent],
+                        ['Status', document.getElementById('repStatus').textContent]
+                    ];
+                    doc.autoTable({
+                        startY: y,
+                        head: [['Field', 'Value']],
+                        body: sessionData,
+                        margin: { left: margin, right: margin },
+                        theme: 'striped',
+                        styles: { fontSize: 10 },
+                        headStyles: { fillColor: [100, 80, 255] }
+                    });
+                    y = doc.lastAutoTable.finalY + 20;
+
+                    // Statistics
+                    doc.setFontSize(16);
+                    doc.text('Monitoring Statistics', margin, y);
+                    y += 20;
+                    const statsData = [
+                        ['Face Absence Count', document.getElementById('repFaceAbsence').textContent],
+                        ['Focus Loss Count', document.getElementById('repFocusLoss').textContent],
+                        ['Total Suspicious Events', document.getElementById('repTotalSuspicious').textContent]
+                    ];
+                    doc.autoTable({
+                        startY: y,
+                        head: [['Metric', 'Value']],
+                        body: statsData,
+                        margin: { left: margin, right: margin },
+                        theme: 'striped',
+                        styles: { fontSize: 10 },
+                        headStyles: { fillColor: [100, 80, 255] }
+                    });
+                    y = doc.lastAutoTable.finalY + 20;
+
+                    // Events Table
+                    doc.setFontSize(16);
+                    doc.text('Event Summary', margin, y);
+                    y += 20;
+                    const tbody = document.getElementById('eventTableBody');
+                    const rows = tbody.querySelectorAll('tr');
+                    let eventData = [];
+                    rows.forEach(row => {
+                        const cols = row.querySelectorAll('td');
+                        if (cols.length === 4 && cols[0].textContent.trim() !== 'No events recorded') {
+                            eventData.push([
+                                cols[0].textContent.trim(),
+                                cols[1].textContent.trim(),
+                                cols[2].textContent.trim(),
+                                cols[3].textContent.trim()
+                            ]);
+                        }
+                    });
+                    if (eventData.length > 0) {
+                        doc.autoTable({
+                            startY: y,
+                            head: [['Event Type', 'Timestamp', 'Score Deducted', 'Screenshot']],
+                            body: eventData,
+                            margin: { left: margin, right: margin },
+                            theme: 'striped',
+                            styles: { fontSize: 9 },
+                            headStyles: { fillColor: [100, 80, 255] }
+                        });
+                    } else {
+                        doc.text('No events recorded.', margin, y);
+                    }
+
+                    doc.save('Exam_Report.pdf');
+                    showToast('PDF downloaded successfully!', 'success');
+                } catch (err) {
+                    console.error(err);
+                    showToast('PDF download failed: ' + err.message, 'error');
+                }
+            }
+
+            // ----- Download Excel -----
+            function downloadExcel() {
+                try {
+                    const wb = XLSX.utils.book_new();
+
+                    // Candidate Info
+                    const candData = [
+                        ['Field', 'Value'],
+                        ['Name', document.getElementById('repName').textContent],
+                        ['ID', document.getElementById('repId').textContent],
+                        ['Session ID', document.getElementById('repSession').textContent],
+                        ['Final Score', document.getElementById('repScore').textContent],
+                        ['Remark', document.getElementById('repRemark').textContent]
+                    ];
+                    const candSheet = XLSX.utils.aoa_to_sheet(candData);
+                    XLSX.utils.book_append_sheet(wb, candSheet, 'Candidate');
+
+                    // Session Info
+                    const sessionData = [
+                        ['Field', 'Value'],
+                        ['Start Time', document.getElementById('repStart').textContent],
+                        ['End Time', document.getElementById('repEnd').textContent],
+                        ['Duration', document.getElementById('repDuration').textContent],
+                        ['Status', document.getElementById('repStatus').textContent]
+                    ];
+                    const sessionSheet = XLSX.utils.aoa_to_sheet(sessionData);
+                    XLSX.utils.book_append_sheet(wb, sessionSheet, 'Session');
+
+                    // Statistics
+                    const statsData = [
+                        ['Metric', 'Value'],
+                        ['Face Absence Count', document.getElementById('repFaceAbsence').textContent],
+                        ['Focus Loss Count', document.getElementById('repFocusLoss').textContent],
+                        ['Total Suspicious Events', document.getElementById('repTotalSuspicious').textContent]
+                    ];
+                    const statsSheet = XLSX.utils.aoa_to_sheet(statsData);
+                    XLSX.utils.book_append_sheet(wb, statsSheet, 'Statistics');
+
+                    // Events
+                    const tbody = document.getElementById('eventTableBody');
+                    const rows = tbody.querySelectorAll('tr');
+                    let eventRows = [['Event Type', 'Timestamp', 'Score Deducted', 'Screenshot']];
+                    rows.forEach(row => {
+                        const cols = row.querySelectorAll('td');
+                        if (cols.length === 4 && cols[0].textContent.trim() !== 'No events recorded') {
+                            eventRows.push([
+                                cols[0].textContent.trim(),
+                                cols[1].textContent.trim(),
+                                cols[2].textContent.trim(),
+                                cols[3].textContent.trim()
+                            ]);
+                        }
+                    });
+                    const eventSheet = XLSX.utils.aoa_to_sheet(eventRows);
+                    XLSX.utils.book_append_sheet(wb, eventSheet, 'Events');
+
+                    XLSX.writeFile(wb, 'Exam_Report.xlsx');
+                    showToast('Excel downloaded successfully!', 'success');
+                } catch (err) {
+                    console.error(err);
+                    showToast('Excel download failed: ' + err.message, 'error');
+                }
+            }
+
+            // ----- Back to Dashboard -----
+            function goBack() {
+                window.location.href = '/dashboard';
+            }
+
+            // ----- Init -----
+            document.addEventListener('DOMContentLoaded', function() {
+                loadReport();
+                document.getElementById('downloadPdfBtn').addEventListener('click', downloadPDF);
+                document.getElementById('downloadExcelBtn').addEventListener('click', downloadExcel);
+                document.getElementById('backBtn').addEventListener('click', goBack);
+            });
+        })();
+    function viewScreenshot(path) {
+    const url = '/evidence/' + path;
+    // Try to open in a new tab
+    const win = window.open(url, '_blank');
+    // If the window opens but fails to load, we can't detect that easily.
+    // Fallback: after 2 seconds, if the window is still open, assume success.
+    setTimeout(() => {
+        if (win && !win.closed) {
+            // It's probably loading; we can't know if the image loaded.
+        } else {
+            showToast('Failed to open screenshot. Check if file exists.', 'error');
+        }
+    }, 1000);
+}
+
+function filterSessionEvents(events, startedAt, endedAt) {
+    if (!startedAt) return [];
+    const start = new Date(startedAt).getTime();
+    const end = endedAt ? new Date(endedAt).getTime() : Date.now();
+    return events.filter(ev => {
+        const ts = new Date(ev.timestamp).getTime();
+        return ts >= start && ts <= end;
+    });
+}
+    </script>
 
 </body>
-
 </html>
