@@ -281,7 +281,7 @@
 
             // ----- Load report data -----
             function loadReport() {
-    apiFetch('/api/dashboard/student')
+    apiFetch('/api/integrity_report')
         .then(res => {
             if (!res.ok) {
                 if (res.status === 401) {
@@ -303,7 +303,7 @@
             document.getElementById('repName').textContent = user ? user.name : 'N/A';
             document.getElementById('repId').textContent = user ? (user.student_id || 'N/A') : 'N/A';
             document.getElementById('repSession').textContent = user ? (user.session_id || 'N/A') : 'N/A';
-            const scoreDisplay = data.final_score !== null && data.final_score !== undefined ? data.final_score : data.integrity_score;
+            const scoreDisplay = data.score !== null && data.score !== undefined ? data.score : (data.final_score !== null && data.final_score !== undefined ? data.final_score : data.integrity_score);
             document.getElementById('repScore').textContent = scoreDisplay;
             let remark = '';
             if (scoreDisplay >= 90) remark = 'Excellent';
@@ -340,7 +340,7 @@
                 durationStr = `${h}h ${m}m ${s}s (ongoing)`;
             }
             document.getElementById('repDuration').textContent = durationStr;
-            const status = data.exam_running ? 'In Progress' : (sessionEvents.length > 0 ? 'Completed' : 'Not Started');
+            const status = stats.exam_running ? 'In Progress' : (stats.started_at ? 'Completed' : 'Not Started');
             document.getElementById('repStatus').textContent = status;
 
             // Statistics – based on sessionEvents only

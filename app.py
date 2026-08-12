@@ -45,7 +45,11 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
-            logger.warning("Session missing, redirecting to login")
+            logger.warning("Session missing for %s", request.path)
+            # API callers must receive JSON, not an HTML redirect that fetch()
+            # follows and then fails to parse as JSON.
+            if request.path.startswith('/api/'):
+                return jsonify({'error': 'Authentication required'}), 401
             return redirect(url_for('login_page'))
         logger.debug(f"Session valid: user_id={session['user_id']}")
         return f(*args, **kwargs)
@@ -55,6 +59,8 @@ def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
+            if request.path.startswith('/api/'):
+                return jsonify({'error': 'Authentication required'}), 401
             return redirect(url_for('login_page'))
         user = db.get_user_by_id(session['user_id'])
         if not user or user['role'] != 'admin':
@@ -397,7 +403,13 @@ def end_exam():
     db.set_exam_running(session['user_id'], False)
     return jsonify({'message': 'Exam ended'}), 200
 
-# app.py (add after your existing routes)
+# Integrity report APIs
+@app.route('/api/integrity_report', methods=['GET'])
+@login_required
+def current_integrity_report():
+    """Return the authenticated candidate's report without trusting a client ID."""
+    report = db.get_integrity_report(session['user_id'])
+    return jsonify(report), 200
 
 @app.route('/api/integrity_report/<int:user_id>', methods=['GET'])
 @login_required
