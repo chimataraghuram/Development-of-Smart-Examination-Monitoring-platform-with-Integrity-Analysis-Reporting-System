@@ -414,8 +414,8 @@
 <div class="integrity-score">
             <div class="score-header"><i class="fas fa-shield-alt"></i> Integrity Score</div>
             <div class="score-display">
-                <span id="scoreValue">100</span>
-                <span class="score-label">/ 100</span>
+                <span id="scoreValue">1000</span>
+                <span class="score-label">/ 1000</span>
             </div>
             <div class="score-bar">
                 <div id="scoreBar" class="score-bar-fill" style="width:100%; background: linear-gradient(90deg, #51cf66, #69db7c);"></div>
@@ -541,7 +541,7 @@
                         stats = data.stats || {};
                         allEvents = data.events || [];
                         examRunning = data.exam_running || false;
-                        const integrityScore = data.integrity_score !== undefined ? data.integrity_score : 100;
+                        const integrityScore = data.integrity_score !== undefined ? data.integrity_score : 1000;
 
                         // ---- Filter events for current session ----
                         const startedAt = stats.started_at;
@@ -573,9 +573,9 @@
                         } else if (finalScore !== null && finalScore !== undefined && !examRunning) {
                             candScore.textContent = finalScore;
                             let remark = '';
-                            if (finalScore >= 90) remark = 'Excellent';
-                            else if (finalScore >= 70) remark = 'Good';
-                            else if (finalScore >= 50) remark = 'Fair';
+                            if (finalScore >= 900) remark = 'Excellent';
+                            else if (finalScore >= 700) remark = 'Good';
+                            else if (finalScore >= 500) remark = 'Fair';
                             else remark = 'Needs Improvement';
                             candRemark.textContent = remark;
                         } else {
@@ -599,10 +599,11 @@
 
                         // Integrity score
                         scoreValue.textContent = integrityScore;
-                        scoreBar.style.width = integrityScore + '%';
-                        if (integrityScore >= 70) {
+                        const scorePercent = Math.max(0, Math.min(100, integrityScore / 10));
+                        scoreBar.style.width = scorePercent + '%';
+                        if (integrityScore >= 700) {
                             scoreBar.style.background = 'linear-gradient(90deg, #51cf66, #69db7c)';
-                        } else if (integrityScore >= 40) {
+                        } else if (integrityScore >= 400) {
                             scoreBar.style.background = 'linear-gradient(90deg, #fcc419, #ffd43b)';
                         } else {
                             scoreBar.style.background = 'linear-gradient(90deg, #ff6b6b, #ff8787)';
@@ -772,7 +773,7 @@
                 if (!faceNotDetectedLogged) {
                     faceNotDetectedLogged = true;
                     const screenshot = captureScreenshot();
-                    logEventToServer('Face Not Detected', 2, screenshot);
+                    logEventToServer('Face Not Detected', 100, screenshot);
                 }
                 if (faceNotDetectedStart === null) {
                     faceNotDetectedStart = Date.now();
@@ -781,7 +782,7 @@
                     if (elapsed > 5 && !faceAbsenceTriggered) {
                         faceAbsenceTriggered = true;
                         const screenshot = captureScreenshot();
-                        logEventToServer('Face Absence', 5, screenshot);
+                        logEventToServer('Face Absence', 100, screenshot);
                     }
                 }
                 
@@ -796,7 +797,7 @@
 
             function handleMultipleFaces(faceCount) {
                 const screenshot = captureScreenshot();
-                logEventToServer('Multiple Faces', 7, screenshot);
+                logEventToServer('Multiple Faces', 100, screenshot);
                 faceNotDetectedLogged = false;
                 faceNotDetectedStart = null;
                 faceAbsenceTriggered = false;

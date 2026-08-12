@@ -2,27 +2,40 @@
 from collections import Counter
 from datetime import datetime
 
-EVENT_WEIGHTS = {
-    'Face Not Detected': 2,
-    'Face Absence': 5,
-    'Multiple Faces': 7,
-    'Browser Focus Loss': 3,
-    'Tab Switching': 5,
-    'Copy Paste': 8,
-    'Suspicious App': 7,
-    'Screen Share': 6,
-    'Audio Noise': 4,
-}
+SCORE_MAX = 1000
+VIOLATION_DEDUCTION = 100
+
+# Each recognized integrity violation reduces the score by the same 100 points.
+VIOLATION_EVENTS = frozenset({
+    'Face Not Detected',
+    'Face Absence',
+    'Multiple Faces',
+    'Browser Focus Loss',
+    'Tab Switching',
+    'Copy Paste',
+    'Suspicious Activity',
+    'Suspicious App',
+    'Screen Share',
+    'Audio Noise',
+})
+
+# Kept as a public mapping for reporting and diagnostics.
+EVENT_WEIGHTS = {event_type: VIOLATION_DEDUCTION for event_type in VIOLATION_EVENTS}
 
 RISK_THRESHOLDS = {
-    'Low Risk': (80, 100),
-    'Medium Risk': (50, 79),
-    'High Risk': (0, 49),
+    'Low Risk': (800, SCORE_MAX),
+    'Medium Risk': (500, 799),
+    'High Risk': (0, 499),
 }
+
+
+def get_event_deduction(event_type):
+    """Return the fixed deduction for a monitored integrity violation."""
+    return VIOLATION_DEDUCTION if event_type in VIOLATION_EVENTS else 0
 
 
 class IntegrityScorer:
-    """Calculate integrity metrics without optional data-analysis dependencies."""
+    """Calculate integrity metrics using a 1000-point, fixed-deduction model."""
 
     def __init__(self, events, stats=None):
         self.events = [event for event in (events or []) if isinstance(event, dict)]
@@ -57,10 +70,7 @@ class IntegrityScorer:
             event_type = event.get('type')
             if event_type:
                 event_counts[event_type] += 1
-
-            weight = self._to_number(EVENT_WEIGHTS.get(event_type, 0))
-            deducted = self._to_number(event.get('deducted', 1), default=1)
-            total_deduction += weight * deducted
+            total_deduction += get_event_deduction(event_type)
 
         face_not_detected = self._to_number(self.stats.get('face_not_detected_count', 0))
         started_at = self._to_datetime(self.stats.get('started_at'))
@@ -76,10 +86,10 @@ class IntegrityScorer:
         face_ratio = ((total_intervals - absent_intervals) / total_intervals) * 100
         face_ratio = float(round(face_ratio, 1))
 
-        base_score = self.stats.get('integrity_score')
-        raw_score_from_events = max(0, 100 - total_deduction)
-        final_score = self._to_number(base_score, raw_score_from_events) if base_score is not None else raw_score_from_events
-        final_score = float(round(max(0, min(100, final_score)), 1))
+        raw_score_from_events = max(0, SCORE_MAX - total_deduction)
+        persisted_score = self.stats.get('integrity_score')
+        final_score = self._to_number(persisted_score, raw_score_from_events) if persisted_score is not None else raw_score_from_events
+        final_score = float(round(max(0, min(SCORE_MAX, final_score)), 1))
 
         return {
             'score': final_score,

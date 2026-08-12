@@ -4,6 +4,8 @@ import os
 from datetime import datetime
 import shutil
 
+from integrity_scorer import SCORE_MAX, get_event_deduction
+
 DB_PATH = 'exam_monitor.db'
 
 def get_filtered_events(candidate_id=None, event_type=None, date_str=None):
@@ -79,7 +81,7 @@ def init_db():
                 face_not_detected_count INTEGER DEFAULT 0,
                 multiple_faces_count INTEGER DEFAULT 0,
                 total_suspicious INTEGER DEFAULT 0,
-                integrity_score INTEGER DEFAULT 100,
+                integrity_score INTEGER DEFAULT 1000,
                 exam_running BOOLEAN DEFAULT 0,
                 started_at TIMESTAMP,
                 ended_at TIMESTAMP,
@@ -115,6 +117,14 @@ def init_db():
             if col not in existing_columns:
                 conn.execute(f'ALTER TABLE stats ADD COLUMN {col} {col_type}')
         
+        # Migrate legacy 0-100 integrity scores to the fixed 1000-point scale.
+        # total_suspicious is the per-session count maintained by event updates.
+        conn.execute('''
+            UPDATE stats
+            SET integrity_score = MAX(0, ? - (total_suspicious * ?))
+            WHERE integrity_score <= 100
+        ''', (SCORE_MAX, get_event_deduction('Face Not Detected')))
+
         # Create default admin
         admin = conn.execute("SELECT * FROM users WHERE email = 'admin@gmail.com'").fetchone()
         if not admin:
@@ -138,8 +148,8 @@ def create_user(email, password, name, role, student_id=None, session_id=None):
             )
             user_id = cursor.lastrowid
             conn.execute(
-                "INSERT INTO stats (user_id, integrity_score, exam_running, session_count) VALUES (?, 100, 0, 0)",
-                (user_id,)
+                "INSERT INTO stats (user_id, integrity_score, exam_running, session_count) VALUES (?, ?, 0, 0)",
+                (user_id, SCORE_MAX)
             )
             conn.commit()
             return user_id
@@ -168,52 +178,48 @@ def get_user_stats(user_id):
         return conn.execute("SELECT * FROM stats WHERE user_id = ?", (user_id,)).fetchone()
 
 def update_stats_after_event(user_id, deducted, event_type):
+    """Apply the fixed 100-point deduction for each recognized violation."""
+    score_deduction = get_event_deduction(event_type)
+    is_violation = score_deduction > 0
+
     with get_db_connection() as conn:
         stats = conn.execute("SELECT * FROM stats WHERE user_id = ?", (user_id,)).fetchone()
         if stats:
-            new_integrity = max(1, stats['integrity_score'] - deducted)
-            new_total_susp = stats['total_suspicious'] + (1 if deducted > 0 else 0)
-            if event_type == 'Face Absence':
-                new_face = stats['face_absence_count'] + 1
-                conn.execute(
-                    "UPDATE stats SET integrity_score = ?, total_suspicious = ?, face_absence_count = ? WHERE user_id = ?",
-                    (new_integrity, new_total_susp, new_face, user_id)
-                )
-            elif event_type == 'Browser Focus Loss':
-                new_focus = stats['focus_loss_count'] + 1
-                conn.execute(
-                    "UPDATE stats SET integrity_score = ?, total_suspicious = ?, focus_loss_count = ? WHERE user_id = ?",
-                    (new_integrity, new_total_susp, new_focus, user_id)
-                )
-            elif event_type == 'Face Not Detected':
-                new_face_not = stats['face_not_detected_count'] + 1
-                conn.execute(
-                    "UPDATE stats SET integrity_score = ?, total_suspicious = ?, face_not_detected_count = ? WHERE user_id = ?",
-                    (new_integrity, new_total_susp, new_face_not, user_id)
-                )
-            elif event_type == 'Multiple Faces':
-                new_multiple = stats['multiple_faces_count'] + 1
-                conn.execute(
-                    "UPDATE stats SET integrity_score = ?, total_suspicious = ?, multiple_faces_count = ? WHERE user_id = ?",
-                    (new_integrity, new_total_susp, new_multiple, user_id)
-                )
-            else:
-                conn.execute(
-                    "UPDATE stats SET integrity_score = ?, total_suspicious = ? WHERE user_id = ?",
-                    (new_integrity, new_total_susp, user_id)
-                )
+            new_integrity = max(0, stats['integrity_score'] - score_deduction)
+            new_total_susp = stats['total_suspicious'] + (1 if is_violation else 0)
+            updates = {
+                'integrity_score': new_integrity,
+                'total_suspicious': new_total_susp,
+            }
+            counter_columns = {
+                'Face Absence': 'face_absence_count',
+                'Browser Focus Loss': 'focus_loss_count',
+                'Face Not Detected': 'face_not_detected_count',
+                'Multiple Faces': 'multiple_faces_count',
+            }
+            counter_column = counter_columns.get(event_type)
+            if counter_column:
+                updates[counter_column] = stats[counter_column] + 1
+
+            assignments = ', '.join(f"{column} = ?" for column in updates)
+            conn.execute(
+                f"UPDATE stats SET {assignments} WHERE user_id = ?",
+                (*updates.values(), user_id)
+            )
         else:
             conn.execute(
                 "INSERT INTO stats (user_id, integrity_score, total_suspicious, session_count) VALUES (?, ?, ?, 0)",
-                (user_id, max(1, 100 - deducted), 1 if deducted > 0 else 0)
+                (user_id, max(0, SCORE_MAX - score_deduction), 1 if is_violation else 0)
             )
         conn.commit()
 
 def log_event(user_id, event_type, deducted, screenshot_path=None):
+    """Store a server-authoritative deduction, ignoring client-provided weights."""
+    score_deduction = get_event_deduction(event_type)
     with get_db_connection() as conn:
         cursor = conn.execute(
             "INSERT INTO events (user_id, type, deducted, screenshot_path, timestamp) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)",
-            (user_id, event_type, deducted, screenshot_path)
+            (user_id, event_type, score_deduction, screenshot_path)
         )
         event_id = cursor.lastrowid
         conn.commit()
@@ -235,19 +241,19 @@ def set_exam_running(user_id, running):
                 SET exam_running = 1,
                     started_at = CURRENT_TIMESTAMP,
                     ended_at = NULL,
-                    integrity_score = 100,
+                    integrity_score = ?,
                     face_absence_count = 0,
                     focus_loss_count = 0,
                     face_not_detected_count = 0,
                     multiple_faces_count = 0,
                     total_suspicious = 0
                 WHERE user_id = ?
-            ''', (user_id,))
+            ''', (SCORE_MAX, user_id))
             if conn.total_changes == 0:
                 conn.execute('''
                     INSERT INTO stats (user_id, integrity_score, exam_running, started_at, session_count)
-                    VALUES (?, 100, 1, CURRENT_TIMESTAMP, 0)
-                ''', (user_id,))
+                    VALUES (?, ?, 1, CURRENT_TIMESTAMP, 0)
+                ''', (user_id, SCORE_MAX))
         else:
             conn.execute('''
                 UPDATE stats

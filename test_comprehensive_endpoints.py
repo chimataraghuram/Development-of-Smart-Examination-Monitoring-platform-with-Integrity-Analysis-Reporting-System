@@ -71,6 +71,8 @@ for event_type, deducted, screenshot in (
     ('Browser Focus Loss', 1, ONE_PIXEL_PNG),
     ('Browser Focus Regained', 0, None),
     ('Multiple Faces', 1, None),
+    ('Tab Switching', 1, None),
+    ('Suspicious Activity', 1, None),
 ):
     payload = {'type': event_type, 'deducted': deducted}
     if screenshot:
@@ -82,18 +84,33 @@ assert running_dashboard['exam_running'] is True
 assert running_dashboard['event_counts']['Face Not Detected'] == 1
 assert running_dashboard['event_counts']['Browser Focus Loss'] == 1
 assert running_dashboard['event_counts']['Multiple Faces'] == 1
+assert running_dashboard['event_counts']['Tab Switching'] == 1
+assert running_dashboard['event_counts']['Suspicious Activity'] == 1
+assert running_dashboard['integrity_score'] == 500.0
+assert running_dashboard['total_deduction'] == 500.0
 
 expect(student.post('/api/exam/end'), 200, 'end exam')
 final_dashboard = expect(student.get('/api/dashboard/student'), 200, 'dashboard after exam').get_json()
 assert final_dashboard['exam_running'] is False
-assert final_dashboard['final_score'] is not None
+assert final_dashboard['final_score'] == 500.0
 
 current_report = expect(student.get('/api/integrity_report'), 200, 'session-bound report').get_json()
 assert current_report['user']['id'] == student_id
 assert current_report['event_counts']['Face Not Detected'] == 1
 assert current_report['event_counts']['Browser Focus Loss'] == 1
 assert current_report['event_counts']['Multiple Faces'] == 1
-assert len(current_report['events']) == 5
+assert current_report['event_counts']['Tab Switching'] == 1
+assert current_report['event_counts']['Suspicious Activity'] == 1
+assert current_report['score'] == 500.0
+assert current_report['raw_score_from_events'] == 500.0
+assert current_report['total_deduction'] == 500.0
+assert len(current_report['events']) == 7
+assert all(event['deducted'] == 100 for event in current_report['events'] if event['type'] in {
+    'Face Not Detected', 'Browser Focus Loss', 'Multiple Faces', 'Tab Switching', 'Suspicious Activity'
+})
+assert all(event['deducted'] == 0 for event in current_report['events'] if event['type'] in {
+    'Face Detected', 'Browser Focus Regained'
+})
 
 expect(student.get(f'/api/integrity_report/{student_id}'), 200, 'student id report')
 legacy_report = expect(student.get(f'/api/report/{student_id}'), 200, 'legacy report').get_json()

@@ -309,9 +309,9 @@
             const scoreDisplay = data.score !== null && data.score !== undefined ? data.score : (data.final_score !== null && data.final_score !== undefined ? data.final_score : data.integrity_score);
             document.getElementById('repScore').textContent = scoreDisplay;
             let remark = '';
-            if (scoreDisplay >= 90) remark = 'Excellent';
-            else if (scoreDisplay >= 70) remark = 'Good';
-            else if (scoreDisplay >= 50) remark = 'Fair';
+            if (scoreDisplay >= 900) remark = 'Excellent';
+            else if (scoreDisplay >= 700) remark = 'Good';
+            else if (scoreDisplay >= 500) remark = 'Fair';
             else remark = 'Needs Improvement';
             document.getElementById('repRemark').textContent = remark;
 
