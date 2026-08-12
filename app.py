@@ -294,6 +294,7 @@ def student_dashboard():
         'stats': stats_dict,
         'events': events_list,
         'exam_running': bool(stats_dict.get('exam_running', False)),
+        'exam_paused': bool(stats_dict.get('exam_paused', False)),
         'integrity_score': scorer['score'],  # normalized
         'final_score': scorer['score'] if not stats_dict.get('exam_running') else None,
         'risk_label': scorer['risk_label'],
@@ -318,11 +319,11 @@ def admin_dashboard():
     filtered_events = db.get_filtered_events(candidate_id, event_type, date_str)
     
     # 4. Construct the final response
+    admin_user = db.get_user_by_id(session['user_id'])
     response_data = {
-        "stats": dashboard_data['stats'],
-        "analytics": dashboard_data['analytics'],
-        "students": dashboard_data['students'],
-        "events": filtered_events  # <--- Replaces the unfiltered events with your filtered ones!
+        **dashboard_data,
+        "admin": {"name": admin_user['name']} if admin_user else {"name": "Admin"},
+        "events": filtered_events,
     }
     
     return jsonify(response_data), 200
@@ -409,6 +410,24 @@ def get_report(user_id):
 def start_exam():
     db.set_exam_running(session['user_id'], True)
     return jsonify({'message': 'Exam started'}), 200
+
+@app.route('/api/exam/pause', methods=['POST'])
+@login_required
+def pause_exam():
+    state = db.set_exam_paused(session['user_id'], True)
+    if not state or not state.get('exam_running'):
+        return jsonify({'error': 'No active exam to pause'}), 400
+    return jsonify({'message': 'Exam paused', **state}), 200
+
+
+@app.route('/api/exam/resume', methods=['POST'])
+@login_required
+def resume_exam():
+    state = db.set_exam_paused(session['user_id'], False)
+    if not state or not state.get('exam_running'):
+        return jsonify({'error': 'No active exam to resume'}), 400
+    return jsonify({'message': 'Exam resumed', **state}), 200
+
 
 @app.route('/api/exam/end', methods=['POST'])
 @login_required

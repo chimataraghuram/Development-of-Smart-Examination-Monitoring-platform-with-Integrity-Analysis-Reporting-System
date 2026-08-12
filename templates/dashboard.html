@@ -542,6 +542,7 @@
                         stats = data.stats || {};
                         allEvents = data.events || [];
                         examRunning = data.exam_running || false;
+                        examPaused = data.exam_paused || false;
                         const integrityScore = data.integrity_score !== undefined ? data.integrity_score : 1000;
 
                         // ---- Filter events for current session ----
@@ -622,20 +623,24 @@
 
                         // ---- Exam state handling ----
                         if (examRunning) {
-                            // Start camera if not already
-                            if (!cameraStream) {
+                            if (!examPaused && !cameraStream) {
                                 startCamera().catch(err => console.warn('Auto-start camera failed:', err));
                             }
-                            // Start timer if not running
-                            if (!timerInterval) {
-                                sessionStartTime = Date.now() - totalPausedDuration;
+                            if (!examPaused && !timerInterval) {
+                                sessionStartTime = Date.now() - (elapsedSeconds * 1000);
                                 startTimer();
+                            }
+                            if (examPaused && timerInterval) {
+                                clearInterval(timerInterval);
+                                timerInterval = null;
                             }
                             startBtn.disabled = true;
                             togglePauseBtn.disabled = false;
-                            togglePauseBtn.textContent = 'Pause';
-                            togglePauseBtn.classList.remove('resume');
-                            togglePauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                            togglePauseBtn.textContent = examPaused ? 'Resume' : 'Pause';
+                            togglePauseBtn.classList.toggle('resume', examPaused);
+                            togglePauseBtn.innerHTML = examPaused
+                                ? '<i class="fas fa-play"></i> Resume'
+                                : '<i class="fas fa-pause"></i> Pause';
                             endBtn.disabled = false;
                         } else {
                             // Exam not running – stop everything
@@ -928,25 +933,35 @@
 
             function togglePause() {
                 if (!examRunning) return;
-                if (examPaused) {
-                    startCamera().then(() => {
-                        examPaused = false;
-                        togglePauseBtn.textContent = 'Pause';
-                        togglePauseBtn.classList.remove('resume');
-                        togglePauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
-                        showToast('Exam resumed', 'success');
-                    }).catch(err => {
-                        showToast('Failed to resume camera: ' + err.message, 'error');
-                    });
-                } else {
-                    stopCamera();
-                    examPaused = true;
-                    togglePauseBtn.textContent = 'Resume';
-                    togglePauseBtn.classList.add('resume');
-                    togglePauseBtn.innerHTML = '<i class="fas fa-play"></i> Resume';
-                    totalPausedDuration += (Date.now() - sessionStartTime - totalPausedDuration) - elapsedSeconds * 1000;
-                    showToast('Exam paused', 'success');
-                }
+                const action = examPaused ? 'resume' : 'pause';
+                togglePauseBtn.disabled = true;
+                apiFetch(`/api/exam/${action}`, { method: 'POST' })
+                    .then(async res => {
+                        const payload = await res.json();
+                        if (!res.ok) throw new Error(payload.error || `Failed to ${action} exam`);
+                        return payload;
+                    })
+                    .then(() => {
+                        if (action === 'pause') {
+                            stopCamera();
+                            examPaused = true;
+                            if (timerInterval) {
+                                clearInterval(timerInterval);
+                                timerInterval = null;
+                            }
+                            showToast('Exam paused', 'success');
+                        } else {
+                            examPaused = false;
+                            return startCamera().then(() => {
+                                sessionStartTime = Date.now() - (elapsedSeconds * 1000);
+                                startTimer();
+                                showToast('Exam resumed', 'success');
+                            });
+                        }
+                    })
+                    .then(() => loadDashboard())
+                    .catch(err => showToast(err.message, 'error'))
+                    .finally(() => { togglePauseBtn.disabled = false; });
             }
 
             function endExam() {

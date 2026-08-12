@@ -81,6 +81,12 @@ expect(student.get('/api/admin/ai-settings'), 403, 'student AI settings isolatio
 expect(student.put('/api/admin/ai-settings', json={'system_prompt': 'Do not allow this'}), 403, 'student AI settings update isolation')
 expect(student.post('/api/events', json={}), 400, 'event validation')
 expect(student.post('/api/exam/start'), 200, 'start exam')
+paused_state = expect(student.post('/api/exam/pause'), 200, 'pause exam').get_json()
+assert paused_state['exam_running'] == 1 and paused_state['exam_paused'] == 1
+paused_dashboard = expect(student.get('/api/dashboard/student'), 200, 'dashboard while paused').get_json()
+assert paused_dashboard['exam_running'] is True and paused_dashboard['exam_paused'] is True
+resumed_state = expect(student.post('/api/exam/resume'), 200, 'resume exam').get_json()
+assert resumed_state['exam_running'] == 1 and resumed_state['exam_paused'] == 0
 
 face_response = expect(student.post('/api/detect_faces', json={'image': ONE_PIXEL_PNG}), 200, 'face detection')
 assert face_response.get_json()['face_count'] == 0
@@ -171,6 +177,12 @@ assert db.get_app_setting('ai_system_prompt') == 'Use a concise formal academic 
 expect(admin.put('/api/admin/ai-settings', json={'system_prompt': 'x' * 2001}), 400, 'admin AI settings length validation')
 admin_dashboard = expect(admin.get('/api/dashboard/admin'), 200, 'admin dashboard').get_json()
 assert 'stats' in admin_dashboard and 'analytics' in admin_dashboard and 'students' in admin_dashboard and 'events' in admin_dashboard
+assert 'recent_events' in admin_dashboard and 'high_risk_candidates' in admin_dashboard and 'session_summary' in admin_dashboard
+assert admin_dashboard['admin']['name'] == 'Comprehensive Admin'
+student_overview = next(item for item in admin_dashboard['students'] if item['id'] == student_id)
+assert student_overview['session_status'] == 'Completed'
+assert student_overview['event_count'] == 5
+assert 'duration_seconds' in student_overview
 expect(admin.get('/api/dashboard/admin?candidate_id=8123&event_type=Browser%20Focus%20Loss'), 200, 'admin filters')
 admin_report = expect(admin.get(f'/api/integrity_report/{student_id}'), 200, 'admin cross-candidate report').get_json()
 assert admin_report['user']['id'] == student_id
