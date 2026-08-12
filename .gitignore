@@ -1,0 +1,17 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Local application data and runtime output
+exam_monitor.db
+exam_monitor.db-*
+evidence/
+flask_stdout.log
+flask_stderr.log
+*.log
+
+# Locally generated diagnostics and report exports
+browser_load_test_results.json
+latest_completed_integrity_report.json
+COMPREHENSIVE_TEST_REPORT.md
+MONITORING_DIAGNOSTICS_REPORT.md
