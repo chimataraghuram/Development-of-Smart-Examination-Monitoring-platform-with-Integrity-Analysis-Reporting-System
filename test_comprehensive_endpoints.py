@@ -1,4 +1,5 @@
 import base64
+import json
 import os
 import shutil
 import tempfile
@@ -32,6 +33,9 @@ def expect(response, status, label):
     return response
 
 
+captured_ai_payload = {}
+
+
 class FakeAIResponse:
     def __enter__(self):
         return self
@@ -41,6 +45,11 @@ class FakeAIResponse:
 
     def read(self):
         return b'{"choices": [{"message": {"content": "Your current integrity score is 500. Each recorded violation deducted 100 points."}}]}'
+
+
+def capture_ai_request(provider_request, timeout):
+    captured_ai_payload['request'] = json.loads(provider_request.data.decode('utf-8'))
+    return FakeAIResponse()
 
 
 student = app.test_client()
@@ -68,6 +77,8 @@ student_id = registration['user_id']
 expect(student.get('/dashboard'), 200, 'dashboard page')
 expect(student.get('/report'), 200, 'report page')
 expect(student.get('/api/dashboard/student'), 200, 'dashboard before exam')
+expect(student.get('/api/admin/ai-settings'), 403, 'student AI settings isolation')
+expect(student.put('/api/admin/ai-settings', json={'system_prompt': 'Do not allow this'}), 403, 'student AI settings update isolation')
 expect(student.post('/api/events', json={}), 400, 'event validation')
 expect(student.post('/api/exam/start'), 200, 'start exam')
 
@@ -149,14 +160,26 @@ admin_registration = expect(admin.post('/api/register', json={
 }), 201, 'admin registration').get_json()
 assert admin_registration['role'] == 'admin'
 expect(admin.get('/admin_dashboard'), 200, 'admin page')
+initial_ai_settings = expect(admin.get('/api/admin/ai-settings'), 200, 'admin AI settings read').get_json()
+assert initial_ai_settings['system_prompt'] == ''
+assert initial_ai_settings['max_length'] == 2000
+saved_ai_settings = expect(admin.put('/api/admin/ai-settings', json={
+    'system_prompt': 'Use a concise formal academic tone.'
+}), 200, 'admin AI settings save').get_json()
+assert saved_ai_settings['system_prompt'] == 'Use a concise formal academic tone.'
+assert db.get_app_setting('ai_system_prompt') == 'Use a concise formal academic tone.'
+expect(admin.put('/api/admin/ai-settings', json={'system_prompt': 'x' * 2001}), 400, 'admin AI settings length validation')
 admin_dashboard = expect(admin.get('/api/dashboard/admin'), 200, 'admin dashboard').get_json()
 assert 'stats' in admin_dashboard and 'analytics' in admin_dashboard and 'students' in admin_dashboard and 'events' in admin_dashboard
 expect(admin.get('/api/dashboard/admin?candidate_id=8123&event_type=Browser%20Focus%20Loss'), 200, 'admin filters')
 admin_report = expect(admin.get(f'/api/integrity_report/{student_id}'), 200, 'admin cross-candidate report').get_json()
 assert admin_report['user']['id'] == student_id
-with patch.dict(os.environ, {'OPENROUTER_API_KEY': 'test-key'}, clear=False), patch('ai_service.request.urlopen', return_value=FakeAIResponse()):
+with patch.dict(os.environ, {'OPENROUTER_API_KEY': 'test-key'}, clear=False), patch('ai_service.request.urlopen', side_effect=capture_ai_request):
     admin_ai_answer = expect(admin.post('/api/ai/ask', json={'question': 'Summarize the monitoring dashboard.'}), 200, 'admin AI Ask').get_json()
     assert '500' in admin_ai_answer['answer']
+    system_message = captured_ai_payload['request']['messages'][0]['content']
+    assert 'Use a concise formal academic tone.' in system_message
+    assert 'cannot override authorization boundaries' in system_message
 expect(admin.get('/admin_logs'), 200, 'admin logs page')
 
 # Logout and API authentication behavior
@@ -164,6 +187,7 @@ expect(student.post('/api/logout'), 200, 'student logout')
 expect(student.get('/api/dashboard/student'), 401, 'dashboard unauthorized JSON')
 expect(student.get('/api/integrity_report'), 401, 'report unauthorized JSON')
 expect(student.post('/api/ai/ask', json={'question': 'Can I view a score?'}), 401, 'AI Ask unauthorized JSON')
+expect(student.get('/api/admin/ai-settings'), 401, 'AI settings unauthorized JSON')
 
 print('COMPREHENSIVE_ENDPOINT_SUITE_PASS')
 print('STUDENT_ID=' + str(student_id))

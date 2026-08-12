@@ -10,7 +10,13 @@ from datetime import datetime
 import cv2
 import numpy as np
 import database as db
-from ai_service import AIServiceError, answer_question
+from ai_service import (
+    AIServiceError,
+    MAX_CUSTOM_SYSTEM_PROMPT_LENGTH,
+    answer_question,
+    get_admin_system_prompt,
+    set_admin_system_prompt,
+)
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -427,6 +433,30 @@ def integrity_report(user_id):
 
     report = db.get_integrity_report(user_id)
     return jsonify(report), 200
+
+@app.route('/api/admin/ai-settings', methods=['GET'])
+@admin_required
+def get_ai_settings():
+    return jsonify({
+        'system_prompt': get_admin_system_prompt(),
+        'max_length': MAX_CUSTOM_SYSTEM_PROMPT_LENGTH,
+    }), 200
+
+
+@app.route('/api/admin/ai-settings', methods=['PUT'])
+@admin_required
+def update_ai_settings():
+    payload = request.get_json(silent=True) or {}
+    try:
+        system_prompt = set_admin_system_prompt(payload.get('system_prompt'))
+        return jsonify({
+            'message': 'AI system prompt saved',
+            'system_prompt': system_prompt,
+            'max_length': MAX_CUSTOM_SYSTEM_PROMPT_LENGTH,
+        }), 200
+    except AIServiceError as exc:
+        return jsonify({'error': str(exc)}), exc.status_code
+
 
 @app.route('/api/ai/ask', methods=['POST'])
 @login_required

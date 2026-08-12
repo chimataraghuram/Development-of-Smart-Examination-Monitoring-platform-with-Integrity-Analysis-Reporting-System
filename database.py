@@ -99,6 +99,15 @@ def init_db():
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         ''')
+        # Application-wide administrator settings. Values are intentionally
+        # stored separately from user and exam-report data.
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS app_settings (
+                setting_key TEXT PRIMARY KEY,
+                setting_value TEXT NOT NULL DEFAULT '',
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
         
         # ---- ADD MISSING COLUMNS (for existing databases) ----
         cursor = conn.execute("PRAGMA table_info(stats)")
@@ -168,6 +177,29 @@ def get_user_by_email(email):
 def get_user_by_id(user_id):
     with get_db_connection() as conn:
         return conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+
+
+def get_app_setting(setting_key, default=''):
+    """Return one application setting without exposing unrelated values."""
+    with get_db_connection() as conn:
+        row = conn.execute(
+            "SELECT setting_value FROM app_settings WHERE setting_key = ?",
+            (setting_key,)
+        ).fetchone()
+        return row['setting_value'] if row else default
+
+
+def set_app_setting(setting_key, setting_value):
+    """Create or update an application setting."""
+    with get_db_connection() as conn:
+        conn.execute('''
+            INSERT INTO app_settings (setting_key, setting_value, updated_at)
+            VALUES (?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(setting_key) DO UPDATE SET
+                setting_value = excluded.setting_value,
+                updated_at = CURRENT_TIMESTAMP
+        ''', (setting_key, setting_value))
+        conn.commit()
 
 def get_students():
     with get_db_connection() as conn:
