@@ -108,16 +108,22 @@ face_cascade = cv2.CascadeClassifier(CASCADE_PATH)
 @app.route('/api/detect_faces', methods=['POST'])
 def detect_faces():
     try:
-        data = request.json
+        data = request.get_json(silent=True) or {}
         image_b64 = data.get('image')
         if not image_b64:
             return jsonify({'error': 'No image provided'}), 400
 
         if ',' in image_b64:
-            image_b64 = image_b64.split(',')[1]
-        image_data = base64.b64decode(image_b64)
+            image_b64 = image_b64.split(',', 1)[1]
+        try:
+            image_data = base64.b64decode(image_b64, validate=True)
+        except (TypeError, ValueError):
+            return jsonify({'error': 'Invalid image encoding'}), 400
+
         np_arr = np.frombuffer(image_data, np.uint8)
         img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        if img is None:
+            return jsonify({'error': 'Invalid image data'}), 400
 
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=3, minSize=(30, 30))
@@ -131,7 +137,7 @@ def detect_faces():
 
         return jsonify({'face_count': len(faces), 'boxes': boxes}), 200
     except Exception as e:
-        print('Face detection error:', e)
+        logger.exception('Face detection error')
         return jsonify({'error': str(e)}), 500
     
 # ---------- Authentication ----------
@@ -220,7 +226,7 @@ def login():
         return jsonify({'error': 'Password must be exactly 6 characters'}), 400
 
     user = db.get_user_by_email(email)
-    if user['password'] != password: 
+    if not user or user['password'] != password:
         logger.warning(f"Invalid credentials for {email}")
         return jsonify({'error': 'Invalid credentials'}), 401
 
