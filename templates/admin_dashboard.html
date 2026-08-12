@@ -289,15 +289,7 @@
         </div>
     </div>
 
-    <section class="card" id="aiSettingsCard">
-        <div class="card-title"><i class="fas fa-sliders-h"></i> AI Assistant Settings</div>
-        <p class="ai-settings-help">Add optional supplemental guidance for AI Ask responses. It cannot change score rules, authorization, privacy protections, or monitoring safeguards. Leave this field blank and save to reset it.</p>
-        <textarea id="aiSystemPrompt" class="ai-settings-input" maxlength="2000" placeholder="For example: Use a formal academic tone and briefly explain relevant score details."></textarea>
-        <div class="ai-settings-footer">
-            <span class="ai-settings-count" id="aiPromptCharCount">0 / 2000</span>
-            <button class="btn-save-ai-settings" id="saveAiSettingsBtn" type="button">Save Prompt</button>
-        </div>
-    </section>
+
 
     <!-- Candidate List Modal -->
     <div class="candidate-list-modal" id="candidateModal">
@@ -358,9 +350,6 @@
 
             const toast = document.getElementById('toast');
             const toastMsg = document.getElementById('toastMsg');
-            const aiSystemPrompt = document.getElementById('aiSystemPrompt');
-            const aiPromptCharCount = document.getElementById('aiPromptCharCount');
-            const saveAiSettingsBtn = document.getElementById('saveAiSettingsBtn');
 
             // ----- helpers -----
             function apiFetch(url, options = {}) {
@@ -523,41 +512,6 @@
                     });
             }
 
-            // ----- AI assistant settings -----
-            function updateAiPromptCount(maxLength = 2000) {
-                aiPromptCharCount.textContent = `${aiSystemPrompt.value.length} / ${maxLength}`;
-            }
-
-            function loadAiSettings() {
-                apiFetch('/api/admin/ai-settings')
-                    .then(async response => {
-                        const payload = await response.json();
-                        if (!response.ok) throw new Error(payload.error || 'Failed to load AI settings');
-                        const maxLength = payload.max_length || 2000;
-                        aiSystemPrompt.maxLength = maxLength;
-                        aiSystemPrompt.value = payload.system_prompt || '';
-                        updateAiPromptCount(maxLength);
-                    })
-                    .catch(error => showToast(error.message, 'error'));
-            }
-
-            function saveAiSettings() {
-                saveAiSettingsBtn.disabled = true;
-                apiFetch('/api/admin/ai-settings', {
-                    method: 'PUT',
-                    body: JSON.stringify({ system_prompt: aiSystemPrompt.value })
-                })
-                .then(async response => {
-                    const payload = await response.json();
-                    if (!response.ok) throw new Error(payload.error || 'Failed to save AI settings');
-                    aiSystemPrompt.value = payload.system_prompt || '';
-                    aiSystemPrompt.maxLength = payload.max_length || 2000;
-                    updateAiPromptCount(aiSystemPrompt.maxLength);
-                    showToast('AI system prompt saved', 'success');
-                })
-                .catch(error => showToast(error.message, 'error'))
-                .finally(() => { saveAiSettingsBtn.disabled = false; });
-            }
 
             // ----- logout -----
             function logout() {
@@ -569,10 +523,7 @@
             // ----- init -----
             function init() {
                 loadAdminDashboard();
-                loadAiSettings();
 
-                aiSystemPrompt.addEventListener('input', () => updateAiPromptCount(aiSystemPrompt.maxLength || 2000));
-                saveAiSettingsBtn.addEventListener('click', saveAiSettings);
                 logoutBtn.addEventListener('click', logout);
 
                 // Evidence modal close
