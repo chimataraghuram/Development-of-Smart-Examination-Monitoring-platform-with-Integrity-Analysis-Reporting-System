@@ -1,604 +1,195 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ExamMonitor · Admin Dashboard</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExamGuard · Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family:'Inter',sans-serif; background:linear-gradient(135deg, #2d0a6e, #44159b); color:#f0f0ff; min-height:100vh; padding:24px 32px; }
-        .admin-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; flex-wrap:wrap; gap:16px; }
-        .admin-header h1 { font-size:28px; font-weight:700; background:linear-gradient(135deg,#f0f0ff,#b8aaff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; display:flex; align-items:center; gap:12px; }
-        .admin-header .user-info { display:flex; align-items:center; gap:20px; }
-        .admin-header .user-info span { color:rgba(255,255,255,0.5); font-size:15px; }
-        .admin-header .user-info span i { margin-right:6px; }
-        .btn-logout { padding:10px 24px; border:none; border-radius:40px; background:rgba(255,107,107,0.15); color:#ff6b6b; font-weight:600; cursor:pointer; transition:all 0.3s ease; font-size:14px; display:flex; align-items:center; gap:8px; }
-        .btn-logout:hover { background:rgba(255,107,107,0.25); transform:scale(1.02); }
-
-        .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:18px; margin-bottom:32px; }
-        .stat-card { background:rgba(255,255,255,0.04); border-radius:16px; padding:18px 20px; border:1px solid rgba(255,255,255,0.04); backdrop-filter:blur(4px); }
-        .stat-card .label { font-size:13px; color:rgba(255,255,255,0.3); font-weight:500; letter-spacing:0.3px; }
-        .stat-card .value { font-size:28px; font-weight:700; margin-top:6px; color:#f0f0ff; }
-        .stat-card .value.green { color:#51cf66; }
-        .stat-card .value.blue { color:#4dabf7; }
-        .stat-card .value.purple { color:#b8aaff; }
-        .stat-card .value.orange { color:#fcc419; }
-        .stat-card .value.red { color:#ff6b6b; }
-
-        .card {
-            background: rgba(255,255,255,0.04);
-            border-radius: 16px;
-            padding: 20px 22px;
-            border: 1px solid rgba(255,255,255,0.04);
-            backdrop-filter: blur(4px);
-            margin-bottom: 24px;
-        }
-        .card-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            color: rgba(255,255,255,0.7);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .ai-settings-help { color: rgba(255,255,255,0.45); font-size: 13px; line-height: 1.5; margin: -6px 0 14px; }
-        .ai-settings-input { width: 100%; min-height: 112px; resize: vertical; border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 12px; background: rgba(255,255,255,0.05); color: #f0f0ff; font: 14px/1.45 'Inter', sans-serif; }
-        .ai-settings-input::placeholder { color: rgba(255,255,255,0.35); }
-        .ai-settings-footer { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-top: 12px; }
-        .ai-settings-count { color: rgba(255,255,255,0.35); font-size: 12px; }
-        .btn-save-ai-settings { padding: 10px 18px; border: none; border-radius: 40px; background: #7c4dff; color: #fff; font: 600 14px 'Inter', sans-serif; cursor: pointer; transition: 0.2s; }
-        .btn-save-ai-settings:hover { background: #9775fa; }
-        .btn-save-ai-settings:disabled { opacity: 0.55; cursor: not-allowed; }
-
-        /* Side-by-side layout for Integrity Analytics and Risk Distribution */
-        .analytics-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-            margin-bottom: 24px;
-        }
-        @media (max-width: 768px) {
-            .analytics-row {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .analytics-list { list-style:none; padding:0; }
-        .analytics-list li { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03); font-size:15px; }
-        .analytics-list li:last-child { border-bottom:none; }
-        .analytics-list .label { color:rgba(255,255,255,0.4); }
-        .analytics-list .value { font-weight:600; color:#f0f0ff; }
-
-        /* Risk Distribution */
-        .risk-distribution {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-        .risk-chart-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 24px;
-            flex-wrap: wrap;
-        }
-        .risk-chart-container canvas {
-            max-width: 180px;
-            max-height: 180px;
-        }
-        .risk-legend {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            font-size: 14px;
-        }
-        .risk-legend .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .risk-legend .color-box {
-            width: 16px;
-            height: 16px;
-            border-radius: 4px;
-        }
-        .risk-tiles {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 12px;
-            margin-top: 8px;
-        }
-        .risk-tile {
-            background: rgba(255,255,255,0.04);
-            border-radius: 12px;
-            padding: 12px 8px;
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.06);
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .risk-tile:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-        }
-        .risk-tile .count {
-            font-size: 28px;
-            font-weight: 700;
-        }
-        .risk-tile .label {
-            font-size: 13px;
-            color: rgba(255,255,255,0.5);
-            margin-top: 2px;
-        }
-        .risk-tile .percent {
-            font-size: 12px;
-            font-weight: 500;
-            color: rgba(255,255,255,0.3);
-        }
-        .risk-tile.low .count { color: #51cf66; }
-        .risk-tile.medium .count { color: #fcc419; }
-        .risk-tile.high .count { color: #ff6b6b; }
-
-        /* Candidate List Modal */
-        .candidate-list-modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(8px);
-            z-index: 1001;
-            justify-content: center;
-            align-items: center;
-        }
-        .candidate-list-modal.active {
-            display: flex;
-        }
-        .candidate-list-modal .modal-content {
-            background: #1a1040;
-            border-radius: 24px;
-            padding: 28px 32px;
-            max-width: 480px;
-            width: 90%;
-            max-height: 70vh;
-            border: 1px solid rgba(255,255,255,0.06);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-            overflow-y: auto;
-            position: relative;
-        }
-        .candidate-list-modal .modal-title {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .candidate-list-modal .modal-close {
-            background: none;
-            border: none;
-            color: rgba(255,255,255,0.4);
-            font-size: 24px;
-            cursor: pointer;
-        }
-        .candidate-list-modal .candidate-item {
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.04);
-            display: flex;
-            justify-content: space-between;
-            font-size: 15px;
-        }
-        .candidate-list-modal .candidate-item:last-child {
-            border-bottom: none;
-        }
-        .candidate-list-modal .candidate-item .id {
-            color: rgba(255,255,255,0.4);
-            font-weight: 500;
-        }
-        .candidate-list-modal .candidate-item .name {
-            color: #f0f0ff;
-        }
-
-        /* existing modal & toast */
-        .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(6px); display:none; align-items:center; justify-content:center; z-index:1000; }
-        .modal-overlay.active { display:flex; }
-        .modal-box { background:#1a1040; border-radius:24px; padding:24px; max-width:90%; max-height:90%; border:1px solid rgba(255,255,255,0.05); box-shadow:0 20px 60px rgba(0,0,0,0.6); position:relative; }
-        .modal-box img { max-width:100%; max-height:70vh; border-radius:12px; display:block; }
-        .modal-close { position:absolute; top:12px; right:16px; background:rgba(255,255,255,0.1); border:none; color:#fff; font-size:24px; cursor:pointer; border-radius:50%; width:40px; height:40px; display:flex; align-items:center; justify-content:center; transition:0.3s; }
-        .modal-close:hover { background:rgba(255,255,255,0.2); }
-
-        .toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(80px); background:rgba(20,12,50,0.92); backdrop-filter:blur(16px); padding:14px 32px; border-radius:60px; border:1px solid rgba(255,255,255,0.06); color:#fff; font-weight:500; font-size:14px; box-shadow:0 16px 48px rgba(0,0,0,0.5); z-index:999; opacity:0; transition:all 0.5s cubic-bezier(0.34,1.56,0.64,1); pointer-events:none; display:flex; align-items:center; gap:12px; }
-        .toast.show { opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; }
-        .toast.success { border-color:rgba(81,207,102,0.3); }
-        .toast.error { border-color:rgba(255,107,107,0.3); }
-        .toast i { font-size:18px; }
-        .toast.success i { color:#51cf66; }
-        .toast.error i { color:#ff6b6b; }
-
-        @media (max-width:600px) { body { padding:16px; } .stats-grid { grid-template-columns:1fr 1fr; } }
+        :root { --bg:#170c4a; --surface:rgba(45,30,105,.66); --surface-strong:rgba(57,40,123,.82); --line:rgba(174,150,255,.16); --text:#f6f2ff; --muted:#b9aedb; --purple:#8f62ff; --purple-2:#b083ff; --green:#5de3ad; --yellow:#ffbd3e; --red:#ff6f98; --blue:#7ca5ff; }
+        * { box-sizing:border-box; }
+        html { scroll-behavior:smooth; }
+        body { margin:0; min-height:100vh; color:var(--text); font-family:'Inter',sans-serif; background:radial-gradient(circle at 20% 0%,rgba(113,76,255,.3),transparent 31%),radial-gradient(circle at 80% 15%,rgba(65,132,255,.17),transparent 28%),linear-gradient(135deg,#11063b 0%,#22115c 52%,#160944 100%); }
+        button,input,textarea { font:inherit; }
+        button { cursor:pointer; }
+        .shell { max-width:1536px; margin:0 auto; padding:18px 30px 38px; }
+        .topbar { position:sticky; top:12px; z-index:100; display:flex; align-items:center; gap:26px; min-height:66px; padding:10px 16px 10px 20px; border:1px solid var(--line); border-radius:18px; background:rgba(31,18,84,.82); box-shadow:0 18px 42px rgba(3,0,24,.28); backdrop-filter:blur(18px); }
+        .brand { min-width:220px; display:flex; align-items:center; gap:12px; font-weight:800; font-size:19px; letter-spacing:-.3px; }
+        .brand-mark { display:grid; place-items:center; width:38px; height:38px; color:#b9a2ff; font-size:23px; border:1px solid rgba(166,130,255,.38); border-radius:12px; background:linear-gradient(145deg,rgba(141,92,255,.35),rgba(67,47,145,.22)); }
+        .brand small { display:block; margin-top:2px; color:var(--muted); font-size:10px; font-weight:600; letter-spacing:.7px; text-transform:uppercase; }
+        .nav { display:flex; align-items:center; flex:1; gap:4px; overflow-x:auto; }
+        .nav-btn { white-space:nowrap; border:0; border-radius:12px; padding:12px 15px; color:#d8cff5; background:transparent; font-size:13px; font-weight:600; transition:.2s; }
+        .nav-btn i { margin-right:8px; color:#c8b9ff; }
+        .nav-btn:hover,.nav-btn.active { color:#fff; background:linear-gradient(135deg,rgba(129,77,255,.48),rgba(94,60,198,.34)); box-shadow:inset 0 1px rgba(255,255,255,.12),0 8px 18px rgba(89,44,213,.18); }
+        .top-actions { display:flex; align-items:center; gap:11px; margin-left:auto; }
+        .icon-btn,.profile-btn { border:1px solid var(--line); color:#eeeaff; background:rgba(255,255,255,.05); transition:.2s; }
+        .icon-btn { width:38px; height:38px; border-radius:12px; position:relative; }
+        .icon-btn:hover,.profile-btn:hover { background:rgba(255,255,255,.11); }
+        .notification-count { position:absolute; top:-7px; right:-5px; min-width:18px; height:18px; display:grid; place-items:center; border-radius:50%; color:#fff; background:var(--purple); font-size:10px; font-weight:800; }
+        .profile-btn { display:flex; align-items:center; gap:9px; min-height:40px; padding:4px 8px 4px 5px; border-radius:14px; }
+        .avatar { display:grid; place-items:center; width:31px; height:31px; border-radius:50%; background:linear-gradient(135deg,#9c6dff,#5f42d9); color:#fff; font-size:13px; font-weight:800; }
+        .profile-btn .profile-name { max-width:92px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; font-weight:700; }
+        .profile-menu { display:none; position:absolute; right:30px; top:76px; z-index:110; min-width:176px; padding:8px; border:1px solid var(--line); border-radius:14px; background:#28166a; box-shadow:0 20px 38px rgba(0,0,0,.34); }
+        .profile-menu.open { display:block; }
+        .profile-menu button { width:100%; border:0; border-radius:10px; padding:10px 12px; text-align:left; color:#ffd7e4; background:transparent; font-weight:700; }
+        .profile-menu button:hover { background:rgba(255,111,152,.14); }
+        .overview-head { display:flex; justify-content:space-between; align-items:center; gap:18px; padding:42px 2px 28px; }
+        .eyebrow { margin:0 0 7px; color:#bcaeff; font-size:12px; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
+        h1 { margin:0; font-size:28px; letter-spacing:-1px; }
+        .overview-head p { margin:8px 0 0; color:var(--muted); font-size:14px; }
+        .live-clock { display:flex; align-items:center; gap:12px; min-width:170px; padding:12px 14px; border:1px solid var(--line); border-radius:14px; background:var(--surface); }
+        .live-clock i { color:#bba7ff; font-size:19px; }
+        .live-clock span { display:block; color:var(--muted); font-size:11px; }
+        .live-clock strong { display:block; margin-top:2px; font-size:14px; }
+        .metrics { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:16px; }
+        .metric { min-height:126px; padding:18px; border:1px solid var(--line); border-radius:16px; background:linear-gradient(135deg,rgba(76,51,150,.56),rgba(48,31,112,.54)); box-shadow:inset 0 1px rgba(255,255,255,.05); }
+        .metric-top { display:flex; align-items:center; gap:12px; color:#e4def8; font-size:12px; font-weight:600; }
+        .metric-icon { display:grid; place-items:center; width:40px; height:40px; border-radius:11px; background:rgba(142,99,255,.26); color:#dfd1ff; font-size:17px; }
+        .metric:nth-child(2) .metric-icon { background:rgba(93,227,173,.17); color:var(--green); }
+        .metric:nth-child(3) .metric-icon { background:rgba(124,165,255,.18); color:#a5c1ff; }
+        .metric:nth-child(4) .metric-icon { background:rgba(176,131,255,.18); color:#c9afff; }
+        .metric:nth-child(5) .metric-icon { background:rgba(255,111,152,.18); color:var(--red); }
+        .metric-value { margin:12px 0 7px 52px; font-size:28px; font-weight:800; letter-spacing:-1px; }
+        .metric-note { margin-left:52px; color:#aeb0da; font-size:11px; }
+        .metric-note.good { color:var(--green); }.metric-note.warn { color:var(--yellow); }.metric-note.alert { color:var(--red); }
+        .dashboard-grid { display:grid; grid-template-columns:minmax(0,2.1fr) minmax(310px,1fr); gap:18px; margin-top:28px; align-items:start; }
+        .stack { display:grid; gap:18px; }
+        .panel { border:1px solid var(--line); border-radius:16px; background:linear-gradient(135deg,rgba(60,41,130,.68),rgba(39,24,99,.64)); box-shadow:inset 0 1px rgba(255,255,255,.04); overflow:hidden; }
+        .panel-head { display:flex; align-items:center; justify-content:space-between; gap:14px; min-height:66px; padding:14px 19px; border-bottom:1px solid rgba(205,186,255,.09); }
+        .panel-title { display:flex; align-items:center; gap:10px; margin:0; color:#f4f1ff; font-size:15px; font-weight:800; }
+        .live-dot { display:inline-flex; align-items:center; gap:5px; color:var(--green); font-size:11px; font-weight:700; }
+        .live-dot::before { content:''; width:7px; height:7px; border-radius:50%; background:var(--green); box-shadow:0 0 10px var(--green); }
+        .link-btn { border:0; color:#bda8ff; background:transparent; font-size:12px; font-weight:700; }
+        .link-btn i { margin-left:6px; }
+        .toolbar { display:flex; align-items:center; gap:10px; }
+        .search { display:flex; align-items:center; gap:8px; min-width:245px; padding:9px 11px; border:1px solid rgba(207,190,255,.12); border-radius:10px; background:rgba(19,10,58,.23); color:var(--muted); }
+        .search input { width:100%; border:0; outline:0; color:#fff; background:transparent; font-size:12px; }
+        .search input::placeholder { color:#aaa0cf; }
+        .filters { display:flex; gap:3px; }
+        .filter-btn { border:0; border-radius:8px; padding:8px 10px; color:#d8d0ed; background:transparent; font-size:11px; font-weight:700; }
+        .filter-btn.active,.filter-btn:hover { color:#fff; background:rgba(143,98,255,.5); }
+        .table-scroll { overflow-x:auto; }
+        .candidate-table { width:100%; min-width:740px; border-collapse:collapse; }
+        .candidate-table th { padding:12px 18px; color:#beb4dc; text-align:left; font-size:11px; font-weight:700; }
+        .candidate-table td { padding:11px 18px; border-top:1px solid rgba(205,186,255,.08); color:#f2effd; font-size:12px; }
+        .candidate-info { display:flex; align-items:center; gap:10px; min-width:155px; }
+        .candidate-avatar { display:grid; place-items:center; flex:0 0 31px; width:31px; height:31px; border-radius:50%; background:linear-gradient(135deg,#6c4dcc,#473294); font-size:12px; font-weight:800; }
+        .candidate-name { display:block; font-weight:700; }.candidate-id { display:block; margin-top:3px; color:#b0a5ce; font-size:10px; }
+        .status { display:inline-flex; align-items:center; gap:6px; color:#d5caed; font-weight:700; }
+        .status::before { content:''; width:6px; height:6px; border-radius:50%; background:#968bba; }.status.active::before{background:var(--green)}.status.paused::before{background:var(--yellow)}.status.completed::before{background:var(--blue)}.status.ready::before{background:#968bba}
+        .score-cell { min-width:122px; }.score-number { font-weight:800; }.score-number small{color:#b4a8d7;font-weight:600}.score-bar { width:100%; height:5px; margin-top:7px; overflow:hidden; border-radius:9px; background:rgba(255,255,255,.1); }.score-bar span { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#935dff,#bc85ff); }.score-bar.high span{background:linear-gradient(90deg,#ff668e,#fb94ae)}.score-bar.medium span{background:linear-gradient(90deg,#ffb43d,#f6ce76)}
+        .risk-pill { display:inline-flex; border-radius:7px; padding:5px 9px; font-size:11px; font-weight:800; }.risk-low{color:#8bf1c5;background:rgba(93,227,173,.15)}.risk-medium{color:#ffda81;background:rgba(255,189,62,.16)}.risk-high{color:#ff9db7;background:rgba(255,111,152,.16)}
+        .view-btn { display:grid; place-items:center; width:34px; height:31px; border:1px solid rgba(255,255,255,.1); border-radius:9px; color:#dcd2ff; background:rgba(255,255,255,.04); }.view-btn:hover{background:rgba(143,98,255,.35);color:#fff}
+        .pager { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 19px; color:#bbb1d8; font-size:11px; }.pager-controls{display:flex;gap:6px}.page-btn{width:28px;height:28px;border:1px solid transparent;border-radius:8px;color:#dcd5f0;background:rgba(255,255,255,.04)}.page-btn.active{border-color:#9466ff;background:#7e4ce7}.page-btn:disabled{opacity:.35;cursor:not-allowed}
+        .risk-list,.activity-list { padding:8px 16px 16px; }.risk-card { display:grid; grid-template-columns:35px 1fr auto auto; align-items:center; gap:10px; padding:12px 8px; border-bottom:1px solid rgba(205,186,255,.08); cursor:pointer; }.risk-card:last-child{border-bottom:0}.risk-card:hover{background:rgba(255,255,255,.035);border-radius:10px}.risk-score{font-weight:800;font-size:12px}.risk-score span{color:#b9afdb;font-weight:600}.risk-event{margin-top:4px;color:var(--red);font-size:10px;font-weight:700}.risk-arrow{color:#c5b8ef;font-size:14px}
+        .activity { margin-top:18px; }.activity-list { max-height:350px; overflow:auto; }.activity-item{display:grid;grid-template-columns:24px 57px 1fr;gap:10px;align-items:start;padding:10px 0;border-bottom:1px solid rgba(205,186,255,.08)}.activity-item:last-child{border:0}.activity-icon{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:rgba(255,189,62,.16);color:var(--yellow);font-size:10px}.activity-item.alert .activity-icon{background:rgba(255,111,152,.16);color:var(--red)}.activity-time{color:#b7abd3;font-size:10px;padding-top:5px}.activity-main{font-size:11px;line-height:1.35}.activity-main strong{display:block;color:#f4f0ff}.activity-main span{display:block;margin-top:3px;color:var(--yellow);font-weight:700}.activity-item.alert .activity-main span{color:var(--red)}
+        .chart-row { display:grid; grid-template-columns:1.25fr 1fr; gap:18px; margin-top:18px; }.chart-card { min-height:230px; }.chart-body{padding:14px 18px 18px}.chart-wrap{position:relative;height:164px}.chart-wrap canvas{width:100%;height:100%}.session-layout{display:flex;align-items:center;gap:22px;min-height:166px}.session-canvas{width:148px;height:148px}.summary-list{display:grid;gap:10px;flex:1}.summary-item{display:flex;align-items:center;justify-content:space-between;color:#ddd6f4;font-size:11px}.summary-label{display:flex;align-items:center;gap:7px}.legend-dot{width:10px;height:10px;border-radius:4px}.summary-item strong{font-size:12px}
+        .settings { margin-top:18px; }.settings-body{padding:0 19px 18px}.settings-body p{margin:0 0 12px;color:var(--muted);font-size:12px;line-height:1.5}.settings textarea{width:100%;min-height:94px;resize:vertical;border:1px solid rgba(205,186,255,.14);border-radius:11px;padding:11px;color:#fff;background:rgba(12,5,45,.25);outline:0}.settings textarea:focus{border-color:#986cfe}.settings-footer{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:10px}.settings-footer span{color:#b5abd2;font-size:11px}.save-btn{border:0;border-radius:10px;padding:9px 14px;color:#fff;background:linear-gradient(135deg,#8f5bff,#6c3fdd);font-size:12px;font-weight:800}.save-btn:disabled{opacity:.55;cursor:not-allowed}
+        .modal { display:none; position:fixed; inset:0; z-index:1000; align-items:center; justify-content:center; padding:22px; background:rgba(5,1,22,.65); backdrop-filter:blur(7px); }.modal.open{display:flex}.modal-card{position:relative;width:min(620px,100%);max-height:min(78vh,700px);overflow:auto;border:1px solid var(--line);border-radius:18px;background:#281568;box-shadow:0 28px 72px rgba(0,0,0,.5)}.modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid rgba(205,186,255,.1)}.modal-head h3{margin:0;font-size:17px}.modal-close{border:0;border-radius:9px;width:31px;height:31px;color:#fff;background:rgba(255,255,255,.08);font-size:18px}.modal-content{padding:18px 20px}.detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}.detail-stat{padding:12px;border-radius:10px;background:rgba(255,255,255,.05)}.detail-stat span{display:block;color:#b8afd5;font-size:10px}.detail-stat strong{display:block;margin-top:5px;font-size:16px}.event-summary{margin:14px 0;padding:12px;border-radius:10px;background:rgba(255,255,255,.04)}.event-summary ul{margin:8px 0 0;padding-left:18px;color:#d8d0ed;font-size:12px;line-height:1.6}.detail-events{width:100%;border-collapse:collapse;margin-top:12px;font-size:11px}.detail-events th,.detail-events td{padding:8px;border-bottom:1px solid rgba(205,186,255,.09);text-align:left}.empty{padding:26px 12px;text-align:center;color:#b8afd5;font-size:12px}
+        .toast{position:fixed;bottom:25px;left:50%;z-index:1200;transform:translate(-50%,80px);opacity:0;pointer-events:none;padding:12px 18px;border:1px solid var(--line);border-radius:12px;color:#fff;background:#2d1c70;box-shadow:0 14px 34px rgba(0,0,0,.35);font-size:12px;font-weight:700;transition:.25s}.toast.show{transform:translate(-50%,0);opacity:1}.toast.error{color:#ffb2c5}
+        @media(max-width:1220px){.topbar{gap:12px}.brand{min-width:auto}.nav-btn{padding:10px}.metrics{grid-template-columns:repeat(3,1fr)}.dashboard-grid{grid-template-columns:1fr}.activity{margin-top:0}.chart-row{grid-template-columns:1fr 1fr}}
+        @media(max-width:780px){.shell{padding:12px}.topbar{position:relative;top:0;flex-wrap:wrap}.nav{order:3;width:100%}.top-actions{margin-left:auto}.overview-head{padding:28px 2px 20px;align-items:flex-start}.live-clock{display:none}.metrics{grid-template-columns:repeat(2,1fr);gap:10px}.metric{min-height:112px;padding:14px}.metric-value,.metric-note{margin-left:0}.metric-value{font-size:24px}.metric-top{gap:8px}.metric-icon{width:33px;height:33px}.panel-head{align-items:flex-start;flex-direction:column}.toolbar{width:100%;flex-wrap:wrap}.search{flex:1;min-width:170px}.chart-row{grid-template-columns:1fr}.session-layout{justify-content:center}.profile-name{display:none}}
+        @media(max-width:480px){.metrics{grid-template-columns:1fr}.brand{font-size:16px}.top-actions{gap:6px}.profile-btn{padding-right:5px}.filters{width:100%;overflow:auto}.filter-btn{padding:8px}.pager{align-items:flex-start;flex-direction:column}.detail-grid{grid-template-columns:1fr 1fr}}
     </style>
 </head>
 <body>
-
-    <header class="admin-header">
-        <h1><i class="fas fa-user-shield" style="color:#7c4dff;"></i> Admin Dashboard</h1>
-        <div class="user-info">
-            {% include '_ai_assistant.html' %}
-            <span><i class="fas fa-user"></i> <span id="adminName">Admin</span></span>
-            <button class="btn-logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
-        </div>
-    </header>
-
-    <div class="stats-grid" id="statsGrid">
-        <div class="stat-card"><div class="label">Total Candidates</div><div class="value blue" id="totalCandidates">0</div></div>
-        <div class="stat-card"><div class="label">Active Sessions</div><div class="value green" id="activeSessions">0</div></div>
-        <div class="stat-card"><div class="label">Completed Sessions</div><div class="value purple" id="completedSessions">0</div></div>
-        <div class="stat-card"><div class="label">Average Integrity Score</div><div class="value orange" id="avgIntegrity">0</div></div>
-        <div class="stat-card"><div class="label">Total Suspicious Events</div><div class="value red" id="totalSuspiciousEvents">0</div></div>
-    </div>
-
-    <!-- Side‑by‑side row: Integrity Analytics & Risk Distribution -->
-    <div class="analytics-row">
-        <!-- Integrity Analytics card with View Logs link -->
-        <div class="card">
-            <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
-                <span><i class="fas fa-chart-line"></i> Integrity Analytics</span>
-                
+    <main class="shell">
+        <header class="topbar">
+            <div class="brand"><div class="brand-mark"><i class="fa-solid fa-shield-halved"></i></div><div>ExamGuard<small>Admin Panel</small></div></div>
+            <nav class="nav" aria-label="Admin sections">
+                <button class="nav-btn active" data-target="overview"><i class="fa-solid fa-house"></i>Overview</button>
+                <button class="nav-btn" data-target="liveCandidates"><i class="fa-solid fa-users"></i>Live Candidates</button>
+                <button class="nav-btn" data-target="sessionOverview"><i class="fa-solid fa-layer-group"></i>Sessions</button>
+                <button class="nav-btn" data-route="/admin_logs"><i class="fa-regular fa-clipboard"></i>Event Logs</button>
+                <button class="nav-btn" data-target="liveCandidates" data-focus-search="true"><i class="fa-regular fa-file-lines"></i>Reports</button>
+            </nav>
+            <div class="top-actions">
+                {% include '_ai_assistant.html' %}
+                <button class="icon-btn" id="notificationBtn" aria-label="Show candidates needing attention"><i class="fa-regular fa-bell"></i><span class="notification-count" id="notificationCount">0</span></button>
+                <button class="profile-btn" id="profileBtn" aria-label="Open administrator menu"><span class="avatar" id="adminInitial">A</span><span class="profile-name" id="adminName">Admin</span><i class="fa-solid fa-chevron-down"></i></button>
             </div>
-            <ul class="analytics-list" id="analyticsList">
-                <li><span class="label">Total Face Absence Events</span><span class="value" id="totalFaceAbsence">0</span></li>
-                <li><span class="label">Total Browser Focus Loss</span><span class="value" id="totalFocusLoss">0</span></li>
-                <li><span class="label">Highest Integrity Score</span><span class="value" id="highestIntegrity">0</span></li>
-                <li><span class="label">Lowest Integrity Score</span><span class="value" id="lowestIntegrity">0</span></li>
-                <li><span class="label">Average Integrity Score</span><span class="value" id="averageIntegrity">0</span></li>
-            </ul>
-        </div>
+            <div class="profile-menu" id="profileMenu"><button id="logoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sign out</button></div>
+        </header>
 
-        <!-- Risk Distribution with Pie Chart -->
-        <div class="card">
-            <div class="card-title"><i class="fas fa-chart-pie"></i> Risk Distribution</div>
-            <div class="risk-distribution">
-                <div class="risk-chart-container">
-                    <canvas id="riskPieChart" width="180" height="180"></canvas>
-                    <div class="risk-legend" id="riskLegend">
-                        <!-- dynamically filled -->
-                    </div>
-                </div>
-                <div class="risk-tiles">
-                    <div class="risk-tile low" data-risk="Low Risk">
-                        <div class="count" id="lowCount">0</div>
-                        <div class="label">🟢 Low</div>
-                        <div class="percent" id="lowPercent">0%</div>
-                    </div>
-                    <div class="risk-tile medium" data-risk="Medium Risk">
-                        <div class="count" id="mediumCount">0</div>
-                        <div class="label">🟡 Medium</div>
-                        <div class="percent" id="mediumPercent">0%</div>
-                    </div>
-                    <div class="risk-tile high" data-risk="High Risk">
-                        <div class="count" id="highCount">0</div>
-                        <div class="label">🔴 High</div>
-                        <div class="percent" id="highPercent">0%</div>
-                    </div>
-                </div>
+        <section id="overview" class="overview-head">
+            <div><p class="eyebrow">Live examination monitoring</p><h1>Good day, <span id="greetingName">Admin</span></h1><p>Here is the current integrity status across your examination sessions.</p></div>
+            <div class="live-clock"><i class="fa-regular fa-calendar-days"></i><div><span id="dateLabel">Loading date</span><strong id="timeLabel">--:--</strong></div></div>
+        </section>
+
+        <section class="metrics" aria-label="Monitoring metrics">
+            <article class="metric"><div class="metric-top"><span class="metric-icon"><i class="fa-solid fa-users"></i></span>Total Candidates</div><div class="metric-value" id="totalCandidates">0</div><div class="metric-note">Registered candidates</div></article>
+            <article class="metric"><div class="metric-top"><span class="metric-icon"><i class="fa-solid fa-heart-pulse"></i></span>Active Sessions</div><div class="metric-value" id="activeSessions">0</div><div class="metric-note good" id="activeNote">Live now</div></article>
+            <article class="metric"><div class="metric-top"><span class="metric-icon"><i class="fa-solid fa-clipboard-check"></i></span>Completed Sessions</div><div class="metric-value" id="completedSessions">0</div><div class="metric-note">Recorded examination sessions</div></article>
+            <article class="metric"><div class="metric-top"><span class="metric-icon"><i class="fa-solid fa-shield-halved"></i></span>Average Integrity Score</div><div class="metric-value" id="averageIntegrity">0</div><div class="metric-note" id="averageNote">Across candidate records</div></article>
+            <article class="metric"><div class="metric-top"><span class="metric-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>Suspicious Events</div><div class="metric-value" id="totalSuspicious">0</div><div class="metric-note alert">Current-session violations</div></article>
+        </section>
+
+        <section class="dashboard-grid">
+            <div class="stack">
+                <section class="panel" id="liveCandidates">
+                    <div class="panel-head"><div class="panel-title">Live Candidates <span class="live-dot">Live data</span></div><div class="toolbar"><label class="search"><i class="fa-solid fa-magnifying-glass"></i><input id="candidateSearch" type="search" placeholder="Search candidate or ID"></label><div class="filters" role="group" aria-label="Candidate status filter"><button class="filter-btn active" data-status="All">All</button><button class="filter-btn" data-status="Active">Active</button><button class="filter-btn" data-status="Paused">Paused</button><button class="filter-btn" data-status="Completed">Completed</button></div></div></div>
+                    <div class="table-scroll"><table class="candidate-table"><thead><tr><th>Candidate</th><th>Status</th><th>Score</th><th>Risk Level</th><th>Events</th><th>Duration</th><th>Action</th></tr></thead><tbody id="candidateTableBody"><tr><td colspan="7" class="empty">Loading candidates…</td></tr></tbody></table></div>
+                    <div class="pager"><span id="tableSummary">Showing 0 candidates</span><div class="pager-controls" id="pagerControls"></div></div>
+                </section>
+                <section class="chart-row">
+                    <article class="panel chart-card"><div class="panel-head"><h2 class="panel-title">Integrity Score Overview</h2><span class="link-btn">Live snapshot</span></div><div class="chart-body"><div class="chart-wrap"><canvas id="scoreTrendCanvas" width="620" height="190" aria-label="Candidate integrity score overview"></canvas></div></div></article>
+                    <article class="panel chart-card" id="sessionOverview"><div class="panel-head"><h2 class="panel-title">Session Overview</h2><span class="link-btn">Live distribution</span></div><div class="chart-body"><div class="session-layout"><canvas class="session-canvas" id="sessionCanvas" width="160" height="160"></canvas><div class="summary-list" id="sessionSummaryList"></div></div></div></article>
+                </section>
+                <section class="panel settings" id="aiSettingsCard"><div class="panel-head"><h2 class="panel-title"><i class="fa-solid fa-sliders"></i> AI Assistant Settings</h2></div><div class="settings-body"><p>Optional supplemental guidance shapes AI Ask responses. It cannot modify scores, candidate data, access rules, monitoring safeguards, or invigilator decisions.</p><textarea id="aiSystemPrompt" maxlength="2000" placeholder="For example: Use a concise formal tone and explain the relevant score details first."></textarea><div class="settings-footer"><span id="aiPromptCharCount">0 / 2000</span><button class="save-btn" id="saveAiSettingsBtn" type="button">Save Prompt</button></div></div></section>
             </div>
-        </div>
-    </div>
+            <aside class="stack">
+                <section class="panel" id="highRiskPanel"><div class="panel-head"><h2 class="panel-title">High Risk Candidates</h2><button class="link-btn" id="viewHighRiskBtn">View all <i class="fa-solid fa-arrow-right"></i></button></div><div class="risk-list" id="highRiskList"><div class="empty">Loading high-risk candidates…</div></div></section>
+                <section class="panel activity" id="recentActivity"><div class="panel-head"><h2 class="panel-title">Recent Suspicious Activity</h2><a class="link-btn" href="/admin_logs">View all <i class="fa-solid fa-arrow-right"></i></a></div><div class="activity-list" id="activityList"><div class="empty">Loading recent events…</div></div></section>
+            </aside>
+        </section>
+    </main>
 
-    <section class="card" id="aiSettingsCard">
-        <div class="card-title"><i class="fas fa-sliders-h"></i> AI Assistant Settings</div>
-        <p class="ai-settings-help">Add optional supplemental guidance for AI Ask responses. It cannot change score rules, authorization, privacy protections, or monitoring safeguards. Leave this field blank and save to reset it.</p>
-        <textarea id="aiSystemPrompt" class="ai-settings-input" maxlength="2000" placeholder="For example: Use a formal academic tone and briefly explain relevant score details."></textarea>
-        <div class="ai-settings-footer">
-            <span class="ai-settings-count" id="aiPromptCharCount">0 / 2000</span>
-            <button class="btn-save-ai-settings" id="saveAiSettingsBtn" type="button">Save Prompt</button>
-        </div>
-    </section>
-
-    <!-- Candidate List Modal -->
-    <div class="candidate-list-modal" id="candidateModal">
-        <div class="modal-content">
-            <div class="modal-title">
-                <span id="modalRiskTitle">Risk Candidates</span>
-                <button class="modal-close" id="modalCloseBtnCandidate">&times;</button>
-            </div>
-            <div id="candidateListContainer">
-                <!-- dynamically filled -->
-            </div>
-        </div>
-    </div>
-    <a href="/admin_logs" class="btn-filter" style="padding:6px 18px; font-size:13px; height:auto; background:rgba(77,171,247,0.15); color:#4dabf7; text-decoration:none; display:inline-flex; align-items:center; gap:6px; border-radius:40px;">
-        <i class="fas fa-list-ul"></i> View Logs
-
-    <!-- Evidence modal -->
-    <div class="modal-overlay" id="evidenceModal">
-        <div class="modal-box">
-            <button class="modal-close" id="modalCloseBtn">&times;</button>
-            <img id="modalImage" src="" alt="Screenshot" />
-            <div id="modalError" style="display:none; color: #ff6b6b; text-align: center; padding: 20px; font-weight: bold;"></div>
-        </div>
-    </div>
-
-    <div id="toast" class="toast">
-        <i class="fas fa-check-circle"></i>
-        <span id="toastMsg">Ready</span>
-    </div>
+    <div class="modal" id="candidateModal" aria-hidden="true"><section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="candidateModalTitle"><div class="modal-head"><h3 id="candidateModalTitle">Candidate Integrity Report</h3><button class="modal-close" id="candidateModalClose" aria-label="Close candidate report">×</button></div><div class="modal-content" id="candidateModalContent"></div></section></div>
+    <div class="toast" id="toast"></div>
 
     <script>
-        (function() {
+        (() => {
             'use strict';
+            const state = { students: [], data: null, status: 'All', search: '', page: 1, perPage: 5 };
+            const $ = id => document.getElementById(id);
+            const candidateTableBody = $('candidateTableBody');
+            const candidateSearch = $('candidateSearch');
+            const pagerControls = $('pagerControls');
+            const toast = $('toast');
+            const modal = $('candidateModal');
+            const modalContent = $('candidateModalContent');
 
-            // ----- DOM refs (existing) -----
-            const totalCandidates = document.getElementById('totalCandidates');
-            const activeSessions = document.getElementById('activeSessions');
-            const completedSessions = document.getElementById('completedSessions');
-            const avgIntegrity = document.getElementById('avgIntegrity');
-            const totalSuspiciousEvents = document.getElementById('totalSuspiciousEvents');
-            const totalFaceAbsence = document.getElementById('totalFaceAbsence');
-            const totalFocusLoss = document.getElementById('totalFocusLoss');
-            const highestIntegrity = document.getElementById('highestIntegrity');
-            const lowestIntegrity = document.getElementById('lowestIntegrity');
-            const averageIntegrity = document.getElementById('averageIntegrity');
-            const modalOverlay = document.getElementById('evidenceModal');
-            const modalImage = document.getElementById('modalImage');
-            const modalCloseBtn = document.getElementById('modalCloseBtn');
-            const logoutBtn = document.getElementById('logoutBtn');
+            const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' })[char]);
+            const apiFetch = (url, options = {}) => fetch(url, { ...options, credentials: 'include', headers: { 'Content-Type':'application/json', ...(options.headers || {}) } });
+            const formatNumber = value => Number(value || 0).toLocaleString();
+            const formatDuration = seconds => { const total = Math.max(0, Number(seconds || 0)); const hours = Math.floor(total / 3600); const mins = Math.floor((total % 3600) / 60); const secs = Math.floor(total % 60); return `${String(hours).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`; };
+            const formatDate = value => { if (!value) return 'No events'; const date = new Date(String(value).replace(' ', 'T')); return Number.isNaN(date.getTime()) ? value : date.toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }); };
+            const statusClass = value => String(value || 'Ready').toLowerCase();
+            const riskClass = value => value === 'High Risk' ? 'high' : value === 'Medium Risk' ? 'medium' : 'low';
+            const initials = name => String(name || '?').trim().split(/\s+/).slice(0,2).map(word => word[0]).join('').toUpperCase();
+            function showToast(message, isError = false) { toast.textContent = message; toast.className = `toast${isError ? ' error' : ''}`; requestAnimationFrame(() => toast.classList.add('show')); clearTimeout(showToast.timer); showToast.timer = setTimeout(() => toast.classList.remove('show'), 3500); }
 
-            // NEW refs
-            const candidateModal = document.getElementById('candidateModal');
-            const modalCloseCandidate = document.getElementById('modalCloseBtnCandidate');
-            const candidateListContainer = document.getElementById('candidateListContainer');
-            const modalRiskTitle = document.getElementById('modalRiskTitle');
-            const riskPieChart = document.getElementById('riskPieChart');
-            const ctx = riskPieChart.getContext('2d');
+            function updateClock() { const now = new Date(); $('dateLabel').textContent = now.toLocaleDateString([], { month:'short', day:'numeric', year:'numeric' }); $('timeLabel').textContent = now.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' }); }
+            function drawRing(canvas, values, colors, totalLabel, subLabel) { const ctx = canvas.getContext('2d'); const w = canvas.width; const h = canvas.height; const radius = Math.min(w,h) / 2 - 16; const cx = w / 2; const cy = h / 2; const total = values.reduce((sum, value) => sum + value, 0); ctx.clearRect(0,0,w,h); ctx.lineWidth = 14; ctx.strokeStyle = 'rgba(255,255,255,.1)'; ctx.beginPath(); ctx.arc(cx,cy,radius,0,Math.PI*2); ctx.stroke(); if (total) { let start = -Math.PI / 2; values.forEach((value, index) => { if (!value) return; const angle = value / total * Math.PI * 2; ctx.strokeStyle = colors[index]; ctx.beginPath(); ctx.arc(cx,cy,radius,start,start+angle); ctx.stroke(); start += angle; }); } ctx.fillStyle='#f8f5ff'; ctx.font='800 27px Inter'; ctx.textAlign='center'; ctx.fillText(String(totalLabel),cx,cy+2); ctx.fillStyle='#bcb2da'; ctx.font='600 10px Inter'; ctx.fillText(subLabel,cx,cy+18); }
+            function drawScoreOverview(students) { const canvas = $('scoreTrendCanvas'); const rect = canvas.getBoundingClientRect(); const ratio = window.devicePixelRatio || 1; canvas.width = Math.max(360, rect.width * ratio); canvas.height = 190 * ratio; const ctx = canvas.getContext('2d'); ctx.scale(ratio, ratio); const width = canvas.width / ratio; const height = canvas.height / ratio; ctx.clearRect(0,0,width,height); const ordered = students.slice().sort((a,b) => a.integrity_score - b.integrity_score).slice(0,8); const pad = { left:32, right:14, top:15, bottom:30 }; const plotW = width-pad.left-pad.right; const plotH = height-pad.top-pad.bottom; ctx.strokeStyle='rgba(215,198,255,.12)'; ctx.lineWidth=1; ctx.font='10px Inter'; ctx.fillStyle='#afa4cf'; for(let score=0; score<=1000; score+=250) { const y=pad.top+plotH-(score/1000)*plotH; ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(width-pad.right,y); ctx.stroke(); ctx.fillText(score,y ? 2 : 2,y+3); } if (!ordered.length) { ctx.fillStyle='#b7acd0'; ctx.textAlign='center'; ctx.fillText('No candidate data',width/2,height/2); return; } const points = ordered.map((student,index) => ({ x: pad.left + (ordered.length === 1 ? plotW/2 : index*(plotW/(ordered.length-1))), y: pad.top+plotH-(Math.max(0,Math.min(1000,student.integrity_score))/1000)*plotH, student })); const gradient = ctx.createLinearGradient(0,pad.top,0,pad.top+plotH); gradient.addColorStop(0,'rgba(161,103,255,.5)'); gradient.addColorStop(1,'rgba(161,103,255,0)'); ctx.beginPath(); points.forEach((point,index) => index ? ctx.lineTo(point.x,point.y) : ctx.moveTo(point.x,point.y)); ctx.lineTo(points[points.length-1].x,pad.top+plotH); ctx.lineTo(points[0].x,pad.top+plotH); ctx.closePath(); ctx.fillStyle=gradient; ctx.fill(); ctx.beginPath(); points.forEach((point,index) => index ? ctx.lineTo(point.x,point.y) : ctx.moveTo(point.x,point.y)); ctx.strokeStyle='#a66cff'; ctx.lineWidth=3; ctx.stroke(); points.forEach(point => { ctx.beginPath(); ctx.arc(point.x,point.y,4,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill(); ctx.strokeStyle='#a66cff'; ctx.lineWidth=2; ctx.stroke(); ctx.fillStyle='#c9bee9'; ctx.font='10px Inter'; ctx.textAlign='center'; ctx.fillText((point.student.name || '?').split(' ')[0],point.x,height-10); }); }
 
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toastMsg');
-            const aiSystemPrompt = document.getElementById('aiSystemPrompt');
-            const aiPromptCharCount = document.getElementById('aiPromptCharCount');
-            const saveAiSettingsBtn = document.getElementById('saveAiSettingsBtn');
-
-            // ----- helpers -----
-            function apiFetch(url, options = {}) {
-                return fetch(url, {
-                    ...options,
-                    credentials: 'include',
-                    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
-                });
-            }
-
-            function showToast(msg, type = 'success') {
-                toast.className = 'toast ' + type;
-                toastMsg.textContent = msg;
-                const icon = toast.querySelector('i');
-                icon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
-                toast.classList.add('show');
-                clearTimeout(toast._timer);
-                toast._timer = setTimeout(() => { toast.classList.remove('show'); }, 3500);
-            }
-
-            // ----- Draw Pie Chart -----
-            function drawPieChart(low, medium, high, total) {
-                const width = riskPieChart.width;
-                const height = riskPieChart.height;
-                const radius = Math.min(width, height) / 2 - 10;
-                const cx = width / 2;
-                const cy = height / 2;
-                ctx.clearRect(0, 0, width, height);
-
-                if (total === 0) {
-                    ctx.fillStyle = 'rgba(255,255,255,0.2)';
-                    ctx.font = '14px Inter';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('No data', cx, cy);
-                    return;
-                }
-
-                const slices = [
-                    { label: 'Low', value: low, color: '#51cf66' },
-                    { label: 'Medium', value: medium, color: '#fcc419' },
-                    { label: 'High', value: high, color: '#ff6b6b' }
-                ].filter(s => s.value > 0);
-
-                let startAngle = -Math.PI / 2;
-                slices.forEach(slice => {
-                    const sliceAngle = (slice.value / total) * 2 * Math.PI;
-                    ctx.beginPath();
-                    ctx.moveTo(cx, cy);
-                    ctx.arc(cx, cy, radius, startAngle, startAngle + sliceAngle);
-                    ctx.closePath();
-                    ctx.fillStyle = slice.color;
-                    ctx.fill();
-                    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
-                    startAngle += sliceAngle;
-                });
-
-                // Build legend
-                const legendContainer = document.getElementById('riskLegend');
-                let legendHtml = '';
-                slices.forEach(slice => {
-                    legendHtml += `<div class="legend-item">
-                        <div class="color-box" style="background:${slice.color};"></div>
-                        <span>${slice.label} (${Math.round((slice.value/total)*100)}%)</span>
-                    </div>`;
-                });
-                legendContainer.innerHTML = legendHtml;
-            }
-
-            // ----- Render Risk Distribution (tiles + pie) -----
-            function renderRiskDistribution(students) {
-                if (!students || students.length === 0) {
-                    document.getElementById('lowCount').textContent = '0';
-                    document.getElementById('mediumCount').textContent = '0';
-                    document.getElementById('highCount').textContent = '0';
-                    document.getElementById('lowPercent').textContent = '0%';
-                    document.getElementById('mediumPercent').textContent = '0%';
-                    document.getElementById('highPercent').textContent = '0%';
-                    drawPieChart(0, 0, 0, 0);
-                    return;
-                }
-                let low = 0, medium = 0, high = 0;
-                students.forEach(s => {
-                    const risk = s.risk_label || 'N/A';
-                    if (risk === 'Low Risk') low++;
-                    else if (risk === 'Medium Risk') medium++;
-                    else if (risk === 'High Risk') high++;
-                });
-                const total = students.length;
-                const lowPct = total ? Math.round((low/total)*100) : 0;
-                const medPct = total ? Math.round((medium/total)*100) : 0;
-                const highPct = total ? Math.round((high/total)*100) : 0;
-
-                document.getElementById('lowCount').textContent = low;
-                document.getElementById('mediumCount').textContent = medium;
-                document.getElementById('highCount').textContent = high;
-                document.getElementById('lowPercent').textContent = lowPct + '%';
-                document.getElementById('mediumPercent').textContent = medPct + '%';
-                document.getElementById('highPercent').textContent = highPct + '%';
-
-                drawPieChart(low, medium, high, total);
-            }
-
-            // ----- Show Candidates by Risk -----
-            function showCandidatesByRisk(riskLabel) {
-                const students = window._students || [];
-                const filtered = students.filter(s => (s.risk_label || 'N/A') === riskLabel);
-                const container = document.getElementById('candidateListContainer');
-                const modal = document.getElementById('candidateModal');
-                document.getElementById('modalRiskTitle').textContent = `${riskLabel} Candidates (${filtered.length})`;
-
-                if (filtered.length === 0) {
-                    container.innerHTML = '<div style="text-align:center; color:rgba(255,255,255,0.3); padding:20px;">No candidates in this category.</div>';
-                } else {
-                    let html = '';
-                    filtered.forEach(s => {
-                        html += `<div class="candidate-item">
-                            <span class="id">${s.student_id || 'N/A'}</span>
-                            <span class="name">${s.name || 'Unknown'}</span>
-                        </div>`;
-                    });
-                    container.innerHTML = html;
-                }
-                modal.classList.add('active');
-            }
-
-            // ----- load admin dashboard data -----
-            function loadAdminDashboard() {
-                apiFetch('/api/dashboard/admin')
-                    .then(res => {
-                        if (!res.ok) {
-                            if (res.status === 401) window.location.href = '/login';
-                            throw new Error('Failed to load admin data');
-                        }
-                        return res.json();
-                    })
-                    .then(data => {
-                        const stats = data.stats || {};
-                        totalCandidates.textContent = stats.total_candidates || 0;
-                        activeSessions.textContent = stats.active_sessions || 0;
-                        completedSessions.textContent = stats.completed_sessions || 0;
-                        avgIntegrity.textContent = stats.average_integrity || 0;
-                        totalSuspiciousEvents.textContent = stats.total_suspicious_events || 0;
-
-                        const analytics = data.analytics || {};
-                        totalFaceAbsence.textContent = analytics.total_face_absence || 0;
-                        totalFocusLoss.textContent = analytics.total_focus_loss || 0;
-                        highestIntegrity.textContent = analytics.highest_integrity || 0;
-                        lowestIntegrity.textContent = analytics.lowest_integrity || 0;
-                        averageIntegrity.textContent = analytics.average_integrity || 0;
-
-                        window._students = data.students || [];
-                        renderRiskDistribution(window._students);
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        showToast('Error loading admin dashboard', 'error');
-                    });
-            }
-
-            // ----- AI assistant settings -----
-            function updateAiPromptCount(maxLength = 2000) {
-                aiPromptCharCount.textContent = `${aiSystemPrompt.value.length} / ${maxLength}`;
-            }
-
-            function loadAiSettings() {
-                apiFetch('/api/admin/ai-settings')
-                    .then(async response => {
-                        const payload = await response.json();
-                        if (!response.ok) throw new Error(payload.error || 'Failed to load AI settings');
-                        const maxLength = payload.max_length || 2000;
-                        aiSystemPrompt.maxLength = maxLength;
-                        aiSystemPrompt.value = payload.system_prompt || '';
-                        updateAiPromptCount(maxLength);
-                    })
-                    .catch(error => showToast(error.message, 'error'));
-            }
-
-            function saveAiSettings() {
-                saveAiSettingsBtn.disabled = true;
-                apiFetch('/api/admin/ai-settings', {
-                    method: 'PUT',
-                    body: JSON.stringify({ system_prompt: aiSystemPrompt.value })
-                })
-                .then(async response => {
-                    const payload = await response.json();
-                    if (!response.ok) throw new Error(payload.error || 'Failed to save AI settings');
-                    aiSystemPrompt.value = payload.system_prompt || '';
-                    aiSystemPrompt.maxLength = payload.max_length || 2000;
-                    updateAiPromptCount(aiSystemPrompt.maxLength);
-                    showToast('AI system prompt saved', 'success');
-                })
-                .catch(error => showToast(error.message, 'error'))
-                .finally(() => { saveAiSettingsBtn.disabled = false; });
-            }
-
-            // ----- logout -----
-            function logout() {
-                apiFetch('/api/logout', { method: 'POST' })
-                    .then(() => { window.location.href = '/login'; })
-                    .catch(() => { window.location.href = '/login'; });
-            }
-
-            // ----- init -----
-            function init() {
-                loadAdminDashboard();
-                loadAiSettings();
-
-                aiSystemPrompt.addEventListener('input', () => updateAiPromptCount(aiSystemPrompt.maxLength || 2000));
-                saveAiSettingsBtn.addEventListener('click', saveAiSettings);
-                logoutBtn.addEventListener('click', logout);
-
-                // Evidence modal close
-                modalCloseBtn.addEventListener('click', () => modalOverlay.classList.remove('active'));
-                modalOverlay.addEventListener('click', (e) => {
-                    if (e.target === modalOverlay) modalOverlay.classList.remove('active');
-                });
-
-                // Risk tile clicks
-                document.querySelectorAll('.risk-tile').forEach(tile => {
-                    tile.addEventListener('click', function() {
-                        const risk = this.dataset.risk;
-                        showCandidatesByRisk(risk);
-                    });
-                });
-
-                // Candidate modal close
-                modalCloseCandidate.addEventListener('click', function() {
-                    document.getElementById('candidateModal').classList.remove('active');
-                });
-                candidateModal.addEventListener('click', function(e) {
-                    if (e.target === this) this.classList.remove('active');
-                });
-            }
-
-            document.addEventListener('DOMContentLoaded', init);
+            function renderMetrics(data) { const stats = data.stats || {}; $('totalCandidates').textContent = formatNumber(stats.total_candidates); $('activeSessions').textContent = formatNumber(stats.active_sessions); $('completedSessions').textContent = formatNumber(stats.completed_sessions); $('averageIntegrity').textContent = Number(stats.average_integrity || 0).toFixed(1); $('totalSuspicious').textContent = formatNumber(stats.total_suspicious_events); $('activeNote').textContent = `${stats.paused_sessions || 0} paused right now`; const high = data.analytics?.risk_counts?.high || 0; $('notificationCount').textContent = high; }
+            function filteredStudents() { const search = state.search.toLowerCase(); return state.students.filter(student => { const statusOk = state.status === 'All' || student.session_status === state.status; const text = `${student.name || ''} ${student.student_id || ''}`.toLowerCase(); return statusOk && (!search || text.includes(search)); }); }
+            function renderCandidates() { const candidates = filteredStudents(); const pageCount = Math.max(1, Math.ceil(candidates.length / state.perPage)); state.page = Math.min(state.page, pageCount); const from = (state.page - 1) * state.perPage; const rows = candidates.slice(from, from + state.perPage); if (!rows.length) { candidateTableBody.innerHTML = '<tr><td colspan="7" class="empty">No candidates match the current filter.</td></tr>'; } else { candidateTableBody.innerHTML = rows.map(student => { const risk = riskClass(student.risk_label); const score = Math.max(0, Math.min(1000, Number(student.integrity_score || 0))); return `<tr><td><div class="candidate-info"><span class="candidate-avatar">${escapeHtml(initials(student.name))}</span><span><span class="candidate-name">${escapeHtml(student.name)}</span><span class="candidate-id">ID: ${escapeHtml(student.student_id || 'N/A')}</span></span></div></td><td><span class="status ${statusClass(student.session_status)}">${escapeHtml(student.session_status)}</span></td><td class="score-cell"><span class="score-number">${score} <small>/ 1000</small></span><div class="score-bar ${risk}"><span style="width:${score/10}%"></span></div></td><td><span class="risk-pill risk-${risk}">${escapeHtml(student.risk_label.replace(' Risk',''))}</span></td><td>${formatNumber(student.event_count)}</td><td>${formatDuration(student.duration_seconds)}</td><td><button class="view-btn" data-view-candidate="${student.id}" aria-label="View ${escapeHtml(student.name)} report"><i class="fa-regular fa-eye"></i></button></td></tr>`; }).join(''); }
+                $('tableSummary').textContent = candidates.length ? `Showing ${from + 1}–${Math.min(from + state.perPage, candidates.length)} of ${candidates.length} candidates` : 'Showing 0 candidates'; pagerControls.innerHTML = Array.from({ length: pageCount }, (_, index) => `<button class="page-btn ${state.page === index+1 ? 'active' : ''}" data-page="${index+1}">${index+1}</button>`).join(''); pagerControls.querySelectorAll('[data-page]').forEach(button => button.addEventListener('click', () => { state.page = Number(button.dataset.page); renderCandidates(); })); candidateTableBody.querySelectorAll('[data-view-candidate]').forEach(button => button.addEventListener('click', () => openCandidateReport(button.dataset.viewCandidate))); }
+            function renderHighRisk(students) { const list = $('highRiskList'); const highRisk = (students || []).filter(student => student.risk_label === 'High Risk').slice(0,5); if (!highRisk.length) { list.innerHTML = '<div class="empty">No candidates are currently high risk.</div>'; return; } list.innerHTML = highRisk.map(student => `<article class="risk-card" data-open-candidate="${student.id}"><span class="candidate-avatar">${escapeHtml(initials(student.name))}</span><div><strong>${escapeHtml(student.name)}</strong><div class="score-bar high"><span style="width:${Math.max(0,Math.min(100,Number(student.integrity_score || 0)/10))}%"></span></div></div><div><div class="risk-score">${formatNumber(student.integrity_score)} <span>/ 1000</span></div><div class="risk-event">${formatNumber(student.event_count)} events</div></div><i class="fa-solid fa-chevron-right risk-arrow"></i></article>`).join(''); list.querySelectorAll('[data-open-candidate]').forEach(card => card.addEventListener('click', () => openCandidateReport(card.dataset.openCandidate))); }
+            function renderActivity(events) { const list = $('activityList'); if (!events?.length) { list.innerHTML = '<div class="empty">No suspicious activity recorded.</div>'; return; } list.innerHTML = events.slice(0,8).map(event => { const isAlert = Number(event.deducted || 0) > 0; return `<article class="activity-item ${isAlert ? 'alert' : ''}"><span class="activity-icon"><i class="fa-solid ${isAlert ? 'fa-triangle-exclamation' : 'fa-circle-check'}"></i></span><span class="activity-time">${escapeHtml(formatDate(event.timestamp))}</span><div class="activity-main"><strong>${escapeHtml(event.student_name || event.name || 'Candidate')} ${event.student_id ? `(ID: ${escapeHtml(event.student_id)})` : ''}</strong><span>${escapeHtml(event.type || 'Monitoring event')}</span></div></article>`; }).join(''); }
+            function renderSessionOverview(summary = {}) { const items = [ ['Active', Number(summary.active || 0), '#5de3ad'], ['Paused', Number(summary.paused || 0), '#ffbd3e'], ['Completed', Number(summary.completed_candidates || 0), '#9a6cff'], ['Ready', Number(summary.ready || 0), '#a5c1ff'] ]; const total = items.reduce((sum,item) => sum + item[1],0); drawRing($('sessionCanvas'), items.map(item=>item[1]), items.map(item=>item[2]), total, 'Candidates'); $('sessionSummaryList').innerHTML = items.map(item => `<div class="summary-item"><span class="summary-label"><span class="legend-dot" style="background:${item[2]}"></span>${item[0]}</span><strong>${item[1]}${total ? ` (${Math.round(item[1]/total*100)}%)` : ''}</strong></div>`).join(''); }
+            async function openCandidateReport(userId) { modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); modalContent.innerHTML = '<div class="empty">Loading candidate report…</div>'; try { const response = await apiFetch(`/api/integrity_report/${encodeURIComponent(userId)}`); const report = await response.json(); if (!response.ok) throw new Error(report.error || 'Failed to load candidate report'); const user = report.user || {}; const counts = report.event_counts || {}; const events = report.events || []; $('candidateModalTitle').textContent = `${user.name || 'Candidate'} · Integrity Report`; modalContent.innerHTML = `<div class="detail-grid"><div class="detail-stat"><span>Integrity score</span><strong>${formatNumber(report.score)} / 1000</strong></div><div class="detail-stat"><span>Risk level</span><strong>${escapeHtml(report.risk_label || 'N/A')}</strong></div><div class="detail-stat"><span>Suspicious events</span><strong>${formatNumber(report.total_deduction ? report.total_deduction / 100 : 0)}</strong></div></div><div class="event-summary"><strong>Recorded event summary</strong><ul>${Object.keys(counts).length ? Object.entries(counts).map(([type,count]) => `<li>${escapeHtml(type)}: ${formatNumber(count)}</li>`).join('') : '<li>No monitoring violations recorded.</li>'}</ul></div><table class="detail-events"><thead><tr><th>Event</th><th>Time</th><th>Deduction</th></tr></thead><tbody>${events.slice(0,12).map(event => `<tr><td>${escapeHtml(event.type)}</td><td>${escapeHtml(formatDate(event.timestamp))}</td><td>${formatNumber(event.deducted)}</td></tr>`).join('') || '<tr><td colspan="3">No events recorded.</td></tr>'}</tbody></table>`; } catch (error) { modalContent.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`; } }
+            function closeModal() { modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }
+            async function loadDashboard() { try { const response = await apiFetch('/api/dashboard/admin'); const data = await response.json(); if (!response.ok) { if (response.status === 401) window.location.href = '/login'; throw new Error(data.error || 'Failed to load administrator dashboard'); } state.data = data; state.students = data.students || []; $('adminName').textContent = data.admin?.name || 'Admin'; $('greetingName').textContent = data.admin?.name || 'Admin'; $('adminInitial').textContent = initials(data.admin?.name || 'Admin'); renderMetrics(data); renderCandidates(); renderHighRisk(data.high_risk_candidates || state.students); renderActivity(data.recent_events || data.events || []); renderSessionOverview(data.session_summary || {}); drawScoreOverview(state.students); } catch (error) { showToast(error.message, true); } }
+            async function loadAiSettings() { try { const response = await apiFetch('/api/admin/ai-settings'); const data = await response.json(); if (!response.ok) throw new Error(data.error || 'Failed to load AI settings'); $('aiSystemPrompt').value = data.system_prompt || ''; $('aiSystemPrompt').maxLength = data.max_length || 2000; updatePromptCounter(); } catch (error) { showToast(error.message, true); } }
+            function updatePromptCounter() { $('aiPromptCharCount').textContent = `${$('aiSystemPrompt').value.length} / ${$('aiSystemPrompt').maxLength || 2000}`; }
+            async function saveAiSettings() { const button = $('saveAiSettingsBtn'); button.disabled = true; try { const response = await apiFetch('/api/admin/ai-settings', { method:'PUT', body:JSON.stringify({ system_prompt:$('aiSystemPrompt').value }) }); const data = await response.json(); if (!response.ok) throw new Error(data.error || 'Failed to save AI settings'); $('aiSystemPrompt').value = data.system_prompt || ''; $('aiSystemPrompt').maxLength = data.max_length || 2000; updatePromptCounter(); showToast('AI system prompt saved'); } catch (error) { showToast(error.message, true); } finally { button.disabled = false; } }
+            async function logout() { try { await apiFetch('/api/logout', { method:'POST' }); } finally { window.location.href = '/login'; } }
+            function initNavigation() { document.querySelectorAll('.nav-btn[data-target], .nav-btn[data-route]').forEach(button => button.addEventListener('click', () => { if (button.dataset.route) { window.location.href = button.dataset.route; return; } document.querySelectorAll('.nav-btn').forEach(item => item.classList.remove('active')); button.classList.add('active'); const target = $(button.dataset.target); target?.scrollIntoView({ behavior:'smooth', block:'start' }); if (button.dataset.focusSearch) setTimeout(() => candidateSearch.focus(), 450); })); $('notificationBtn').addEventListener('click', () => $('highRiskPanel').scrollIntoView({ behavior:'smooth', block:'start' })); $('viewHighRiskBtn').addEventListener('click', () => { state.status = 'All'; candidateSearch.value = ''; state.search = ''; state.page = 1; renderCandidates(); $('liveCandidates').scrollIntoView({ behavior:'smooth', block:'start' }); }); $('profileBtn').addEventListener('click', () => $('profileMenu').classList.toggle('open')); document.addEventListener('click', event => { if (!event.target.closest('#profileBtn') && !event.target.closest('#profileMenu')) $('profileMenu').classList.remove('open'); }); }
+            document.addEventListener('DOMContentLoaded', () => { updateClock(); setInterval(updateClock,1000); loadDashboard(); loadAiSettings(); setInterval(loadDashboard,15000); candidateSearch.addEventListener('input', () => { state.search = candidateSearch.value.trim(); state.page=1; renderCandidates(); }); document.querySelectorAll('.filter-btn').forEach(button => button.addEventListener('click', () => { document.querySelectorAll('.filter-btn').forEach(item => item.classList.remove('active')); button.classList.add('active'); state.status=button.dataset.status; state.page=1; renderCandidates(); })); $('saveAiSettingsBtn').addEventListener('click', saveAiSettings); $('aiSystemPrompt').addEventListener('input', updatePromptCounter); $('logoutBtn').addEventListener('click', logout); $('candidateModalClose').addEventListener('click', closeModal); modal.addEventListener('click', event => { if (event.target === modal) closeModal(); }); window.addEventListener('resize', () => { if (state.students.length) { drawScoreOverview(state.students); renderSessionOverview(state.data?.session_summary || {}); } }); initNavigation(); });
         })();
     </script>
 </body>
