@@ -180,7 +180,10 @@
 <body>
 
     <div class="report-container" id="reportContainer">
-        <h1><i class="fas fa-file-alt" style="margin-right:12px;color:#7c4dff;"></i>Exam Report</h1>
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:16px;">
+            <h1><i class="fas fa-file-alt" style="margin-right:12px;color:#7c4dff;"></i>Exam Report</h1>
+            {% include '_ai_assistant.html' %}
+        </div>
         <div class="report-sub">Generated from database · <span id="reportTimestamp"></span></div>
 
         <!-- Candidate Information -->

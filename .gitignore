@@ -15,3 +15,8 @@ browser_load_test_results.json
 latest_completed_integrity_report.json
 COMPREHENSIVE_TEST_REPORT.md
 MONITORING_DIAGNOSTICS_REPORT.md
+
+# Local environment configuration and API credentials
+.env
+.env.*
+!.env.example

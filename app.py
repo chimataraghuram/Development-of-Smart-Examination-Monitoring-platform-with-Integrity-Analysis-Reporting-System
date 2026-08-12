@@ -10,6 +10,7 @@ from datetime import datetime
 import cv2
 import numpy as np
 import database as db
+from ai_service import AIServiceError, answer_question
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -426,6 +427,30 @@ def integrity_report(user_id):
 
     report = db.get_integrity_report(user_id)
     return jsonify(report), 200
+
+@app.route('/api/ai/ask', methods=['POST'])
+@login_required
+def ai_ask():
+    """Answer a question using only the authenticated role's authorized data."""
+    payload = request.get_json(silent=True) or {}
+    current_user = db.get_user_by_id(session['user_id'])
+    if not current_user:
+        session.clear()
+        return jsonify({'error': 'Authentication required'}), 401
+
+    try:
+        answer = answer_question(
+            dict(current_user),
+            payload.get('question'),
+            payload.get('history'),
+        )
+        return jsonify({'answer': answer}), 200
+    except AIServiceError as exc:
+        return jsonify({'error': str(exc)}), exc.status_code
+    except Exception:
+        logger.exception('AI Ask request failed')
+        return jsonify({'error': 'AI Ask is temporarily unavailable. Please try again.'}), 502
+
 
 @app.route('/admin_logs')
 @admin_required

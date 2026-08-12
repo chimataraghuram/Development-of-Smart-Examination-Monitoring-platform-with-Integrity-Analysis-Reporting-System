@@ -1,0 +1,216 @@
+<style>
+    .ai-ask-button {
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 40px;
+        padding: 9px 18px;
+        background: rgba(124,77,255,0.22);
+        color: #f0f0ff;
+        font: 600 14px 'Inter', sans-serif;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+    .ai-ask-button:hover { background: rgba(124,77,255,0.38); }
+    .ai-ask-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 1200;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(8,5,24,0.58);
+    }
+    .ai-ask-modal.open { display: flex; }
+    .ai-ask-dialog {
+        width: min(430px, 100%);
+        max-height: min(620px, 88vh);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 18px;
+        background: #1a1040;
+        color: #f0f0ff;
+        box-shadow: 0 24px 70px rgba(0,0,0,0.55);
+    }
+    .ai-ask-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        font-size: 15px;
+    }
+    .ai-ask-close {
+        width: 30px;
+        height: 30px;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.08);
+        color: #f0f0ff;
+        font-size: 20px;
+        line-height: 1;
+        cursor: pointer;
+    }
+    .ai-ask-messages {
+        min-height: 170px;
+        max-height: 330px;
+        overflow-y: auto;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .ai-ask-message {
+        max-width: 88%;
+        padding: 10px 12px;
+        border-radius: 12px;
+        font-size: 13px;
+        line-height: 1.45;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+    }
+    .ai-ask-message.assistant {
+        align-self: flex-start;
+        background: rgba(255,255,255,0.07);
+        color: rgba(255,255,255,0.9);
+    }
+    .ai-ask-message.user {
+        align-self: flex-end;
+        background: rgba(124,77,255,0.42);
+        color: #fff;
+    }
+    .ai-ask-message.note {
+        align-self: center;
+        max-width: 100%;
+        padding: 0;
+        background: transparent;
+        color: rgba(255,255,255,0.55);
+        text-align: center;
+    }
+    .ai-ask-form {
+        display: flex;
+        gap: 8px;
+        padding: 12px;
+        border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .ai-ask-input {
+        min-width: 0;
+        flex: 1;
+        resize: none;
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 10px;
+        padding: 9px 10px;
+        background: rgba(255,255,255,0.06);
+        color: #fff;
+        font: 13px 'Inter', sans-serif;
+    }
+    .ai-ask-input::placeholder { color: rgba(255,255,255,0.42); }
+    .ai-ask-send {
+        align-self: flex-end;
+        border: 0;
+        border-radius: 10px;
+        padding: 9px 13px;
+        background: #7c4dff;
+        color: #fff;
+        font: 600 13px 'Inter', sans-serif;
+        cursor: pointer;
+    }
+    .ai-ask-send:disabled, .ai-ask-input:disabled { opacity: 0.55; cursor: not-allowed; }
+</style>
+
+<button type="button" class="ai-ask-button" data-ai-ask-open>Ask</button>
+<div class="ai-ask-modal" data-ai-ask-modal aria-hidden="true">
+    <section class="ai-ask-dialog" role="dialog" aria-modal="true" aria-labelledby="aiAskTitle">
+        <div class="ai-ask-heading">
+            <strong id="aiAskTitle">Ask</strong>
+            <button type="button" class="ai-ask-close" data-ai-ask-close aria-label="Close Ask window">&times;</button>
+        </div>
+        <div class="ai-ask-messages" data-ai-ask-messages aria-live="polite">
+            <div class="ai-ask-message assistant">Ask about your authorized score details, monitoring events, report fields, platform rules, or how to avoid deductions in a future exam.</div>
+        </div>
+        <form class="ai-ask-form" data-ai-ask-form>
+            <textarea class="ai-ask-input" data-ai-ask-input rows="2" maxlength="600" placeholder="Ask a question" aria-label="Ask a question"></textarea>
+            <button class="ai-ask-send" type="submit" data-ai-ask-send>Send</button>
+        </form>
+    </section>
+</div>
+
+<script>
+    (function () {
+        'use strict';
+        const openButton = document.querySelector('[data-ai-ask-open]');
+        const modal = document.querySelector('[data-ai-ask-modal]');
+        if (!openButton || !modal) return;
+
+        const closeButton = modal.querySelector('[data-ai-ask-close]');
+        const form = modal.querySelector('[data-ai-ask-form]');
+        const input = modal.querySelector('[data-ai-ask-input]');
+        const sendButton = modal.querySelector('[data-ai-ask-send]');
+        const messages = modal.querySelector('[data-ai-ask-messages]');
+        let history = [];
+
+        function setOpen(isOpen) {
+            modal.classList.toggle('open', isOpen);
+            modal.setAttribute('aria-hidden', String(!isOpen));
+            if (isOpen) input.focus();
+        }
+
+        function addMessage(role, text) {
+            const message = document.createElement('div');
+            message.className = 'ai-ask-message ' + role;
+            message.textContent = text;
+            messages.appendChild(message);
+            messages.scrollTop = messages.scrollHeight;
+            return message;
+        }
+
+        openButton.addEventListener('click', function () { setOpen(true); });
+        closeButton.addEventListener('click', function () { setOpen(false); });
+        modal.addEventListener('click', function (event) {
+            if (event.target === modal) setOpen(false);
+        });
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && modal.classList.contains('open')) setOpen(false);
+        });
+
+        form.addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const question = input.value.trim();
+            if (!question) return;
+
+            addMessage('user', question);
+            input.value = '';
+            input.disabled = true;
+            sendButton.disabled = true;
+            const pending = addMessage('note', 'Thinking...');
+
+            try {
+                const response = await fetch('/api/ai/ask', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question: question, history: history.slice(-6) })
+                });
+                let payload = {};
+                try { payload = await response.json(); } catch (_) { }
+                if (!response.ok) {
+                    if (response.status === 401) window.location.href = '/login';
+                    throw new Error(payload.error || 'Unable to answer the question right now.');
+                }
+                pending.remove();
+                const answer = payload.answer || 'I could not generate an answer. Please try again.';
+                addMessage('assistant', answer);
+                history.push({ role: 'user', content: question }, { role: 'assistant', content: answer });
+                history = history.slice(-6);
+            } catch (error) {
+                pending.remove();
+                addMessage('assistant', error.message || 'Unable to answer the question right now.');
+            } finally {
+                input.disabled = false;
+                sendButton.disabled = false;
+                input.focus();
+            }
+        });
+    })();
+</script>

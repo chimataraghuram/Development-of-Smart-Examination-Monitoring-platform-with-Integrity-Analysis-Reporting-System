@@ -2,6 +2,7 @@ import base64
 import os
 import shutil
 import tempfile
+from unittest.mock import patch
 
 import cv2
 import numpy as np
@@ -29,6 +30,17 @@ ONE_PIXEL_PNG = 'data:image/png;base64,' + base64.b64encode(encoded_image.tobyte
 def expect(response, status, label):
     assert response.status_code == status, f'{label}: expected {status}, got {response.status_code}; {response.get_data(as_text=True)[:500]}'
     return response
+
+
+class FakeAIResponse:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        return False
+
+    def read(self):
+        return b'{"choices": [{"message": {"content": "Your current integrity score is 500. Each recorded violation deducted 100 points."}}]}'
 
 
 student = app.test_client()
@@ -112,6 +124,14 @@ assert all(event['deducted'] == 0 for event in current_report['events'] if event
     'Face Detected', 'Browser Focus Regained'
 })
 
+with patch.dict(os.environ, {'OPENROUTER_API_KEY': 'test-key'}, clear=False), patch('ai_service.request.urlopen', return_value=FakeAIResponse()):
+    ai_answer = expect(student.post('/api/ai/ask', json={
+        'question': 'Why is my score 500?',
+        'history': [{'role': 'user', 'content': 'Explain my report.'}],
+    }), 200, 'student AI Ask').get_json()
+    assert '500' in ai_answer['answer']
+
+expect(student.post('/api/ai/ask', json={}), 400, 'AI Ask question validation')
 expect(student.get(f'/api/integrity_report/{student_id}'), 200, 'student id report')
 legacy_report = expect(student.get(f'/api/report/{student_id}'), 200, 'legacy report').get_json()
 assert legacy_report['user']['id'] == student_id
@@ -134,12 +154,16 @@ assert 'stats' in admin_dashboard and 'analytics' in admin_dashboard and 'studen
 expect(admin.get('/api/dashboard/admin?candidate_id=8123&event_type=Browser%20Focus%20Loss'), 200, 'admin filters')
 admin_report = expect(admin.get(f'/api/integrity_report/{student_id}'), 200, 'admin cross-candidate report').get_json()
 assert admin_report['user']['id'] == student_id
+with patch.dict(os.environ, {'OPENROUTER_API_KEY': 'test-key'}, clear=False), patch('ai_service.request.urlopen', return_value=FakeAIResponse()):
+    admin_ai_answer = expect(admin.post('/api/ai/ask', json={'question': 'Summarize the monitoring dashboard.'}), 200, 'admin AI Ask').get_json()
+    assert '500' in admin_ai_answer['answer']
 expect(admin.get('/admin_logs'), 200, 'admin logs page')
 
 # Logout and API authentication behavior
 expect(student.post('/api/logout'), 200, 'student logout')
 expect(student.get('/api/dashboard/student'), 401, 'dashboard unauthorized JSON')
 expect(student.get('/api/integrity_report'), 401, 'report unauthorized JSON')
+expect(student.post('/api/ai/ask', json={'question': 'Can I view a score?'}), 401, 'AI Ask unauthorized JSON')
 
 print('COMPREHENSIVE_ENDPOINT_SUITE_PASS')
 print('STUDENT_ID=' + str(student_id))
