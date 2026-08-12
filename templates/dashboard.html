@@ -523,12 +523,18 @@
             // Load dashboard
             function loadDashboard() {
                 apiFetch('/api/dashboard/student')
-                    .then(res => {
+                    .then(async res => {
+                        let payload = {};
+                        try {
+                            payload = await res.json();
+                        } catch (_) {
+                            // A proxy or unhandled Flask error can return non-JSON.
+                        }
                         if (!res.ok) {
                             if (res.status === 401) window.location.href = '/login';
-                            throw new Error('Failed to load dashboard');
+                            throw new Error(payload.error || `Dashboard request failed (HTTP ${res.status})`);
                         }
-                        return res.json();
+                        return payload;
                     })
                     .then(data => {
                         currentUser = data.user;
@@ -646,7 +652,7 @@
                     })
                     .catch(err => {
                         console.error(err);
-                        showToast('Error loading dashboard', 'error');
+                        showToast('Error loading dashboard: ' + err.message, 'error');
                     });
             }
 

@@ -282,15 +282,18 @@
             // ----- Load report data -----
             function loadReport() {
     apiFetch('/api/integrity_report')
-        .then(res => {
-            if (!res.ok) {
-                if (res.status === 401) {
-                    window.location.href = '/login';
-                    return;
-                }
-                throw new Error('Failed to load report data');
+        .then(async res => {
+            let payload = {};
+            try {
+                payload = await res.json();
+            } catch (_) {
+                // A proxy or unhandled Flask error can return non-JSON.
             }
-            return res.json();
+            if (!res.ok) {
+                if (res.status === 401) window.location.href = '/login';
+                throw new Error(payload.error || `Report request failed (HTTP ${res.status})`);
+            }
+            return payload;
         })
         .then(data => {
             const user = data.user;
