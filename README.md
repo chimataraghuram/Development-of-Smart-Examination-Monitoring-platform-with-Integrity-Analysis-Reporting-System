@@ -46,6 +46,11 @@ All events are stored in an SQLite database.
 - Resume Exam
 - End Exam
 
+### 🤖 AI Chatbot Assistant
+- **Admin Assistant:** Instantly summarizes candidate logs, identifies high-risk behaviors, and gives actionable recommendations.
+- **Candidate Assistant:** Provides real-time rule clarification, tech support, and exam anxiety reduction.
+- **Context-Aware:** Powered by LLMs and aware of real-time monitoring data.
+
 ---
 
 ## 🛠️ Technologies Used
@@ -150,7 +155,8 @@ python scripts/camera_test.py
 
 - ✅ Candidate Registration
 - ✅ Candidate Login
-- ✅ Dashboard
+- ✅ Admin Dashboard & Live Analytics
+- ✅ Browser Tab & Focus Monitoring
 - ✅ Photo Capture
 - ✅ Face Detection
 - ✅ Continuous Face Monitoring
@@ -158,6 +164,7 @@ python scripts/camera_test.py
 - ✅ Event Logging
 - ✅ Session Management
 - ✅ SQLite Database
+- ✅ AI Chatbot Assistant
 
 ---
 
@@ -165,14 +172,10 @@ python scripts/camera_test.py
 
 - Face Recognition
 - Multiple Face Detection Alerts
-- Browser Tab Monitoring
 - Eye Gaze Tracking
 - Head Pose Detection
-- AI-Based Proctoring
 - PDF Report Generation
 - Email Notifications
-- Admin Dashboard
-- Exam Analytics
 
 ---
 
