@@ -1,28 +1,51 @@
 <style>
     .ai-ask-button {
-        border: 1px solid rgba(255,255,255,0.12);
-        border-radius: 40px;
-        padding: 9px 18px;
-        background: rgba(124,77,255,0.22);
-        color: #f0f0ff;
-        font: 600 14px 'Inter', sans-serif;
+        min-height: 40px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid rgba(255,255,255,0.14);
+        border-radius: 999px;
+        padding: 7px 16px 7px 9px;
+        background: linear-gradient(145deg, #5a5a5a 0%, #2c2c2c 48%, #151515 100%);
+        color: #fff;
+        box-shadow: inset 0 1px 1px rgba(255,255,255,0.18), 0 6px 14px rgba(0,0,0,0.28);
+        font: 700 14px 'Inter', sans-serif;
+        letter-spacing: 0.1px;
         cursor: pointer;
-        transition: background 0.2s ease;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
     }
-    .ai-ask-button:hover { background: rgba(124,77,255,0.38); }
+    .ai-ask-button:hover {
+        background: linear-gradient(145deg, #666 0%, #383838 48%, #1a1a1a 100%);
+        box-shadow: inset 0 1px 1px rgba(255,255,255,0.22), 0 8px 18px rgba(0,0,0,0.34);
+        transform: translateY(-1px);
+    }
+    .ai-ask-button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+    .ai-ask-sparkle {
+        width: 24px;
+        height: 24px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        color: #fff;
+        font-size: 22px;
+        line-height: 1;
+        text-shadow: 0 0 8px rgba(255,255,255,0.55);
+    }
     .ai-ask-modal {
         position: fixed;
         inset: 0;
         z-index: 1200;
         display: none;
         align-items: center;
-        justify-content: center;
-        padding: 20px;
+        justify-content: flex-start;
+        padding: 24px;
         background: rgba(8,5,24,0.58);
     }
     .ai-ask-modal.open { display: flex; }
     .ai-ask-dialog {
-        width: min(430px, 100%);
+        width: min(410px, calc(100vw - 48px));
         max-height: min(620px, 88vh);
         display: flex;
         flex-direction: column;
@@ -117,9 +140,13 @@
         cursor: pointer;
     }
     .ai-ask-send:disabled, .ai-ask-input:disabled { opacity: 0.55; cursor: not-allowed; }
+    @media (max-width: 600px) {
+        .ai-ask-modal { justify-content: center; padding: 16px; }
+        .ai-ask-dialog { width: min(410px, calc(100vw - 32px)); }
+    }
 </style>
 
-<button type="button" class="ai-ask-button" data-ai-ask-open>Ask</button>
+<button type="button" class="ai-ask-button" data-ai-ask-open><span class="ai-ask-sparkle" aria-hidden="true">&#10022;</span><span>Ask</span></button>
 <div class="ai-ask-modal" data-ai-ask-modal aria-hidden="true">
     <section class="ai-ask-dialog" role="dialog" aria-modal="true" aria-labelledby="aiAskTitle">
         <div class="ai-ask-heading">
