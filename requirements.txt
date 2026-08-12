@@ -2,4 +2,3 @@ Flask>=2.0
 Flask-Cors>=3.0
 opencv-python>=4.5
 numpy>=1.21
-pandas>=1.3
