@@ -325,10 +325,11 @@
             <div class="ai-bubble">Hi {{ session.get('name', 'Admin') }}! 👋 I am your Examination Monitoring Assistant. I can analyze the database to help you understand candidates, active sessions, and suspicious events.</div>
         </div>
         <div class="ai-suggestions" id="aiSuggestions">
-            <button type="button" class="ai-suggestion-pill">Summarize today's exams</button>
             <button type="button" class="ai-suggestion-pill">Who is high risk?</button>
+            <button type="button" class="ai-suggestion-pill">Show active candidates</button>
+            <button type="button" class="ai-suggestion-pill">Show recent suspicious events</button>
             <button type="button" class="ai-suggestion-pill">Lowest integrity score?</button>
-            <button type="button" class="ai-suggestion-pill">Recent suspicious events?</button>
+            <button type="button" class="ai-suggestion-pill">Today's examination summary</button>
         </div>
         {% else %}
         <div class="ai-message assistant">
