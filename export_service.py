@@ -33,19 +33,23 @@ def generate_excel_export(export_type: str) -> io.BytesIO:
         ws.append(headers)
         
         avg_score = dashboard.get('stats', {}).get('average_integrity', 0)
-        # Students within a reasonable range (e.g. +/- 100 points) of average
-        for student in dashboard.get('students', []):
-            score = student.get('integrity_score', 0)
-            if abs(score - avg_score) <= 100:
-                ws.append([
-                    student.get('name', ''),
-                    student.get('student_id', ''),
-                    student.get('session_id', ''),
-                    student.get('integrity_score', ''),
-                    student.get('risk_label', ''),
-                    student.get('session_status', ''),
-                    student.get('event_count', 0)
-                ])
+        
+        # Sort all students by how close they are to the average score
+        sorted_students = sorted(
+            dashboard.get('students', []),
+            key=lambda s: abs(s.get('integrity_score', 0) - avg_score)
+        )
+        
+        for student in sorted_students:
+            ws.append([
+                student.get('name', ''),
+                student.get('student_id', ''),
+                student.get('session_id', ''),
+                student.get('integrity_score', ''),
+                student.get('risk_label', ''),
+                student.get('session_status', ''),
+                student.get('event_count', 0)
+            ])
                 
     elif export_type == 'high_risk':
         ws.title = "High Risk Candidates"
