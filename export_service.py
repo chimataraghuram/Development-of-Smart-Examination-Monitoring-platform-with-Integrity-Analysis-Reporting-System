@@ -32,7 +32,7 @@ def generate_excel_export(export_type: str) -> io.BytesIO:
         headers = ['Name', 'Candidate ID', 'Session ID', 'Integrity Score', 'Risk Level', 'Session Status', 'Event Count']
         ws.append(headers)
         
-        avg_score = dashboard.get('analytics', {}).get('average_integrity', 0)
+        avg_score = dashboard.get('stats', {}).get('average_integrity', 0)
         # Students within a reasonable range (e.g. +/- 100 points) of average
         for student in dashboard.get('students', []):
             score = student.get('integrity_score', 0)
