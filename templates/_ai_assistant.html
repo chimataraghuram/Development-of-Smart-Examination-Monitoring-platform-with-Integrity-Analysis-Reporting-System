@@ -430,6 +430,63 @@
 
         trigger.addEventListener('click', toggleChat);
 
+        // Intercept download clicks to use fetch with credentials
+        messagesContainer.addEventListener('click', async function(e) {
+            if (e.target.classList.contains('ai-btn-download')) {
+                e.preventDefault();
+                const btn = e.target;
+                const url = btn.getAttribute('href');
+                const originalText = btn.innerHTML;
+                
+                btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Downloading...';
+                btn.style.pointerEvents = 'none';
+                
+                try {
+                    const response = await fetch(url, { credentials: 'include' });
+                    
+                    if (!response.ok) {
+                        let errMsg = 'Download failed';
+                        try {
+                            const errData = await response.json();
+                            if (errData.error) errMsg = errData.error;
+                        } catch(err) {}
+                        throw new Error(errMsg);
+                    }
+                    
+                    const blob = await response.blob();
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    
+                    // Try to extract filename from Content-Disposition header
+                    let filename = 'export.xlsx';
+                    const disp = response.headers.get('Content-Disposition');
+                    if (disp && disp.indexOf('filename=') !== -1) {
+                        const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disp);
+                        if (matches != null && matches[1]) {
+                            filename = matches[1].replace(/['"]/g, '');
+                        }
+                    }
+                    
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = downloadUrl;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    
+                    window.URL.revokeObjectURL(downloadUrl);
+                    a.remove();
+                    
+                    btn.innerHTML = '<i class="fas fa-check"></i> Downloaded';
+                    btn.style.background = '#4CAF50';
+                } catch (error) {
+                    alert('Download Error: ' + error.message);
+                    btn.innerHTML = originalText;
+                } finally {
+                    btn.style.pointerEvents = 'auto';
+                }
+            }
+        });
+
         // Auto-resize textarea
         input.addEventListener('input', function() {
             this.style.height = 'auto';
