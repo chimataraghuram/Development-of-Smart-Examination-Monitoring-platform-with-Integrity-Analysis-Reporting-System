@@ -1,4 +1,22 @@
 <style>
+/* AI Download Button Styles */
+.ai-btn-download {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, #6b48ff, #9d4edd);
+    color: #fff !important;
+    text-decoration: none !important;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(107, 72, 255, 0.3);
+}
+.ai-btn-download:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(107, 72, 255, 0.5);
+}
     /* Trigger Button */
     .ai-chat-trigger {
         position: fixed;
@@ -393,7 +411,15 @@
             } else {
                 const bubble = document.createElement('div');
                 bubble.className = 'ai-bubble';
-                bubble.textContent = text;
+                // Basic markdown parser for links, bold, and newlines
+                const htmlText = text
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/\[(.*?)\]\s*\((.*?)\)/g, '<a href="$2" class="ai-btn-download" target="_blank">$1</a>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n/g, '<br>');
+                bubble.innerHTML = htmlText;
                 wrapper.appendChild(bubble);
             }
             
