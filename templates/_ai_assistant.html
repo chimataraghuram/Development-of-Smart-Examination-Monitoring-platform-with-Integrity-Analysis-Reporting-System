@@ -325,21 +325,27 @@
             <div class="ai-bubble">Hi {{ session.get('name', 'Admin') }}! 👋 I am your Examination Monitoring Assistant. I can analyze the database to help you understand candidates, active sessions, and suspicious events.</div>
         </div>
         <div class="ai-suggestions" id="aiSuggestions">
+            <button type="button" class="ai-suggestion-pill">Did we conduct an exam today?</button>
+            <button type="button" class="ai-suggestion-pill">Who scored highest?</button>
+            <button type="button" class="ai-suggestion-pill">Who scored lowest?</button>
+            <button type="button" class="ai-suggestion-pill">What's the average score?</button>
             <button type="button" class="ai-suggestion-pill">Who is high risk?</button>
-            <button type="button" class="ai-suggestion-pill">Show active candidates</button>
-            <button type="button" class="ai-suggestion-pill">Show recent suspicious events</button>
-            <button type="button" class="ai-suggestion-pill">Lowest integrity score?</button>
-            <button type="button" class="ai-suggestion-pill">Today's examination summary</button>
+            <button type="button" class="ai-suggestion-pill">Show today's suspicious events</button>
+            <button type="button" class="ai-suggestion-pill">Create average student list</button>
+            <button type="button" class="ai-suggestion-pill">Give me today's exam summary</button>
         </div>
         {% else %}
         <div class="ai-message assistant">
             <div class="ai-bubble">Hi {{ session.get('name', 'Student') }}! 👋 I am here to assist you. Ask about your authorized score details, monitoring events, report fields, platform rules, or how to avoid deductions in a future exam.</div>
         </div>
         <div class="ai-suggestions" id="aiSuggestions">
-            <button type="button" class="ai-suggestion-pill">Am I allowed to use scrap paper?</button>
-            <button type="button" class="ai-suggestion-pill">Can I take a bathroom break?</button>
-            <button type="button" class="ai-suggestion-pill">What if my camera disconnects?</button>
-            <button type="button" class="ai-suggestion-pill">How does the integrity score work?</button>
+            <button type="button" class="ai-suggestion-pill">Do I have an exam today?</button>
+            <button type="button" class="ai-suggestion-pill">What are the exam rules?</button>
+            <button type="button" class="ai-suggestion-pill">What is my score?</button>
+            <button type="button" class="ai-suggestion-pill">Why did I lose points?</button>
+            <button type="button" class="ai-suggestion-pill">Can I take a break?</button>
+            <button type="button" class="ai-suggestion-pill">What's my risk level?</button>
+            <button type="button" class="ai-suggestion-pill">Explain my exam report.</button>
         </div>
         {% endif %}
     </div>

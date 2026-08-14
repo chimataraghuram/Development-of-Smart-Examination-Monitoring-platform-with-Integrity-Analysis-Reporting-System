@@ -3,13 +3,14 @@ import base64
 import hashlib
 import sqlite3
 import logging
-from flask import Flask, request, jsonify, send_from_directory, session, redirect, url_for, render_template
+from flask import Flask, request, jsonify, send_from_directory, send_file, session, redirect, url_for, render_template
 from flask_cors import CORS
 from functools import wraps
 from datetime import datetime
 import cv2
 import numpy as np
 import database as db
+import export_service
 from ai_service import (
     AIServiceError,
     MAX_CUSTOM_SYSTEM_PROMPT_LENGTH,
@@ -327,6 +328,18 @@ def admin_dashboard():
     }
     
     return jsonify(response_data), 200
+
+@app.route('/api/admin/export/<export_type>', methods=['GET'])
+@admin_required
+def admin_export(export_type):
+    excel_file = export_service.generate_excel_export(export_type)
+    return send_file(
+        excel_file,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name=f'export_{export_type}.xlsx'
+    )
+
 # ---------- Event Logging ----------
 @app.route('/api/events', methods=['POST'])
 @login_required
