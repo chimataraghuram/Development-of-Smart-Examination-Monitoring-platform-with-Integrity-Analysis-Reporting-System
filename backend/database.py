@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 import shutil
 
-DB_PATH = 'exam_monitor.db'
+DB_PATH = 'backend/exam_monitor.db'
 
 def get_filtered_events(candidate_id=None, event_type=None, date_str=None):
     """Fetch events with dynamic filters. Handles partial matching and date formatting."""

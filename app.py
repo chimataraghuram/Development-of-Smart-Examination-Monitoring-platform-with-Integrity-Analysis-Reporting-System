@@ -10,9 +10,9 @@ from datetime import datetime
 from skimage.feature import local_binary_pattern
 import cv2
 import numpy as np
-import database as db
-import export_service
-from ai_service import (
+import backend.database as db
+import backend.export_service as export_service
+from backend.ai_service import (
     AIServiceError,
     MAX_CUSTOM_SYSTEM_PROMPT_LENGTH,
     answer_question,
@@ -24,7 +24,7 @@ from ai_service import (
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='frontend/templates')
 app.secret_key = 'exam'   # Keep this consistent
 CORS(app, supports_credentials=True)
 
@@ -111,7 +111,7 @@ def report_page():
     return render_template('report.html')
 
 # Load Haar cascade once
-CASCADE_PATH = 'haarcascade_frontalface_default.xml'
+CASCADE_PATH = 'backend/haarcascade_frontalface_default.xml'
 face_cascade = cv2.CascadeClassifier(CASCADE_PATH)
 
 @app.route('/api/detect_faces', methods=['POST'])
@@ -285,7 +285,7 @@ def student_dashboard():
     events = db.get_events_by_user(user_id)
 
     # Use the scorer
-    from integrity_scorer import IntegrityScorer
+    from backend.integrity_scorer import IntegrityScorer
     stats_dict = dict(stats) if stats else {}
     events_list = [dict(e) for e in events] if events else []
     scorer = IntegrityScorer(events_list, stats_dict)
@@ -588,7 +588,7 @@ def verify_face():
             return jsonify({'error': 'Cannot read reference photo'}), 400
 
         # ----- Face detection using Haar cascade -----
-        face_cascade = cv2.CascadeClassifier( 'haarcascade_frontalface_default.xml')
+        face_cascade = cv2.CascadeClassifier( 'backend/haarcascade_frontalface_default.xml')
 
         # Convert to grayscale (both images are BGR from imread/imdecode)
         gray_ref = cv2.cvtColor(ref_img, cv2.COLOR_BGR2GRAY)
