@@ -7,14 +7,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
     <style>
+        /* ---------- RESET & BASE ---------- */
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
             font-family: 'Inter', sans-serif;
-            background: #241255;
+            background: #020a29;
             color: #f0f0ff;
             min-height: 100vh;
             padding: 20px 30px;
         }
+        /* ---------- HEADER (unchanged) ---------- */
         .header {
             display: flex;
             justify-content: space-between;
@@ -30,8 +32,7 @@
             gap: 12px;
         }
         .header .brand-icon {
-            width: 42px;
-            height: 42px;
+            width: 42px; height: 42px;
             background: linear-gradient(135deg, #7c4dff, #448aff);
             border-radius: 12px;
             display: flex;
@@ -110,6 +111,7 @@
         .dropdown-content a:last-child { border-bottom: none; color: #ff6b6b; }
         .dropdown-content a:last-child:hover { background: rgba(255,107,107,0.1); }
 
+        /* ---------- EXAM CONTROLS (unchanged) ---------- */
         .exam-controls {
             display: flex;
             gap: 16px;
@@ -146,6 +148,7 @@
         .exam-controls .btn-end:hover { background: #ff8787; transform:scale(1.02); }
         .exam-controls .btn-end:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
 
+        /* ---------- INTEGRITY SCORE (unchanged) ---------- */
         .integrity-score {
             margin: 0 auto;
             display: flex;
@@ -188,29 +191,28 @@
             transition: width 0.5s ease;
         }
 
-        .camera-section {
-            margin: 20px 0 30px 0;
+        /* ---------- CAMERA PREVIEW (used in wizard) ---------- */
+        .camera-preview {
+            margin: 20px 0;
             background: rgba(255,255,255,0.02);
             border-radius: 20px;
             padding: 16px;
             border: 1px solid rgba(255,255,255,0.04);
-            display: none;
         }
-        .camera-section.active { display: block; }
-        .camera-section .camera-container {
+        .camera-preview .camera-container {
             position: relative;
             width: 100%;
-            max-width: 640px;
+            max-width: 480px;
             margin: 0 auto;
             border-radius: 12px;
             overflow: hidden;
             background: #000;
         }
-        .camera-section .camera-container video {
+        .camera-preview .camera-container video {
             width: 100%;
             display: block;
         }
-        .camera-section .camera-container canvas {
+        .camera-preview .camera-container canvas {
             position: absolute;
             top: 0;
             left: 0;
@@ -218,20 +220,238 @@
             height: 100%;
             pointer-events: none;
         }
+        .captured-preview {
+            max-width: 480px;
+            margin: 10px auto;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid rgba(124,77,255,0.4);
+            display: none;
+        }
+        .captured-preview img {
+            width: 100%;
+            display: block;
+        }
 
-        .content-panels { flex: 1; }
-        .panel { display: none; animation: fadeSlide 0.3s ease; }
-        .panel.active { display: block; }
+        /* ---------- WIZARD OVERLAY ---------- */
+        .wizard-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(12px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .wizard-overlay.active { display: flex; }
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+        .wizard-card {
+            background: #1a1040;
+            border-radius: 32px;
+            padding: 40px 36px;
+            max-width: 1100px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.06);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+            position: relative;
+        }
+        .wizard-card .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+        .wizard-card .step-indicator .step-dot {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.3);
+        }
+        .wizard-card .step-indicator .step-dot.active { color: #7c4dff; }
+        .wizard-card .step-indicator .step-dot .circle {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; border: 2px solid rgba(255,255,255,0.1);
+        }
+        .wizard-card .step-indicator .step-dot.active .circle {
+            background: #7c4dff; border-color: #7c4dff; color: #fff;
+        }
+        .wizard-card .step-indicator .step-dot.done .circle {
+            background: #51cf66; border-color: #51cf66; color: #fff;
+        }
+        .wizard-step { display: none; animation: fadeSlide 0.3s ease; }
+        .wizard-step.active { display: block; }
         @keyframes fadeSlide {
             0% { opacity:0; transform:translateY(12px); }
             100% { opacity:1; transform:translateY(0); }
         }
-        .panel h2 {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: rgba(255,255,255,0.8);
+        .wizard-step h2 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+        .wizard-step .sub { color: rgba(255,255,255,0.4); font-size: 14px; margin-bottom: 20px; }
+        .wizard-step .btn-primary {
+            background: linear-gradient(135deg,#7c4dff,#448aff);
+            color: #fff; border: none; padding: 14px 28px; border-radius: 60px;
+            font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s;
+            font-family: 'Inter', sans-serif; margin-top: 16px; display: inline-block;
         }
+        .wizard-step .btn-primary:hover { transform: scale(1.02); box-shadow: 0 8px 30px rgba(124,77,255,0.3); }
+        .wizard-step .btn-primary:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+        .wizard-step .btn-secondary {
+            background: transparent; border: 1.5px solid rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.6); padding: 12px 24px; border-radius: 60px;
+            font-weight: 600; cursor: pointer; transition: 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+        .wizard-step .btn-secondary:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.25); color:#fff; }
+
+        /* Checks layout: two columns for checks and live camera */
+        .checks-layout {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+        .checks-list {
+            flex: 1;
+            min-width: 300px;
+        }
+        .checks-camera {
+            flex: 1;
+            min-width: 300px;
+            max-width: 480px;
+        }
+        .checks-camera .camera-container {
+            position: relative;
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
+        }
+        .checks-camera .camera-container video {
+            width: 100%;
+            display: block;
+        }
+        .checks-camera .camera-container canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .checks-camera .camera-label {
+            text-align: center;
+            font-size: 13px;
+            color: rgba(255,255,255,0.3);
+            margin-top: 8px;
+        }
+
+        .check-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 0;
+        }
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: 0.3s;
+        }
+        .check-item .status-icon { width: 28px; text-align: center; font-size: 18px; }
+        .check-item .check-label { flex:1; font-weight:500; font-size:15px; }
+        .check-item .check-status { font-size:13px; color:rgba(255,255,255,0.4); }
+        .check-item.pass { border-color: rgba(81,207,102,0.3); }
+        .check-item.pass .status-icon { color: #51cf66; }
+        .check-item.fail { border-color: rgba(255,107,107,0.3); }
+        .check-item.fail .status-icon { color: #ff6b6b; }
+        .check-item.pending .status-icon { color: #fcc419; animation: spin 1s infinite linear; }
+        @keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+
+        /* Verify button */
+        .verify-area {
+            margin-top: 16px;
+            display: none;
+        }
+        .verify-area .btn-verify {
+            background: #fcc419;
+            color: #0b0e1a;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 60px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+        .verify-area .btn-verify:hover { background: #ffd43b; }
+        .verify-area .btn-verify:disabled { opacity:0.4; cursor:not-allowed; }
+        .verify-area .attempt-indicator {
+            font-size: 14px;
+            color: rgba(255,255,255,0.4);
+            margin-top: 8px;
+        }
+        .verify-area .verify-status {
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 6px;
+        }
+
+        .capture-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 16px 0;
+        }
+        .capture-actions .btn-capture {
+            background: #4dabf7; color: #fff; border: none;
+            padding: 10px 24px; border-radius: 60px; font-weight: 600;
+            cursor: pointer; transition: 0.3s;
+        }
+        .capture-actions .btn-capture:hover { background: #74c0fc; }
+        .capture-actions .btn-capture:disabled { opacity:0.4; cursor:not-allowed; }
+        .capture-actions .btn-submit {
+            background: #51cf66; color: #0b0e1a; border: none;
+            padding: 10px 24px; border-radius: 60px; font-weight: 600;
+            cursor: pointer; transition: 0.3s;
+        }
+        .capture-actions .btn-submit:hover { background: #69db7c; }
+        .capture-actions .btn-submit:disabled { opacity:0.4; cursor:not-allowed; }
+        .attempt-indicator {
+            font-size: 14px;
+            color: rgba(255,255,255,0.4);
+            margin-top: 8px;
+        }
+
+        .consent-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0 16px;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 12px;
+        }
+        .consent-box input[type="checkbox"] { width: 18px; height: 18px; accent-color: #7c4dff; }
+        .consent-box label { font-size: 14px; color: rgba(255,255,255,0.7); cursor: pointer; }
+
+        /* ---------- CONTENT PANELS ---------- */
+        .content-panels { flex:1; }
+        .panel { display: none; animation: fadeSlide 0.3s ease; }
+        .panel.active { display: block; }
+        .panel h2 { font-size: 20px; font-weight: 600; margin-bottom: 20px; color: rgba(255,255,255,0.8); }
         .panel .info-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -244,19 +464,11 @@
             padding: 18px 20px;
             border: 1px solid rgba(255,255,255,0.05);
         }
-        .panel .info-card .label {
-            font-size: 12px;
-            color: rgba(255,255,255,0.3);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .panel .info-card .value {
-            font-size: 22px;
-            font-weight: 600;
-            margin-top: 6px;
-            color: #f0f0ff;
-        }
+        .panel .info-card .label { font-size: 12px; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.5px; }
+        .panel .info-card .value { font-size: 22px; font-weight: 600; margin-top: 6px; color: #f0f0ff; }
         .panel .info-card .value.small { font-size: 16px; }
+
+        /* Table and Timeline */
         .table-wrap {
             overflow-x: auto;
             margin-top: 12px;
@@ -264,20 +476,116 @@
             border-radius: 16px;
             border: 1px solid rgba(255,255,255,0.04);
         }
-        table { width:100%; border-collapse:collapse; font-size:14px; }
-        th {
-            text-align:left;
-            padding:14px 16px;
-            color:rgba(255,255,255,0.4);
-            font-weight:600;
-            border-bottom:1px solid rgba(255,255,255,0.04);
-        }
-        td {
-            padding:12px 16px;
-            border-bottom:1px solid rgba(255,255,255,0.03);
-            color:rgba(255,255,255,0.8);
-        }
-        tr:last-child td { border-bottom:none; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { text-align: left; padding: 14px 16px; color: rgba(255,255,255,0.4); font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        td { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03); color: rgba(255,255,255,0.8); }
+        tr:last-child td { border-bottom: none; }
+
+       /* ---------- EVENT TIMELINE (horizontal with dots) ---------- */
+.timeline-container {
+    margin-top: 24px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 16px;
+    padding: 24px 20px;
+    border: 1px solid rgba(255,255,255,0.04);
+    overflow-x: auto;
+}
+.timeline-container h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 20px;
+}
+
+.timeline {
+    position: relative;
+    padding: 30px 0 10px 0;
+    min-height: 100px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    gap: 0;
+    overflow-x: auto;
+}
+
+/* The horizontal line */
+.timeline::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(255,255,255,0.1);
+    transform: translateY(-50%);
+}
+
+.timeline-item {
+    position: relative;
+    flex: 0 0 100px;  /* fixed width, adjust as needed */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 0 6px;
+}
+
+/* The dot */
+.timeline-item .timeline-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #7c4dff;
+    border: 2px solid #0b0e1a;
+    box-shadow: 0 0 0 2px rgba(124,77,255,0.3);
+    margin-bottom: 8px;
+    z-index: 1;
+    flex-shrink: 0;
+}
+.timeline-item.suspicious .timeline-dot {
+    background: #ff6b6b;
+    box-shadow: 0 0 0 2px rgba(255,107,107,0.3);
+}
+.timeline-item.start .timeline-dot,
+.timeline-item.end .timeline-dot {
+    background: #51cf66;
+    box-shadow: 0 0 0 2px rgba(81,207,102,0.3);
+}
+.timeline-item.end .timeline-dot {
+    background: #fcc419;
+    box-shadow: 0 0 0 2px rgba(252,196,25,0.3);
+}
+
+.timeline-item .event-time {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 4px;
+    white-space: nowrap;
+}
+.timeline-item .event-type {
+    font-size: 12px;
+    font-weight: 500;
+    color: #f0f0ff;
+    word-break: break-word;
+    max-width: 80px;
+}
+.timeline-item .event-deduction {
+    font-size: 10px;
+    color: #ff6b6b;
+    margin-top: 2px;
+}
+
+.timeline-item .event-time.time-start,
+.timeline-item .event-time.time-end {
+    font-weight: 600;
+    color: #51cf66;
+}
+.timeline-item .event-type.type-start,
+.timeline-item .event-type.type-end {
+    font-weight: 700;
+}   
+
         .chart-container {
             max-width: 400px;
             margin: 20px auto;
@@ -286,6 +594,8 @@
             padding: 20px;
             border: 1px solid rgba(255,255,255,0.04);
         }
+
+        /* ---------- TOAST ---------- */
         .toast {
             position: fixed;
             bottom: 30px;
@@ -308,28 +618,32 @@
             align-items: center;
             gap: 12px;
         }
-        .toast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-            pointer-events: auto;
-        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
         .toast.success { border-color: rgba(81,207,102,0.3); }
         .toast.error { border-color: rgba(255,107,107,0.3); }
         .toast i { font-size: 18px; }
         .toast.success i { color: #51cf66; }
         .toast.error i { color: #ff6b6b; }
+
+        /* ---------- RESPONSIVE ---------- */
         @media (max-width: 768px) {
-            body { padding:16px; }
-            .header { flex-direction:column; align-items:stretch; gap:12px; }
-            .header .user-area { justify-content:space-between; }
-            .exam-controls { flex-wrap:wrap; }
-            .integrity-score { margin-left:0; width:100%; align-items:flex-start; }
-            .camera-section .camera-container { max-width: 100%; }
+            body { padding: 16px; }
+            .header { flex-direction: column; align-items: stretch; gap: 12px; }
+            .header .user-area { justify-content: space-between; }
+            .exam-controls { flex-wrap: wrap; }
+            .integrity-score { margin-left: 0; width: 100%; align-items: flex-start; }
+            .wizard-card { padding: 24px 16px; }
+            .wizard-card .step-indicator { gap: 20px; flex-wrap: wrap; }
+            .checks-layout { flex-direction: column; }
+            .checks-camera { max-width: 100%; }
+            .timeline { gap: 16px; }
+            .timeline-item { width: 180px; }
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
+
+    <!-- ====== HEADER ====== -->
     <header class="header">
         <div class="brand">
             <div class="brand-icon"><i class="fas fa-graduation-cap"></i></div>
@@ -353,8 +667,9 @@
         </div>
     </header>
 
-        <!-- Content Panels -->
+    <!-- ====== CONTENT PANELS ====== -->
     <div class="content-panels">
+        <!-- Candidate Panel -->
         <div class="panel active" id="panelCandidate">
             <h2>Candidate Information</h2>
             <div class="info-grid">
@@ -363,15 +678,16 @@
                 <div class="info-card"><div class="label">Session ID</div><div class="value" id="candSession">-</div></div>
                 <div class="info-card"><div class="label">Final Score</div><div class="value" id="candScore">0</div></div>
                 <div class="info-card"><div class="label">Remark</div><div class="value small" id="candRemark">Not yet started</div></div>
-                <div class="info-card">
-    <i class="fas fa-user-check"></i> Face Presence: <span id="faceRatio">-</span>%
-</div>
+                <div class="info-card"><i class="fas fa-user-check"></i> Face Presence: <span id="faceRatio">-</span>%</div>
             </div>
         </div>
+
+        <!-- Session Panel -->
         <div class="panel" id="panelSession">
             <h2>Session Information</h2>
             <div class="info-grid">
                 <div class="info-card"><div class="label">Session Duration</div><div class="value" id="sessionDuration">00:00</div></div>
+                <div class="info-card"><div class="label">Total Deducted Points</div><div class="value" id="totalDeducted">0</div></div>
             </div>
             <div class="table-wrap">
                 <table>
@@ -381,7 +697,16 @@
                     </tbody>
                 </table>
             </div>
+            <!-- Timeline (horizontal) -->
+            <div class="timeline-container">
+                <h3><i class="fas fa-clock" style="margin-right:8px;"></i>Event Timeline</h3>
+                <div class="timeline" id="timeline">
+                    <p style="color:rgba(255,255,255,0.3);padding:20px;width:100%;text-align:center;">No events to display</p>
+                </div>
+            </div>
         </div>
+
+        <!-- Stats Panel -->
         <div class="panel" id="panelStats">
             <h2>Monitoring Statistics</h2>
             <div class="info-grid">
@@ -396,55 +721,131 @@
         </div>
     </div>
 
-
-    <!-- Exam Controls -->
+    <!-- ====== EXAM CONTROLS ====== -->
     <div class="exam-controls">
         <button class="btn btn-start" id="startExamBtn"><i class="fas fa-play"></i> Start Exam</button>
         <button class="btn btn-toggle-pause" id="togglePauseBtn" disabled><i class="fas fa-pause"></i> Pause</button>
         <button class="btn btn-end" id="endExamBtn" disabled><i class="fas fa-stop"></i> End Exam</button>
-        
     </div>
 
-    <!-- Camera Preview -->
-    <div class="camera-section" id="cameraSection">
-        <div class="camera-container">
-            <video id="video" autoplay playsinline></video>
-            <canvas id="overlayCanvas"></canvas>
+    <!-- ====== INTEGRITY SCORE ====== -->
+    <div class="integrity-score">
+        <div class="score-header"><i class="fas fa-shield-alt"></i> Integrity Score</div>
+        <div class="score-display">
+            <span id="scoreValue">100</span>
+            <span class="score-label">/ 100</span>
+        </div>
+        <div class="score-bar">
+            <div id="scoreBar" class="score-bar-fill" style="width:100%; background: linear-gradient(90deg, #51cf66, #69db7c);"></div>
+        </div>
+        <div class="risk-label">
+            <i class="fas fa-tag"></i> Risk Level: <span id="riskLabel" style="font-weight:700;">-</span>
         </div>
     </div>
-<div class="integrity-score">
-            <div class="score-header"><i class="fas fa-shield-alt"></i> Integrity Score</div>
-            <div class="score-display">
-                <span id="scoreValue">1000</span>
-                <span class="score-label">/ 1000</span>
+
+    <!-- ====== WIZARD OVERLAY ====== -->
+    <div class="wizard-overlay" id="wizardOverlay">
+        <div class="wizard-card">
+            <!-- Step indicator -->
+            <div class="step-indicator">
+                <div class="step-dot" id="dot1"><span class="circle">1</span> <span id="step1Label">Capture</span></div>
+                <div class="step-dot" id="dot2"><span class="circle">2</span> Checks</div>
+                <div class="step-dot" id="dot3"><span class="circle">3</span> Consent</div>
             </div>
-            <div class="score-bar">
-                <div id="scoreBar" class="score-bar-fill" style="width:100%; background: linear-gradient(90deg, #51cf66, #69db7c);"></div>
+
+            <!-- Step 1: Capture Photo (only if no reference) -->
+            <div class="wizard-step" id="step1">
+                <h2><i class="fas fa-camera" style="color:#7c4dff;margin-right:10px;"></i>Capture Your Photo</h2>
+                <div class="sub">Position your face clearly in the frame and capture.</div>
+                <div class="camera-preview">
+                    <div class="camera-container">
+                        <video id="wizardVideo" autoplay playsinline></video>
+                        <canvas id="wizardOverlayCanvas"></canvas>
+                    </div>
+                </div>
+                <div class="captured-preview" id="capturedPreview">
+                    <img id="capturedImg" alt="Captured" />
+                </div>
+                <div class="capture-actions">
+                    <button class="btn-capture" id="captureBtn"><i class="fas fa-camera"></i> Capture</button>
+                    <button class="btn-submit" id="submitPhotoBtn" disabled><i class="fas fa-check"></i> Submit</button>
+                </div>
+                <div class="attempt-indicator" id="attemptDisplay">Attempts: 0 / 3</div>
+                <button class="btn-primary" id="nextStep1Btn" disabled>Next <i class="fas fa-arrow-right"></i></button>
+                <p style="margin-top:12px;font-size:12px;color:rgba(255,255,255,0.25);">You may retry up to 3 times before submitting.</p>
             </div>
-            <div class="risk-label">
-    <i class="fas fa-tag"></i> Risk Level: <span id="riskLabel" style="font-weight:700;">-</span>
-</div>
+
+            <!-- Step 2: System Checks -->
+            <div class="wizard-step" id="step2">
+                <h2><i class="fas fa-check-circle" style="color:#51cf66;margin-right:10px;"></i>System Checks</h2>
+                <div class="sub">We are verifying your environment and identity.</div>
+                <div class="checks-layout">
+                    <div class="checks-list">
+                        <div class="check-list" id="checkList">
+                            <!-- Generated by JS -->
+                        </div>
+                        <!-- Verify area (visible when reference exists) -->
+                        <div class="verify-area" id="verifyArea">
+                            <button class="btn-verify" id="verifyFaceBtn"><i class="fas fa-user-check"></i> Verify Face</button>
+                            <div class="attempt-indicator" id="faceAttemptDisplay">Attempts: 0 / 3</div>
+                            <div class="verify-status" id="verifyStatus"></div>
+                        </div>
+                    </div>
+                    <div class="checks-camera">
+                        <div class="camera-container">
+                            <video id="checksVideo" autoplay playsinline></video>
+                            <canvas id="checksOverlayCanvas"></canvas>
+                        </div>
+                        <div class="camera-label">Live Camera</div>
+                    </div>
+                </div>
+                <button class="btn-primary" id="nextStep2Btn" disabled>Next <i class="fas fa-arrow-right"></i></button>
+            </div>
+
+            <!-- Step 3: Instructions & Consent -->
+            <div class="wizard-step" id="step3">
+                <h2><i class="fas fa-file-alt" style="color:#fcc419;margin-right:10px;"></i>Exam Instructions</h2>
+                <div class="sub">Please read the following carefully.</div>
+                <div style="background:rgba(255,255,255,0.03);border-radius:12px;padding:16px;margin:16px 0;border:1px solid rgba(255,255,255,0.05);">
+                    <ul style="list-style:none;color:rgba(255,255,255,0.7);font-size:14px;line-height:1.8;">
+                        <li><i class="fas fa-check-circle" style="color:#51cf66;margin-right:10px;"></i> Ensure you are in a quiet, well-lit environment.</li>
+                        <li><i class="fas fa-check-circle" style="color:#51cf66;margin-right:10px;"></i> Do not switch tabs or leave the exam window.</li>
+                        <li><i class="fas fa-check-circle" style="color:#51cf66;margin-right:10px;"></i> Keep your face visible at all times.</li>
+                        <li><i class="fas fa-check-circle" style="color:#51cf66;margin-right:10px;"></i> Any suspicious activity will be logged and may affect your score.</li>
+                        <li><i class="fas fa-check-circle" style="color:#51cf66;margin-right:10px;"></i> You must complete the exam in one sitting.</li>
+                    </ul>
+                </div>
+                <div class="consent-box">
+                    <input type="checkbox" id="consentCheck" />
+                    <label for="consentCheck">I have read and agree to the exam instructions and privacy policy.</label>
+                </div>
+                <button class="btn-primary" id="startExamFinalBtn" disabled><i class="fas fa-play"></i> Start Exam</button>
+            </div>
         </div>
+    </div>
 
-
-    <!-- Toast -->
+    <!-- ====== TOAST ====== -->
     <div id="toast" class="toast">
         <i class="fas fa-check-circle"></i>
         <span id="toastMsg">Ready</span>
     </div>
 
+    <!-- ============================================================ -->
+    <!-- JAVASCRIPT -->
     <script>
         (function() {
             'use strict';
 
-            // DOM refs
+            // ----- DOM refs (existing) -----
             const userNameDisplay = document.getElementById('userNameDisplay');
             const candId = document.getElementById('candId');
             const candName = document.getElementById('candName');
             const candSession = document.getElementById('candSession');
             const candScore = document.getElementById('candScore');
             const candRemark = document.getElementById('candRemark');
+            const faceRatioEl = document.getElementById('faceRatio');
             const sessionDurationEl = document.getElementById('sessionDuration');
+            const totalDeductedEl = document.getElementById('totalDeducted');
             const statsDurationEl = document.getElementById('statsDuration');
             const eventLogBody = document.getElementById('eventLogBody');
             const faceAbsenceCountEl = document.getElementById('faceAbsenceCount');
@@ -452,13 +853,10 @@
             const totalSuspiciousEl = document.getElementById('totalSuspicious');
             const scoreValue = document.getElementById('scoreValue');
             const scoreBar = document.getElementById('scoreBar');
+            const riskLabel = document.getElementById('riskLabel');
             const startBtn = document.getElementById('startExamBtn');
             const togglePauseBtn = document.getElementById('togglePauseBtn');
             const endBtn = document.getElementById('endExamBtn');
-            const video = document.getElementById('video');
-            const cameraSection = document.getElementById('cameraSection');
-            const overlayCanvas = document.getElementById('overlayCanvas');
-            const ctx = overlayCanvas.getContext('2d');
             const dropdownToggle = document.getElementById('dropdownToggle');
             const dropdownMenu = document.getElementById('dropdownMenu');
             const generateReportBtn = document.getElementById('generateReportBtn');
@@ -466,15 +864,47 @@
             const toast = document.getElementById('toast');
             const toastMsg = document.getElementById('toastMsg');
             const pieCanvas = document.getElementById('pieChart');
+            const timeline = document.getElementById('timeline');
 
-            // State
+            // ----- Wizard DOM refs -----
+            const wizardOverlay = document.getElementById('wizardOverlay');
+            const wizardVideo = document.getElementById('wizardVideo');
+            const wizardCanvas = document.getElementById('wizardOverlayCanvas');
+            const wCtx = wizardCanvas.getContext('2d');
+            const captureBtn = document.getElementById('captureBtn');
+            const submitPhotoBtn = document.getElementById('submitPhotoBtn');
+            const nextStep1Btn = document.getElementById('nextStep1Btn');
+            const nextStep2Btn = document.getElementById('nextStep2Btn');
+            const startExamFinalBtn = document.getElementById('startExamFinalBtn');
+            const consentCheck = document.getElementById('consentCheck');
+            const capturedPreview = document.getElementById('capturedPreview');
+            const capturedImg = document.getElementById('capturedImg');
+            const attemptDisplay = document.getElementById('attemptDisplay');
+            const checkList = document.getElementById('checkList');
+            const step1 = document.getElementById('step1');
+            const step2 = document.getElementById('step2');
+            const step3 = document.getElementById('step3');
+            const dot1 = document.getElementById('dot1');
+            const dot2 = document.getElementById('dot2');
+            const dot3 = document.getElementById('dot3');
+            const step1Label = document.getElementById('step1Label');
+            const checksVideo = document.getElementById('checksVideo');
+            const checksOverlayCanvas = document.getElementById('checksOverlayCanvas');
+            const verifyFaceBtn = document.getElementById('verifyFaceBtn');
+            const faceAttemptDisplay = document.getElementById('faceAttemptDisplay');
+            const verifyArea = document.getElementById('verifyArea');
+            const verifyStatus = document.getElementById('verifyStatus');
+
+            // ----- State -----
             let currentUser = null;
             let stats = null;
-            let allEvents = [];        // raw events from server
-            let sessionEvents = [];    // filtered for current session
+            let allEvents = [];
+            let sessionEvents = [];
             let examRunning = false;
             let examPaused = false;
             let cameraStream = null;
+            let wizardStream = null;
+            let checksStream = null;
             let timerInterval = null;
             let faceDetectionInterval = null;
             let sessionStartTime = null;
@@ -484,8 +914,17 @@
             let faceNotDetectedStart = null;
             let faceAbsenceTriggered = false;
             const DETECTION_INTERVAL = 2000;
+            let referenceExists = false;
+            let capturedImageData = null;
+            let captureAttempts = 0;
+            const MAX_ATTEMPTS = 3;
+            let currentStep = 1;
+            let faceMatchAttempts = 0;
+            let faceVerified = false;
+            let checksPassed = false;
+            let autoChecksDone = false;
 
-            // Helper functions
+            // ----- Helper functions (same) -----
             function apiFetch(url, options = {}) {
                 return fetch(url, {
                     ...options,
@@ -510,7 +949,7 @@
                 return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
             }
 
-            // Filter events for current session
+            // ----- Filter events -----
             function filterSessionEvents(events, startedAt, endedAt) {
                 if (!startedAt) return [];
                 const start = new Date(startedAt).getTime();
@@ -521,36 +960,129 @@
                 });
             }
 
-            // Load dashboard
+            // ----- Render timeline (horizontal) -----
+            function renderTimeline(eventsArray) {
+    const timeline = document.getElementById('timeline');
+    if (!eventsArray || eventsArray.length === 0) {
+        timeline.innerHTML = '<p style="color:rgba(255,255,255,0.3);padding:20px;width:100%;text-align:center;">No events to display</p>';
+        return;
+    }
+
+    // We need session start and end timestamps from stats
+    const startedAt = stats ? stats.started_at : null;
+    const endedAt = stats ? stats.ended_at : null;
+    let startTime = startedAt ? new Date(startedAt).getTime() : null;
+    let endTime = endedAt ? new Date(endedAt).getTime() : null;
+    if (!startTime && eventsArray.length > 0) {
+        // fallback: use first event timestamp as start
+        startTime = new Date(eventsArray[0].timestamp).getTime();
+    }
+    if (!endTime && eventsArray.length > 0) {
+        endTime = new Date(eventsArray[eventsArray.length-1].timestamp).getTime();
+    }
+    if (!startTime || !endTime) {
+        timeline.innerHTML = '<p style="color:rgba(255,255,255,0.3);padding:20px;width:100%;text-align:center;">Insufficient data for timeline</p>';
+        return;
+    }
+
+    const duration = endTime - startTime;
+    if (duration <= 0) {
+        timeline.innerHTML = '<p style="color:rgba(255,255,255,0.3);padding:20px;width:100%;text-align:center;">No valid time range</p>';
+        return;
+    }
+
+    // Sort events by timestamp ascending
+    const sorted = [...eventsArray].sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+    let html = '';
+
+    // Helper to format time
+    function formatTimeDisplay(ts) {
+        const d = new Date(ts);
+        return d.toTimeString().slice(0,8); // HH:MM:SS
+    }
+
+    // Add Start marker (if we have started_at)
+    if (startedAt) {
+        const startTs = new Date(startedAt).getTime();
+        const pos = ((startTs - startTime) / duration) * 100;
+        html += `
+            <div class="timeline-item start" style="flex-basis:auto; min-width:80px;">
+                <div class="event-time time-start">${formatTimeDisplay(startTs)}</div>
+                <div class="timeline-dot"></div>
+                <div class="event-type type-start">Start</div>
+            </div>
+        `;
+    }
+
+    // Add event dots
+    sorted.forEach((ev) => {
+        const evTs = new Date(ev.timestamp).getTime();
+        // clamp to [start, end]
+        const clamped = Math.min(Math.max(evTs, startTime), endTime);
+        const pos = ((clamped - startTime) / duration) * 100;
+        const isSuspicious = ev.deducted > 0;
+        const cls = isSuspicious ? 'timeline-item suspicious' : 'timeline-item';
+        // map event type to short label
+        let label = ev.type;
+        if (label === 'Face Absence') label = 'Face Absence';
+        else if (label === 'Multiple Faces') label = 'Multiple Face';
+        else if (label === 'Browser Focus Loss') label = 'Browser Focus Loss';
+        else if (label === 'Tab Switching') label = 'Tab Switching';
+        else if (label === 'Face Not Detected') label = 'Face Not Detected';
+        else label = ev.type;
+
+        html += `
+            <div class="${cls}" style="flex-basis:auto; min-width:80px;">
+                <div class="event-time">${formatTimeDisplay(evTs)}</div>
+                <div class="timeline-dot"></div>
+                <div class="event-type">${label}</div>
+                ${ev.deducted ? `<div class="event-deduction">-${ev.deducted}</div>` : ''}
+            </div>
+        `;
+    });
+
+    // Add End marker
+    if (endedAt) {
+        const endTs = new Date(endedAt).getTime();
+        html += `
+            <div class="timeline-item end" style="flex-basis:auto; min-width:80px;">
+                <div class="event-time time-end">${formatTimeDisplay(endTs)}</div>
+                <div class="timeline-dot"></div>
+                <div class="event-type type-end">End</div>
+            </div>
+        `;
+    }
+
+    timeline.innerHTML = html;
+}
+
+            // ----- Load dashboard data -----
             function loadDashboard() {
-                apiFetch('/api/dashboard/student')
-                    .then(async res => {
-                        let payload = {};
-                        try {
-                            payload = await res.json();
-                        } catch (_) {
-                            // A proxy or unhandled Flask error can return non-JSON.
-                        }
+                apiFetch('/api/check_verification')
+                    .then(res => res.json())
+                    .then(data => {
+                        referenceExists = data.exists;
+                        return apiFetch('/api/dashboard/student');
+                    })
+                    .then(res => {
                         if (!res.ok) {
                             if (res.status === 401) window.location.href = '/login';
-                            throw new Error(payload.error || `Dashboard request failed (HTTP ${res.status})`);
+                            throw new Error('Failed to load dashboard');
                         }
-                        return payload;
+                        return res.json();
                     })
                     .then(data => {
                         currentUser = data.user;
                         stats = data.stats || {};
                         allEvents = data.events || [];
                         examRunning = data.exam_running || false;
-                        examPaused = data.exam_paused || false;
-                        const integrityScore = data.integrity_score !== undefined ? data.integrity_score : 1000;
+                        const integrityScore = data.integrity_score !== undefined ? data.integrity_score : 100;
 
-                        // ---- Filter events for current session ----
                         const startedAt = stats.started_at;
                         const endedAt = stats.ended_at;
                         sessionEvents = filterSessionEvents(allEvents, startedAt, endedAt);
 
-                        // Compute session duration from stats timestamps
                         let sessionDurationSec = 0;
                         if (startedAt) {
                             const start = new Date(startedAt).getTime();
@@ -558,13 +1090,18 @@
                             sessionDurationSec = Math.floor((end - start) / 1000);
                         }
 
-                        // ---- Update UI ----
+                        // Compute total deducted points for this session
+                        let totalDeducted = 0;
+                        sessionEvents.forEach(ev => {
+                            if (ev.deducted) totalDeducted += ev.deducted;
+                        });
+
                         userNameDisplay.textContent = currentUser ? currentUser.name : 'User';
                         candId.textContent = currentUser ? (currentUser.student_id || 'N/A') : 'N/A';
                         candName.textContent = currentUser ? currentUser.name : 'N/A';
                         candSession.textContent = currentUser ? (currentUser.session_id || 'N/A') : 'N/A';
-                        document.getElementById('faceRatio').textContent = data.face_ratio !== undefined ? data.face_ratio : 'N/A';
-                        // Candidate final score / remark
+                        faceRatioEl.textContent = data.face_ratio !== undefined ? data.face_ratio : 'N/A';
+
                         const finalScore = data.final_score;
                         if (examRunning) {
                             candScore.textContent = 'In Progress';
@@ -575,91 +1112,77 @@
                         } else if (finalScore !== null && finalScore !== undefined && !examRunning) {
                             candScore.textContent = finalScore;
                             let remark = '';
-                            if (finalScore >= 900) remark = 'Excellent';
-                            else if (finalScore >= 700) remark = 'Good';
-                            else if (finalScore >= 500) remark = 'Fair';
+                            if (finalScore >= 90) remark = 'Excellent';
+                            else if (finalScore >= 70) remark = 'Good';
+                            else if (finalScore >= 50) remark = 'Fair';
                             else remark = 'Needs Improvement';
                             candRemark.textContent = remark;
                         } else {
                             candScore.textContent = '0';
                             candRemark.textContent = 'No session';
                         }
-                          // inside loadDashboard() after setting score
-                        document.getElementById('riskLabel').textContent = data.risk_label || 'N/A';
-                        
-                        // ---- Statistics from sessionEvents only ----
+                        riskLabel.textContent = data.risk_label || 'N/A';
+
                         let faceAbsenceCount = 0, multipleFacesCount = 0, totalSuspicious = 0;
                         sessionEvents.forEach(ev => {
                             if (ev.type === 'Face Absence') faceAbsenceCount++;
                             else if (ev.type === 'Multiple Faces') multipleFacesCount++;
-                            // Count any event with deduction > 0 as suspicious
                             if (ev.deducted > 0) totalSuspicious++;
                         });
                         faceAbsenceCountEl.textContent = faceAbsenceCount;
                         multipleFacesCountEl.textContent = multipleFacesCount;
                         totalSuspiciousEl.textContent = totalSuspicious;
 
-                        // Integrity score
                         scoreValue.textContent = integrityScore;
-                        const scorePercent = Math.max(0, Math.min(100, integrityScore / 10));
-                        scoreBar.style.width = scorePercent + '%';
-                        if (integrityScore >= 700) {
+                        scoreBar.style.width = integrityScore + '%';
+                        if (integrityScore >= 70) {
                             scoreBar.style.background = 'linear-gradient(90deg, #51cf66, #69db7c)';
-                        } else if (integrityScore >= 400) {
+                        } else if (integrityScore >= 40) {
                             scoreBar.style.background = 'linear-gradient(90deg, #fcc419, #ffd43b)';
                         } else {
                             scoreBar.style.background = 'linear-gradient(90deg, #ff6b6b, #ff8787)';
                         }
 
-                        // Session duration display
                         const durationFormatted = formatTime(sessionDurationSec);
                         sessionDurationEl.textContent = durationFormatted;
                         statsDurationEl.textContent = durationFormatted;
+                        totalDeductedEl.textContent = totalDeducted;
                         elapsedSeconds = sessionDurationSec;
 
-                        // Event log and pie chart (using sessionEvents)
                         renderEventLog(sessionEvents);
+                        renderTimeline(sessionEvents);
                         drawPieChart(sessionEvents);
 
-                        // ---- Exam state handling ----
+                        // Exam state
                         if (examRunning) {
-                            if (!examPaused && !cameraStream) {
-                                startCamera().catch(err => console.warn('Auto-start camera failed:', err));
-                            }
-                            if (!examPaused && !timerInterval) {
-                                sessionStartTime = Date.now() - (elapsedSeconds * 1000);
-                                startTimer();
-                            }
-                            if (examPaused && timerInterval) {
-                                clearInterval(timerInterval);
-                                timerInterval = null;
-                            }
                             startBtn.disabled = true;
                             togglePauseBtn.disabled = false;
-                            togglePauseBtn.textContent = examPaused ? 'Resume' : 'Pause';
-                            togglePauseBtn.classList.toggle('resume', examPaused);
-                            togglePauseBtn.innerHTML = examPaused
-                                ? '<i class="fas fa-play"></i> Resume'
-                                : '<i class="fas fa-pause"></i> Pause';
+                            togglePauseBtn.textContent = 'Pause';
+                            togglePauseBtn.classList.remove('resume');
+                            togglePauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
                             endBtn.disabled = false;
-                        } else {
-                            // Exam not running – stop everything
-                            if (cameraStream) stopCamera();
-                            if (timerInterval) {
-                                clearInterval(timerInterval);
-                                timerInterval = null;
+                            if (!cameraStream) startCamera();
+                            if (!timerInterval) {
+                                sessionStartTime = Date.now() - totalPausedDuration;
+                                startTimer();
                             }
+                        } else {
                             startBtn.disabled = false;
                             togglePauseBtn.disabled = true;
                             togglePauseBtn.textContent = 'Pause';
                             togglePauseBtn.classList.remove('resume');
                             togglePauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
                             endBtn.disabled = true;
+                            if (cameraStream) stopCamera();
+                            if (timerInterval) {
+                                clearInterval(timerInterval);
+                                timerInterval = null;
+                            }
                         }
                     })
                     .catch(err => {
                         console.error(err);
-                        showToast('Error loading dashboard: ' + err.message, 'error');
+                        showToast('Error loading dashboard', 'error');
                     });
             }
 
@@ -750,6 +1273,7 @@
                 });
             }
 
+            // ----- Log event (server) -----
             function logEventToServer(type, deducted, screenshotBase64 = null) {
                 const payload = { type, deducted };
                 if (screenshotBase64) payload.screenshot = screenshotBase64;
@@ -759,7 +1283,7 @@
                 })
                 .then(res => res.json())
                 .then(data => {
-                    loadDashboard();  // refresh after logging
+                    loadDashboard();
                     return data;
                 });
             }
@@ -774,43 +1298,7 @@
                 return canvas.toDataURL('image/png');
             }
 
-            // --- Face detection handlers ---
-            function handleNoFace() {
-                if (!faceNotDetectedLogged) {
-                    faceNotDetectedLogged = true;
-                    const screenshot = captureScreenshot();
-                    logEventToServer('Face Not Detected', 100, screenshot);
-                }
-                if (faceNotDetectedStart === null) {
-                    faceNotDetectedStart = Date.now();
-                } else {
-                    const elapsed = (Date.now() - faceNotDetectedStart) / 1000;
-                    if (elapsed > 5 && !faceAbsenceTriggered) {
-                        faceAbsenceTriggered = true;
-                        const screenshot = captureScreenshot();
-                        logEventToServer('Face Absence', 100, screenshot);
-                    }
-                }
-                
-            }
-
-            function handleSingleFace() {
-                faceNotDetectedLogged = false;
-                faceNotDetectedStart = null;
-                faceAbsenceTriggered = false;
-                
-            }
-
-            function handleMultipleFaces(faceCount) {
-                const screenshot = captureScreenshot();
-                logEventToServer('Multiple Faces', 100, screenshot);
-                faceNotDetectedLogged = false;
-                faceNotDetectedStart = null;
-                faceAbsenceTriggered = false;
-               
-            }
-
-            // --- Server-side face detection loop ---
+            // ----- Face detection (server) for main exam -----
             function detectFacesOnServer() {
                 if (!examRunning || examPaused || !cameraStream) return;
                 const canvas = document.createElement('canvas');
@@ -831,23 +1319,47 @@
                         return;
                     }
                     const faceCount = data.face_count || 0;
-                    const boxes = data.boxes || [];
-                    ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-                    const scaleX = overlayCanvas.width / video.videoWidth;
-                    const scaleY = overlayCanvas.height / video.videoHeight;
-                    
+                    // Draw boxes on overlay (if needed)
+                    const overlay = document.getElementById('overlayCanvas');
+                    if (overlay) {
+                        const ctx = overlay.getContext('2d');
+                        ctx.clearRect(0, 0, overlay.width, overlay.height);
+                        const scaleX = overlay.width / video.videoWidth;
+                        const scaleY = overlay.height / video.videoHeight;
+                        // optional drawing...
+                    }
                     if (faceCount === 0) {
-                        handleNoFace();
+                        if (!faceNotDetectedLogged) {
+                            faceNotDetectedLogged = true;
+                            const screenshot = captureScreenshot();
+                            logEventToServer('Face Not Detected', 2, screenshot);
+                        }
+                        if (faceNotDetectedStart === null) {
+                            faceNotDetectedStart = Date.now();
+                        } else {
+                            const elapsed = (Date.now() - faceNotDetectedStart) / 1000;
+                            if (elapsed > 5 && !faceAbsenceTriggered) {
+                                faceAbsenceTriggered = true;
+                                const screenshot = captureScreenshot();
+                                logEventToServer('Face Absence', 5, screenshot);
+                            }
+                        }
                     } else if (faceCount > 1) {
-                        handleMultipleFaces(faceCount);
+                        const screenshot = captureScreenshot();
+                        logEventToServer('Multiple Faces', 7, screenshot);
+                        faceNotDetectedLogged = false;
+                        faceNotDetectedStart = null;
+                        faceAbsenceTriggered = false;
                     } else {
-                        handleSingleFace();
+                        faceNotDetectedLogged = false;
+                        faceNotDetectedStart = null;
+                        faceAbsenceTriggered = false;
                     }
                 })
                 .catch(err => console.warn('Detection request failed:', err));
             }
 
-            // Timer
+            // ----- Timer -----
             function startTimer() {
                 if (timerInterval) clearInterval(timerInterval);
                 if (!sessionStartTime) {
@@ -869,18 +1381,20 @@
                 statsDurationEl.textContent = formatted;
             }
 
-            // Camera
+            // ----- Camera (main) -----
             function startCamera() {
                 return navigator.mediaDevices.getUserMedia({ video: true })
                     .then(stream => {
                         cameraStream = stream;
+                        const video = document.getElementById('video');
                         video.srcObject = stream;
                         video.play();
                         video.onloadedmetadata = () => {
-                            overlayCanvas.width = video.videoWidth;
-                            overlayCanvas.height = video.videoHeight;
+                            const overlay = document.getElementById('overlayCanvas');
+                            overlay.width = video.videoWidth;
+                            overlay.height = video.videoHeight;
                         };
-                        cameraSection.classList.add('active');
+                        document.getElementById('cameraSection').classList.add('active');
                         if (faceDetectionInterval) clearInterval(faceDetectionInterval);
                         faceDetectionInterval = setInterval(detectFacesOnServer, DETECTION_INTERVAL);
                         return stream;
@@ -889,19 +1403,414 @@
 
             function stopCamera() {
                 if (cameraStream) {
-                    cameraStream.getTracks().forEach(track => track.stop());
+                    cameraStream.getTracks().forEach(t => t.stop());
                     cameraStream = null;
+                    const video = document.getElementById('video');
                     video.srcObject = null;
-                    cameraSection.classList.remove('active');
+                    document.getElementById('cameraSection').classList.remove('active');
                 }
                 if (faceDetectionInterval) {
                     clearInterval(faceDetectionInterval);
                     faceDetectionInterval = null;
                 }
-                ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+                const overlay = document.getElementById('overlayCanvas');
+                if (overlay) {
+                    const ctx = overlay.getContext('2d');
+                    ctx.clearRect(0, 0, overlay.width, overlay.height);
+                }
             }
 
-            // Exam actions
+            // ----- Wizard cameras -----
+            function startWizardCamera() {
+                return navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(stream => {
+                        wizardStream = stream;
+                        wizardVideo.srcObject = stream;
+                        wizardVideo.play();
+                        wizardVideo.onloadedmetadata = () => {
+                            wizardCanvas.width = wizardVideo.videoWidth;
+                            wizardCanvas.height = wizardVideo.videoHeight;
+                        };
+                        return stream;
+                    });
+            }
+
+            function stopWizardCamera() {
+                if (wizardStream) {
+                    wizardStream.getTracks().forEach(t => t.stop());
+                    wizardStream = null;
+                    wizardVideo.srcObject = null;
+                }
+            }
+
+            function startChecksCamera() {
+                return navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(stream => {
+                        checksStream = stream;
+                        checksVideo.srcObject = stream;
+                        checksVideo.play();
+                        checksVideo.onloadedmetadata = () => {
+                            checksOverlayCanvas.width = checksVideo.videoWidth;
+                            checksOverlayCanvas.height = checksVideo.videoHeight;
+                        };
+                        return stream;
+                    });
+            }
+
+            function stopChecksCamera() {
+                if (checksStream) {
+                    checksStream.getTracks().forEach(t => t.stop());
+                    checksStream = null;
+                    checksVideo.srcObject = null;
+                }
+            }
+
+            // ========== WIZARD LOGIC ==========
+
+            function openWizard() {
+                wizardOverlay.classList.add('active');
+
+                // Reset state
+                captureAttempts = 0;
+                capturedImageData = null;
+                capturedPreview.style.display = 'none';
+                submitPhotoBtn.disabled = true;
+                nextStep1Btn.disabled = true;
+                attemptDisplay.textContent = 'Attempts: 0 / ' + MAX_ATTEMPTS;
+                faceMatchAttempts = 0;
+                faceVerified = false;
+                checksPassed = false;
+                nextStep2Btn.disabled = true;
+                verifyFaceBtn.disabled = false;
+                verifyFaceBtn.textContent = 'Verify Face';
+                faceAttemptDisplay.textContent = 'Attempts: 0 / 3';
+                verifyArea.style.display = 'none';
+                verifyStatus.textContent = '';
+                autoChecksDone = false;
+
+                if (referenceExists) {
+                    // Skip capture step
+                    step1Label.textContent = 'Skipped';
+                    dot1.classList.add('done');
+                    goToStep(2);
+                    startChecksCamera().catch(err => {
+                        showToast('Camera access denied: ' + err.message, 'error');
+                    });
+                    verifyArea.style.display = 'block';
+                } else {
+                    step1Label.textContent = 'Capture';
+                    dot1.classList.remove('done');
+                    goToStep(1);
+                    startWizardCamera().catch(err => {
+                        showToast('Camera access denied: ' + err.message, 'error');
+                    });
+                }
+            }
+
+            function closeWizard() {
+                wizardOverlay.classList.remove('active');
+                stopWizardCamera();
+                stopChecksCamera();
+            }
+
+            function goToStep(step) {
+                currentStep = step;
+                document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
+                document.querySelectorAll('.step-dot').forEach(el => el.classList.remove('active', 'done'));
+                if (step === 1) {
+                    step1.classList.add('active');
+                    dot1.classList.add('active');
+                } else if (step === 2) {
+                    step2.classList.add('active');
+                    dot1.classList.add('done');
+                    dot2.classList.add('active');
+                    runSystemChecks();
+                } else if (step === 3) {
+                    step3.classList.add('active');
+                    dot1.classList.add('done');
+                    dot2.classList.add('done');
+                    dot3.classList.add('active');
+                }
+            }
+
+            // ----- Step 1: Capture Photo (only when no reference) -----
+            captureBtn.addEventListener('click', function() {
+                if (captureAttempts >= MAX_ATTEMPTS) {
+                    showToast('Maximum attempts reached. Please submit.', 'error');
+                    return;
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = wizardVideo.videoWidth || 640;
+                canvas.height = wizardVideo.videoHeight || 480;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(wizardVideo, 0, 0, canvas.width, canvas.height);
+                capturedImageData = canvas.toDataURL('image/png');
+                capturedImg.src = capturedImageData;
+                capturedPreview.style.display = 'block';
+                captureAttempts++;
+                attemptDisplay.textContent = 'Attempts: ' + captureAttempts + ' / ' + MAX_ATTEMPTS;
+                submitPhotoBtn.disabled = false;
+                if (captureAttempts >= MAX_ATTEMPTS) {
+                    captureBtn.disabled = true;
+                }
+            });
+
+            submitPhotoBtn.addEventListener('click', function() {
+                if (!capturedImageData) {
+                    showToast('Please capture a photo first.', 'error');
+                    return;
+                }
+                submitPhotoBtn.disabled = true;
+                submitPhotoBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+                apiFetch('/api/detect_faces', {
+                    method: 'POST',
+                    body: JSON.stringify({ image: capturedImageData })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.face_count === 0) {
+                        throw new Error('No face detected. Please retry.');
+                    } else if (data.face_count > 1) {
+                        throw new Error('Multiple faces detected. Capture only your face.');
+                    }
+                    return apiFetch('/api/verify_photo', {
+                        method: 'POST',
+                        body: JSON.stringify({ image: capturedImageData })
+                    });
+                })
+                .then(() => {
+                    submitPhotoBtn.innerHTML = '<i class="fas fa-check"></i> Submitted';
+                    showToast('Photo saved successfully!', 'success');
+                    referenceExists = true;
+                    nextStep1Btn.disabled = false;
+                })
+                .catch(err => {
+                    submitPhotoBtn.disabled = false;
+                    submitPhotoBtn.innerHTML = '<i class="fas fa-check"></i> Submit';
+                    showToast('Error: ' + err.message, 'error');
+                });
+            });
+
+            nextStep1Btn.addEventListener('click', function() {
+                stopWizardCamera();
+                goToStep(2);
+                startChecksCamera().catch(err => {
+                    showToast('Camera access denied: ' + err.message, 'error');
+                });
+                verifyArea.style.display = 'block';
+            });
+
+            // ----- Step 2: System Checks -----
+
+            function runSystemChecks() {
+                const checks = [
+                    { id: 'camera', label: 'Camera access' },
+                    { id: 'microphone', label: 'Microphone access' },
+                    { id: 'browser', label: 'Browser compatibility' },
+                    { id: 'internet', label: 'Internet connection' },
+                ];
+                if (referenceExists) {
+                    checks.push({ id: 'face_match', label: 'Face verification (live vs reference)' });
+                }
+                checkList.innerHTML = '';
+                checks.forEach((chk) => {
+                    const div = document.createElement('div');
+                    div.className = 'check-item pending';
+                    div.id = `check-${chk.id}`;
+                    div.innerHTML = `
+                        <span class="status-icon"><i class="fas fa-spinner"></i></span>
+                        <span class="check-label">${chk.label}</span>
+                        <span class="check-status">Checking...</span>
+                    `;
+                    checkList.appendChild(div);
+                });
+
+                // Run auto checks
+                Promise.all([
+                    performCheckCamera(),
+                    performCheckMicrophone(),
+                    performCheckBrowser(),
+                    performCheckInternet()
+                ])
+                .then(() => {
+                    autoChecksDone = true;
+                    if (referenceExists) {
+                        // Face verification remains pending; user must click "Verify Face"
+                        updateCheckStatus('face_match', 'pending', 'Click "Verify Face"');
+                        verifyFaceBtn.disabled = false;
+                        // Next remains disabled until face is verified
+                    } else {
+                        // No reference needed – all checks pass
+                        checksPassed = true;
+                        nextStep2Btn.disabled = false;
+                        showToast('All system checks passed!', 'success');
+                    }
+                })
+                .catch(err => {
+                    showToast('System check failed: ' + err.message, 'error');
+                    nextStep2Btn.disabled = true;
+                });
+            }
+
+            function updateCheckStatus(itemId, status, text) {
+                const item = document.getElementById('check-' + itemId);
+                if (!item) return;
+                item.className = `check-item ${status}`;
+                const icon = item.querySelector('.status-icon i');
+                const statusSpan = item.querySelector('.check-status');
+                if (status === 'pending') icon.className = 'fas fa-spinner';
+                else if (status === 'pass') icon.className = 'fas fa-check-circle';
+                else if (status === 'fail') icon.className = 'fas fa-times-circle';
+                statusSpan.textContent = text;
+            }
+
+            function performCheckCamera() {
+                return new Promise((resolve, reject) => {
+                    updateCheckStatus('camera', 'pending', 'Requesting...');
+                    navigator.mediaDevices.getUserMedia({ video: true })
+                        .then(stream => {
+                            stream.getTracks().forEach(t => t.stop());
+                            updateCheckStatus('camera', 'pass', '✅ Available');
+                            resolve();
+                        })
+                        .catch(err => {
+                            updateCheckStatus('camera', 'fail', '❌ Denied');
+                            reject(new Error('Camera access required'));
+                        });
+                });
+            }
+
+            function performCheckMicrophone() {
+                return new Promise((resolve) => {
+                    updateCheckStatus('microphone', 'pending', 'Requesting...');
+                    navigator.mediaDevices.getUserMedia({ audio: true })
+                        .then(stream => {
+                            stream.getTracks().forEach(t => t.stop());
+                            updateCheckStatus('microphone', 'pass', '✅ Available');
+                            resolve();
+                        })
+                        .catch(() => {
+                            updateCheckStatus('microphone', 'pass', '⚠️ Not required');
+                            resolve();
+                        });
+                });
+            }
+
+            function performCheckBrowser() {
+                return new Promise((resolve) => {
+                    const compatible = 'MediaRecorder' in window && 'fetch' in window && 'Promise' in window;
+                    if (compatible) {
+                        updateCheckStatus('browser', 'pass', '✅ Compatible');
+                    } else {
+                        updateCheckStatus('browser', 'fail', '❌ Outdated');
+                    }
+                    resolve();
+                });
+            }
+
+            function performCheckInternet() {
+                return new Promise((resolve, reject) => {
+                    updateCheckStatus('internet', 'pending', 'Checking...');
+                    if (!navigator.onLine) {
+                        updateCheckStatus('internet', 'fail', '❌ Offline');
+                        reject(new Error('No internet connection'));
+                    } else {
+                        fetch('/api/dashboard/student', { method: 'HEAD', credentials: 'include' })
+                            .then(() => {
+                                updateCheckStatus('internet', 'pass', '✅ Connected');
+                                resolve();
+                            })
+                            .catch(() => {
+                                updateCheckStatus('internet', 'fail', '❌ Server unreachable');
+                                reject(new Error('Connectivity issue'));
+                            });
+                    }
+                });
+            }
+
+            // ----- Verify Face button -----
+            verifyFaceBtn.addEventListener('click', function() {
+                if (faceMatchAttempts >= MAX_ATTEMPTS) {
+                    showToast('Maximum attempts reached. Redirecting to dashboard.', 'error');
+                    closeWizard();
+                    return;
+                }
+                if (!checksStream) {
+                    showToast('Camera not ready.', 'error');
+                    return;
+                }
+                // Capture frame from checks video
+                const canvas = document.createElement('canvas');
+                canvas.width = checksVideo.videoWidth || 640;
+                canvas.height = checksVideo.videoHeight || 480;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(checksVideo, 0, 0, canvas.width, canvas.height);
+                const imageData = canvas.toDataURL('image/png');
+                faceMatchAttempts++;
+                faceAttemptDisplay.textContent = 'Attempts: ' + faceMatchAttempts + ' / 3';
+                verifyFaceBtn.disabled = true;
+                verifyFaceBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+                verifyStatus.textContent = '';
+
+                apiFetch('/api/verify_face', {
+                    method: 'POST',
+                    body: JSON.stringify({ image: imageData })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.match) {
+                        faceVerified = true;
+                        updateCheckStatus('face_match', 'pass', '✅ Match');
+                        showToast('Face verification successful!', 'success');
+                        checksPassed = true;
+                        nextStep2Btn.disabled = false;
+                        verifyFaceBtn.innerHTML = '<i class="fas fa-check"></i> Verified';
+                        verifyFaceBtn.disabled = true;
+                        verifyStatus.textContent = '✅ Face matched!';
+                        verifyStatus.style.color = '#51cf66';
+                    } else {
+                        updateCheckStatus('face_match', 'fail', '❌ Does not match reference');
+                        if (faceMatchAttempts >= MAX_ATTEMPTS) {
+                            verifyStatus.textContent = '❌ You have attempted 3 times and failed.';
+                            verifyStatus.style.color = '#ff6b6b';
+                            showToast('Face verification failed after 3 attempts. Redirecting to dashboard.', 'error');
+                            setTimeout(() => {
+                                closeWizard();
+                            }, 2000);
+                        } else {
+                            verifyStatus.textContent = '❌ Face does not match. Please try again.';
+                            verifyStatus.style.color = '#ff6b6b';
+                            showToast('Face did not match. Please try again.', 'error');
+                            verifyFaceBtn.disabled = false;
+                            verifyFaceBtn.innerHTML = 'Verify Face';
+                            // keep check as fail but allow retry
+                        }
+                    }
+                })
+                .catch(err => {
+                    showToast('Error: ' + err.message, 'error');
+                    verifyFaceBtn.disabled = false;
+                    verifyFaceBtn.innerHTML = 'Verify Face';
+                });
+            });
+
+            nextStep2Btn.addEventListener('click', function() {
+                stopChecksCamera();
+                goToStep(3);
+            });
+
+            // ----- Step 3: Instructions & Consent -----
+            consentCheck.addEventListener('change', function() {
+                startExamFinalBtn.disabled = !this.checked;
+            });
+
+            startExamFinalBtn.addEventListener('click', function() {
+                closeWizard();
+                startExam();
+            });
+
+            // ========== EXAM ACTIONS ==========
+
             function startExam() {
                 if (examRunning) return;
                 apiFetch('/api/exam/start', { method: 'POST' })
@@ -933,35 +1842,25 @@
 
             function togglePause() {
                 if (!examRunning) return;
-                const action = examPaused ? 'resume' : 'pause';
-                togglePauseBtn.disabled = true;
-                apiFetch(`/api/exam/${action}`, { method: 'POST' })
-                    .then(async res => {
-                        const payload = await res.json();
-                        if (!res.ok) throw new Error(payload.error || `Failed to ${action} exam`);
-                        return payload;
-                    })
-                    .then(() => {
-                        if (action === 'pause') {
-                            stopCamera();
-                            examPaused = true;
-                            if (timerInterval) {
-                                clearInterval(timerInterval);
-                                timerInterval = null;
-                            }
-                            showToast('Exam paused', 'success');
-                        } else {
-                            examPaused = false;
-                            return startCamera().then(() => {
-                                sessionStartTime = Date.now() - (elapsedSeconds * 1000);
-                                startTimer();
-                                showToast('Exam resumed', 'success');
-                            });
-                        }
-                    })
-                    .then(() => loadDashboard())
-                    .catch(err => showToast(err.message, 'error'))
-                    .finally(() => { togglePauseBtn.disabled = false; });
+                if (examPaused) {
+                    startCamera().then(() => {
+                        examPaused = false;
+                        togglePauseBtn.textContent = 'Pause';
+                        togglePauseBtn.classList.remove('resume');
+                        togglePauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                        showToast('Exam resumed', 'success');
+                    }).catch(err => {
+                        showToast('Failed to resume camera: ' + err.message, 'error');
+                    });
+                } else {
+                    stopCamera();
+                    examPaused = true;
+                    togglePauseBtn.textContent = 'Resume';
+                    togglePauseBtn.classList.add('resume');
+                    togglePauseBtn.innerHTML = '<i class="fas fa-play"></i> Resume';
+                    totalPausedDuration += (Date.now() - sessionStartTime - totalPausedDuration) - elapsedSeconds * 1000;
+                    showToast('Exam paused', 'success');
+                }
             }
 
             function endExam() {
@@ -991,7 +1890,7 @@
                     .catch(err => showToast(err.message, 'error'));
             }
 
-            // Focus handlers
+            // ----- Focus handlers (tab switch, focus loss) -----
             function setupFocusHandlers() {
                 window.addEventListener('blur', () => {
                     if (!examRunning || examPaused) return;
@@ -1004,6 +1903,7 @@
                 });
             }
 
+            // ----- Logout and report -----
             function logout() {
                 if (examRunning) {
                     if (!confirm('Exam is running. Logout will lose progress. Continue?')) return;
@@ -1017,7 +1917,13 @@
                 window.location.href = '/report';
             }
 
-            // Event listeners
+            // ----- Start Exam button on dashboard (opens wizard) -----
+            startBtn.addEventListener('click', function() {
+                if (examRunning) return;
+                openWizard();
+            });
+
+            // ----- Dropdown -----
             dropdownToggle.addEventListener('click', function(e) {
                 e.stopPropagation();
                 dropdownMenu.classList.toggle('show');
@@ -1025,7 +1931,6 @@
             document.addEventListener('click', function() {
                 dropdownMenu.classList.remove('show');
             });
-
             document.querySelectorAll('.dropdown-content a[data-panel]').forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -1036,15 +1941,28 @@
                 });
             });
 
-            startBtn.addEventListener('click', startExam);
+            // ----- Event listeners for exam controls -----
             togglePauseBtn.addEventListener('click', togglePause);
             endBtn.addEventListener('click', endExam);
             logoutBtn.addEventListener('click', logout);
             generateReportBtn.addEventListener('click', generateReport);
 
-            // Init
+            // ----- Init -----
             loadDashboard();
             setupFocusHandlers();
+
+            // Add camera section container (hidden initially) for main exam
+            const cameraSection = document.createElement('div');
+            cameraSection.id = 'cameraSection';
+            cameraSection.className = 'camera-section';
+            cameraSection.innerHTML = `
+                <div class="camera-container">
+                    <video id="video" autoplay playsinline></video>
+                    <canvas id="overlayCanvas"></canvas>
+                </div>
+            `;
+            document.body.appendChild(cameraSection);
+
         })();
     </script>
 </body>
