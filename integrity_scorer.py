@@ -2,7 +2,7 @@
 from collections import Counter
 from datetime import datetime
 
-SCORE_MAX = 1000
+SCORE_MAX = 100
 VIOLATION_DEDUCTION = 100
 
 # Each recognized integrity violation reduces the score by the same 100 points.
@@ -23,9 +23,9 @@ VIOLATION_EVENTS = frozenset({
 EVENT_WEIGHTS = {event_type: VIOLATION_DEDUCTION for event_type in VIOLATION_EVENTS}
 
 RISK_THRESHOLDS = {
-    'Low Risk': (800, SCORE_MAX),
-    'Medium Risk': (500, 799),
-    'High Risk': (0, 499),
+    'Low Risk': (80, SCORE_MAX),
+    'Medium Risk': (50, 79),
+    'High Risk': (0, 49),
 }
 
 
