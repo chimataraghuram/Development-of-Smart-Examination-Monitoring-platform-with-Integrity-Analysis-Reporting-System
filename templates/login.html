@@ -319,6 +319,16 @@
             .brand-text { font-size: 19px; }
             .login-card { padding: 20px 14px 24px; }
         }
+    
+        /* Autofill override fix (removes the ugly white background on login/register inputs) */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active {
+            transition: background-color 5000s ease-in-out 0s !important;
+            -webkit-text-fill-color: #f0f0ff !important;
+        }
+
     </style>
 </head>
 <body>

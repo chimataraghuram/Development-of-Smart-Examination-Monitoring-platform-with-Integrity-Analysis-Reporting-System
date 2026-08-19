@@ -2,7 +2,7 @@
 from collections import Counter
 from datetime import datetime
 
-SCORE_MAX = 100
+SCORE_MAX = 1000
 VIOLATION_DEDUCTION = 100
 
 # Each recognized integrity violation reduces the score by the same 100 points.

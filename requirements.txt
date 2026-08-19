@@ -1,6 +1,6 @@
-Flask>=2.0
-Flask-Cors>=3.0
-opencv-python>=4.5
-numpy>=1.21
+Flask>=3.1,<4.0
+Flask-Cors>=6.0,<7.0
+opencv-python==4.10.0.84
+numpy==1.26.4
 openpyxl>=3.0
-scikit-image
+scikit-image>=0.24.0

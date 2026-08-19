@@ -639,9 +639,222 @@
             .timeline { gap: 16px; }
             .timeline-item { width: 180px; }
         }
+    
+        /* ===== CANDIDATE PAGE - MODERN TOP NAV PILL REDESIGN ===== */
+        body {
+            background: #0d0b2e !important;
+            padding: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+        }
+
+        /* Header becomes a floating pill nav */
+        .header {
+            width: 95% !important;
+            max-width: 1300px !important;
+            height: 58px !important;
+            background: rgba(18, 14, 52, 0.85) !important;
+            backdrop-filter: blur(20px) !important;
+            border: 1px solid rgba(124,77,255,0.15) !important;
+            border-radius: 50px !important;
+            border-bottom: none !important;
+            padding: 0 20px !important;
+            margin: 20px auto 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important;
+        }
+
+        .header .brand {
+            gap: 10px !important;
+        }
+        .header .brand-icon {
+            width: 34px !important; height: 34px !important;
+            border-radius: 10px !important;
+            font-size: 16px !important;
+            background: linear-gradient(135deg, #7c4dff, #448aff) !important;
+        }
+        .header .brand-text {
+            font-size: 18px !important;
+        }
+
+        .header .user-area {
+            gap: 16px !important;
+        }
+        .header .user-area .welcome {
+            font-size: 13px !important;
+        }
+
+        
+        /* Dropdown button hidden */
+        .dropdown-btn {
+            display: none !important;
+        }
+
+        /* Make dropdown content a horizontal list inline */
+        .dropdown {
+            position: static !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        .dropdown-content {
+            position: static !important;
+            display: flex !important;
+            flex-direction: row !important;
+            background: transparent !important;
+            backdrop-filter: none !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            min-width: auto !important;
+        }
+        
+        .dropdown-content a {
+            font-size: 13px !important;
+            padding: 0 16px !important;
+            height: 38px !important;
+            border: none !important;
+            border-radius: 25px !important;
+            color: rgba(255,255,255,0.5) !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 8px !important;
+            font-weight: 600 !important;
+            transition: 0.2s !important;
+            margin: 0 3px !important;
+        }
+        
+        .dropdown-content a i {
+            font-size: 14px !important;
+        }
+
+        .dropdown-content a:hover {
+            background: rgba(255,255,255,0.06) !important;
+            color: #e8e6f0 !important;
+        }
+        
+        /* Active state for candidate panel links */
+        .dropdown-content a.active {
+            color: #fff !important;
+            background: rgba(124,77,255,0.2) !important;
+            border: 1px solid rgba(124,77,255,0.4) !important;
+            box-shadow: 0 0 12px rgba(124,77,255,0.15) !important;
+        }
+
+        .dropdown-content a:last-child {
+            color: rgba(255,255,255,0.5) !important;
+            margin-left: 10px !important;
+        }
+        .dropdown-content a:last-child:hover {
+            color: #ff6b6b !important;
+            background: rgba(255,107,107,0.1) !important;
+        }
+
+        
+        .user-info { position: fixed; bottom: 24px; right: 24px; z-index: 9998; }
+
+        /* Main content area */
+        .exam-controls {
+            width: 95% !important;
+            max-width: 1300px !important;
+            margin: 24px auto 20px !important;
+            background: rgba(26, 21, 69, 0.6) !important;
+            border: 1px solid rgba(124,77,255,0.12) !important;
+            border-radius: 16px !important;
+            padding: 16px 20px !important;
+        }
+        .exam-controls .btn {
+            border-radius: 10px !important;
+            font-size: 13px !important;
+            padding: 10px 20px !important;
+        }
+
+        .integrity-score {
+            width: 95% !important;
+            max-width: 1300px !important;
+            margin: 0 auto 20px !important;
+        }
+        .integrity-score .score-bar {
+            width: 100% !important;
+            max-width: 1300px !important;
+        }
+
+        /* Panels */
+        .content-panels {
+            width: 95% !important;
+            max-width: 1300px !important;
+            margin: 0 auto !important;
+        }
+        .panel {
+            background: rgba(26, 21, 69, 0.6) !important;
+            border: 1px solid rgba(124,77,255,0.12) !important;
+            border-radius: 16px !important;
+            padding: 24px !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
+        }
+
+        .info-grid {
+            gap: 16px !important;
+        }
+        .info-card {
+            background: rgba(13, 11, 46, 0.5) !important;
+            border: 1px solid rgba(255,255,255,0.04) !important;
+            border-radius: 12px !important;
+        }
+
+        /* Camera preview */
+        .camera-preview {
+            background: rgba(26, 21, 69, 0.6) !important;
+            border: 1px solid rgba(124,77,255,0.12) !important;
+            border-radius: 16px !important;
+            width: 95% !important;
+            max-width: 1300px !important;
+            margin: 20px auto !important;
+        }
+
+        /* Event log at bottom */
+        .event-log {
+            width: 95% !important;
+            max-width: 1300px !important;
+            margin: 0 auto 40px !important;
+            background: rgba(26, 21, 69, 0.6) !important;
+            border: 1px solid rgba(124,77,255,0.12) !important;
+            border-radius: 16px !important;
+        }
+
+        /* Wizard overlay */
+        .wizard-overlay {
+            backdrop-filter: blur(12px) !important;
+        }
+        .wizard-box {
+            background: rgba(18, 14, 52, 0.95) !important;
+            border: 1px solid rgba(124,77,255,0.2) !important;
+            border-radius: 16px !important;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.5) !important;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0d0b2e; }
+        ::-webkit-scrollbar-thumb { background: rgba(124,77,255,0.3); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(124,77,255,0.5); }
+
+    
+        /* Hide Pause Button */
+        #togglePauseBtn {
+            display: none !important;
+        }
+
     </style>
 </head>
 <body>
+    <div class="user-info">
+        {% include '_ai_assistant.html' %}
+    </div>
 
     <!-- ====== HEADER ====== -->
     <header class="header">
@@ -650,7 +863,6 @@
             <div class="brand-text">ExamMonitor</div>
         </div>
         <div class="user-area">
-            {% include '_ai_assistant.html' %}
             <span class="welcome">Welcome, <span id="userNameDisplay">User</span></span>
             <div class="dropdown">
                 <button class="dropdown-btn" id="dropdownToggle">
@@ -1202,15 +1414,32 @@
                 eventLogBody.innerHTML = html;
             }
 
+            let pieAnimReq;
             function drawPieChart(eventsArray) {
+                if (pieAnimReq) cancelAnimationFrame(pieAnimReq);
+                
+                // 1. Create or get the legend container (HTML based)
+                let lgDiv = document.getElementById('pieLegend');
+                if (!lgDiv) {
+                    const container = pieCanvas.parentElement;
+                    lgDiv = document.createElement('div');
+                    lgDiv.id = 'pieLegend';
+                    lgDiv.style.display = 'flex';
+                    lgDiv.style.flexWrap = 'wrap';
+                    lgDiv.style.gap = '12px';
+                    lgDiv.style.justifyContent = 'center';
+                    lgDiv.style.marginTop = '15px';
+                    lgDiv.style.fontSize = '12px';
+                    container.appendChild(lgDiv);
+                }
+                
                 const ctx = pieCanvas.getContext('2d');
                 const w = pieCanvas.width;
                 const h = pieCanvas.height;
-                const radius = Math.min(w, h) / 2 - 20;
+                const radius = Math.min(w, h) / 2 - 10;
                 const cx = w / 2;
                 const cy = h / 2;
-                ctx.clearRect(0, 0, w, h);
-
+                
                 const counts = {
                     'Face Absence': 0,
                     'Multiple Faces': 0,
@@ -1219,17 +1448,25 @@
                     'Face Not Detected': 0,
                 };
                 (eventsArray || []).forEach(ev => {
-                    if (ev.type === 'Face Absence') counts['Face Absence']++;
-                    else if (ev.type === 'Multiple Faces') counts['Multiple Faces']++;
-                    else if (ev.type === 'Browser Focus Loss') counts['Browser Focus Loss']++;
-                    else if (ev.type === 'Tab Switching') counts['Tab Switching']++;
-                    else if (ev.type === 'Face Not Detected') counts['Face Not Detected']++;
+                    if (counts[ev.type] !== undefined) counts[ev.type]++;
                 });
 
-                const labels = Object.keys(counts);
-                const values = Object.values(counts);
-                const total = values.reduce((a, b) => a + b, 0);
+                const activeLabels = [];
+                const activeValues = [];
+                Object.keys(counts).forEach(k => {
+                    if (counts[k] > 0) {
+                        activeLabels.push(k);
+                        activeValues.push(counts[k]);
+                    }
+                });
+
+                const total = activeValues.reduce((a, b) => a + b, 0);
+                
+                // Clear old legend
+                lgDiv.innerHTML = '';
+                
                 if (total === 0) {
+                    ctx.clearRect(0, 0, w, h);
                     ctx.fillStyle = 'rgba(255,255,255,0.1)';
                     ctx.font = '16px Inter';
                     ctx.textAlign = 'center';
@@ -1239,38 +1476,59 @@
                 }
 
                 const colors = ['#ff6b6b', '#fcc419', '#4dabf7', '#ff922b', '#845ef7'];
-                let startAngle = -Math.PI / 2;
-                values.forEach((val, i) => {
-                    const sliceAngle = (val / total) * 2 * Math.PI;
-                    ctx.beginPath();
-                    ctx.moveTo(cx, cy);
-                    ctx.arc(cx, cy, radius, startAngle, startAngle + sliceAngle);
-                    ctx.closePath();
-                    ctx.fillStyle = colors[i % colors.length];
-                    ctx.fill();
-                    const midAngle = startAngle + sliceAngle / 2;
-                    const labelRadius = radius * 0.65;
-                    const x = cx + Math.cos(midAngle) * labelRadius;
-                    const y = cy + Math.sin(midAngle) * labelRadius;
-                    ctx.fillStyle = '#fff';
-                    ctx.font = '12px Inter';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(val, x, y);
-                    startAngle += sliceAngle;
+                
+                // Populate legend HTML
+                activeLabels.forEach((label, i) => {
+                    lgDiv.innerHTML += `<div style="display:flex; align-items:center; gap:6px; color:rgba(255,255,255,0.8);"><div style="width:12px;height:12px;background:${colors[i % colors.length]};border-radius:3px;"></div>${label} (${activeValues[i]})</div>`;
                 });
-                let legendY = h - 20;
-                ctx.font = '11px Inter';
-                ctx.textAlign = 'left';
-                ctx.textBaseline = 'middle';
-                let legendX = 10;
-                labels.forEach((label, i) => {
-                    ctx.fillStyle = colors[i % colors.length];
-                    ctx.fillRect(legendX, legendY - 6, 12, 12);
-                    ctx.fillStyle = 'rgba(255,255,255,0.7)';
-                    ctx.fillText(`${label} (${counts[label]})`, legendX + 16, legendY);
-                    legendX += ctx.measureText(`${label} (${counts[label]})`).width + 30;
-                });
+
+                // 2. Animate pie chart
+                const duration = 1200; // 1.2s
+                const startTime = performance.now();
+
+                function animatePie(time) {
+                    let progress = (time - startTime) / duration;
+                    if (progress > 1) progress = 1;
+                    
+                    // Ease out cubic
+                    const ease = 1 - Math.pow(1 - progress, 3);
+                    
+                    ctx.clearRect(0, 0, w, h);
+                    let startAngle = -Math.PI / 2;
+                    
+                    activeValues.forEach((val, i) => {
+                        const sliceAngle = (val / total) * 2 * Math.PI * ease;
+                        if (sliceAngle <= 0) return;
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(cx, cy);
+                        ctx.arc(cx, cy, radius, startAngle, startAngle + sliceAngle);
+                        ctx.closePath();
+                        ctx.fillStyle = colors[i % colors.length];
+                        ctx.fill();
+                        
+                        // Draw numbers if animation is almost done
+                        if (progress > 0.8) {
+                            const midAngle = startAngle + sliceAngle / 2;
+                            const labelRadius = radius * 0.65;
+                            const x = cx + Math.cos(midAngle) * labelRadius;
+                            const y = cy + Math.sin(midAngle) * labelRadius;
+                            ctx.fillStyle = '#fff';
+                            ctx.font = 'bold 12px Inter';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(val, x, y);
+                        }
+                        
+                        startAngle += sliceAngle;
+                    });
+                    
+                    if (progress < 1) {
+                        pieAnimReq = requestAnimationFrame(animatePie);
+                    }
+                }
+                
+                pieAnimReq = requestAnimationFrame(animatePie);
             }
 
             // ----- Log event (server) -----
@@ -1965,5 +2223,24 @@
 
         })();
     </script>
+
+    <script>
+        // Set active class on menu items for top pill nav
+        document.addEventListener('DOMContentLoaded', () => {
+            const links = document.querySelectorAll('.dropdown-content a[data-panel]');
+            
+            // Set initial active
+            const firstLink = document.querySelector('.dropdown-content a[data-panel="candidate"]');
+            if (firstLink) firstLink.classList.add('active');
+            
+            links.forEach(link => {
+                link.addEventListener('click', function() {
+                    links.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        });
+    </script>
+
 </body>
 </html>

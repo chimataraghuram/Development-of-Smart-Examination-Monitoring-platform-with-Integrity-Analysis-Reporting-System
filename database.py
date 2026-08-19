@@ -122,6 +122,7 @@ def init_db():
         required_cols = {
             'tab_switch_count': 'INTEGER DEFAULT 0',   # NEW
             'exam_running': 'BOOLEAN DEFAULT 0',
+            'exam_paused': 'BOOLEAN DEFAULT 0',
             'started_at': 'TIMESTAMP',
             'ended_at': 'TIMESTAMP',
             'session_count': 'INTEGER DEFAULT 0',
@@ -191,7 +192,7 @@ def create_user(email, password, name, role, student_id=None, session_id=None):
             )
             user_id = cursor.lastrowid
             conn.execute(
-                "INSERT INTO stats (user_id, integrity_score, exam_running, session_count, tab_switch_count) VALUES (?, 100, 0, 0, 0)",
+                "INSERT INTO stats (user_id, integrity_score, exam_running, session_count, tab_switch_count) VALUES (?, 1000, 0, 0, 0)",
                 (user_id,)
             )
             conn.commit()
@@ -247,8 +248,10 @@ def update_stats_after_event(user_id, deducted, event_type):
     with get_db_connection() as conn:
         stats = conn.execute("SELECT * FROM stats WHERE user_id = ?", (user_id,)).fetchone()
         if stats:
-            new_integrity = max(1, stats['integrity_score'] - deducted)
-            new_total_susp = stats['total_suspicious'] + (1 if deducted > 0 else 0)
+            raw_deducted = float(deducted) if deducted is not None else 0.0
+            deduction_points = (raw_deducted * 100) if raw_deducted > 0 else 0
+            new_integrity = max(0, stats['integrity_score'] - deduction_points)
+            new_total_susp = stats['total_suspicious'] + (1 if raw_deducted > 0 else 0)
 
             if event_type == 'Face Absence':
                 conn.execute(
@@ -270,10 +273,10 @@ def update_stats_after_event(user_id, deducted, event_type):
                     "UPDATE stats SET integrity_score = ?, total_suspicious = ?, multiple_faces_count = multiple_faces_count + 1 WHERE user_id = ?",
                     (new_integrity, new_total_susp, user_id)
                 )
-            elif event_type in ('Tab Switch', 'Tab Switching') or event_type.lower() in ('tab_switch', 'tab switching'):
+            elif event_type in ('Tab Switch', 'Tab Switching') or (event_type and event_type.lower() in ('tab_switch', 'tab switching')):
                 conn.execute(
                     "UPDATE stats SET integrity_score = ?, total_suspicious = ?, tab_switch_count = tab_switch_count + 1 WHERE user_id = ?",
-                     (new_integrity, new_total_susp, user_id)
+                    (new_integrity, new_total_susp, user_id)
                 )
             else:
                 conn.execute(
@@ -282,17 +285,22 @@ def update_stats_after_event(user_id, deducted, event_type):
                 )
         else:
             # Create stats row with all counters at 0
+            raw_deducted = float(deducted) if deducted is not None else 0.0
+            initial_score = max(0, 1000 - (raw_deducted * 100 if raw_deducted > 0 else 0))
             conn.execute(
                 "INSERT INTO stats (user_id, integrity_score, total_suspicious, session_count, tab_switch_count) VALUES (?, ?, ?, 0, 0)",
-                (user_id, max(1, 100 - deducted), 1 if deducted > 0 else 0)
+                (user_id, initial_score, 1 if raw_deducted > 0 else 0)
             )
         conn.commit()
 
+
 def log_event(user_id, event_type, deducted, screenshot_path=None):
     with get_db_connection() as conn:
+        raw_deducted = float(deducted) if deducted is not None else 0.0
+        stored_deducted = int(raw_deducted * 100) if raw_deducted > 0 else 0
         cursor = conn.execute(
             "INSERT INTO events (user_id, type, deducted, screenshot_path, timestamp) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)",
-            (user_id, event_type, deducted, screenshot_path)
+            (user_id, event_type, stored_deducted, screenshot_path)
         )
         event_id = cursor.lastrowid
         conn.commit()
@@ -313,9 +321,10 @@ def set_exam_running(user_id, running):
             conn.execute('''
                 UPDATE stats
                 SET exam_running = 1,
+                    exam_paused = 0,
                     started_at = CURRENT_TIMESTAMP,
                     ended_at = NULL,
-                    integrity_score = 100,
+                    integrity_score = 1000,
                     face_absence_count = 0,
                     focus_loss_count = 0,
                     face_not_detected_count = 0,
@@ -326,27 +335,49 @@ def set_exam_running(user_id, running):
             ''', (user_id,))
             if conn.total_changes == 0:
                 conn.execute('''
-                    INSERT INTO stats (user_id, integrity_score, exam_running, started_at, session_count, tab_switch_count)
-                    VALUES (?, 100, 1, CURRENT_TIMESTAMP, 0, 0)
+                    INSERT INTO stats (user_id, integrity_score, exam_running, exam_paused, started_at, session_count, tab_switch_count)
+                    VALUES (?, 1000, 1, 0, CURRENT_TIMESTAMP, 0, 0)
                 ''', (user_id,))
         else:
             # End exam: log session and update stats
             stats = conn.execute("SELECT * FROM stats WHERE user_id = ?", (user_id,)).fetchone()
             if stats:
-                # Insert a session record
                 conn.execute(
                     "INSERT INTO sessions (user_id, start_time, end_time, integrity_score) VALUES (?, ?, ?, ?)",
                     (user_id, stats['started_at'], datetime.now().isoformat(), stats['integrity_score'])
                 )
-            # Mark exam as not running
             conn.execute('''
                 UPDATE stats
                 SET exam_running = 0,
+                    exam_paused = 0,
                     ended_at = CURRENT_TIMESTAMP,
                     session_count = session_count + 1
                 WHERE user_id = ?
             ''', (user_id,))
         conn.commit()
+
+
+def set_exam_paused(user_id, paused):
+    """Toggle the paused flag while preserving the exam-running state."""
+    with get_db_connection() as conn:
+        if paused:
+            conn.execute(
+                "UPDATE stats SET exam_paused = 1 WHERE user_id = ? AND exam_running = 1",
+                (user_id,)
+            )
+        else:
+            conn.execute(
+                "UPDATE stats SET exam_paused = 0 WHERE user_id = ? AND exam_running = 1",
+                (user_id,)
+            )
+        row = conn.execute(
+            "SELECT exam_running, exam_paused FROM stats WHERE user_id = ?",
+            (user_id,)
+        ).fetchone()
+        conn.commit()
+        if not row:
+            return {'exam_running': False, 'exam_paused': False}
+        return {'exam_running': bool(row['exam_running']), 'exam_paused': bool(row['exam_paused'])}
 
 def save_evidence(user_id, file_path):
     with get_db_connection() as conn:
@@ -406,14 +437,24 @@ def get_admin_dashboard_data():
             student_data = dict(s)
             student_data['risk_label'] = report['risk_label']
             student_data['face_ratio'] = report['face_ratio']
-            student_data['integrity_score'] = report['score']  # optionally use computed score
-            student_data['exam_running'] = stats_dict.get('exam_running', 0)
+            student_data['integrity_score'] = report['score']
+            student_data['exam_running'] = bool(stats_dict.get('exam_running', 0))
             student_data['total_suspicious'] = stats_dict.get('total_suspicious', 0)
             student_data['started_at'] = stats_dict.get('started_at')
             student_data['ended_at'] = stats_dict.get('ended_at')
             student_data['face_absence_count'] = stats_dict.get('face_absence_count', 0)
             student_data['focus_loss_count'] = stats_dict.get('focus_loss_count', 0)
             student_data['session_count'] = stats_dict.get('session_count', 0)
+            student_data['event_count'] = sum(1 for event in events_list if int(event.get('deducted', 0) or 0) > 0)
+            student_data['session_status'] = 'Completed' if not student_data['exam_running'] and student_data['session_count'] > 0 else ('Active' if student_data['exam_running'] else 'Not Started')
+            student_data['duration_seconds'] = 0
+            if student_data['started_at'] and student_data['ended_at']:
+                try:
+                    started = datetime.fromisoformat(str(student_data['started_at']).replace('Z', '+00:00'))
+                    ended = datetime.fromisoformat(str(student_data['ended_at']).replace('Z', '+00:00'))
+                    student_data['duration_seconds'] = max(0, int((ended - started).total_seconds()))
+                except ValueError:
+                    student_data['duration_seconds'] = 0
             students_with_risk.append(student_data)
 
             # Also collect events for the global list
@@ -425,6 +466,39 @@ def get_admin_dashboard_data():
 
         total = len(students)
         avg_integrity = round(sum(integrity_values)/len(integrity_values), 1) if integrity_values else 0
+
+        recent_events = []
+        for ev in sorted(event_list, key=lambda item: item.get('timestamp') or '', reverse=True)[:30]:
+            recent_events.append({
+                'id': ev.get('id'),
+                'user_id': ev.get('user_id'),
+                'type': ev.get('type'),
+                'timestamp': ev.get('timestamp'),
+                'deducted': ev.get('deducted', 0),
+                'student_name': ev.get('student_name'),
+                'student_id': ev.get('student_id'),
+            })
+
+        high_risk_candidates = []
+        for student in sorted(students_with_risk, key=lambda item: (item.get('integrity_score', 1000), item.get('total_suspicious', 0)))[:10]:
+            if student.get('integrity_score', 1000) <= 600:
+                high_risk_candidates.append({
+                    'id': student.get('id'),
+                    'name': student.get('name'),
+                    'student_id': student.get('student_id'),
+                    'integrity_score': student.get('integrity_score', 1000),
+                    'risk_label': student.get('risk_label', 'Low Risk'),
+                    'total_suspicious': student.get('total_suspicious', 0),
+                })
+
+        session_summary = {
+            'total_candidates': total,
+            'active_sessions': active,
+            'completed_sessions': completed,
+            'average_integrity': avg_integrity,
+            'total_suspicious_events': total_suspicious,
+            'recent_event_count': len(recent_events),
+        }
 
         return {
             'stats': {
@@ -442,7 +516,10 @@ def get_admin_dashboard_data():
                 'average_integrity': avg_integrity,
             },
             'events': event_list,
-            'students': students_with_risk,   # now includes risk_label & face_ratio
+            'students': students_with_risk,
+            'recent_events': recent_events,
+            'high_risk_candidates': high_risk_candidates,
+            'session_summary': session_summary,
         }
 
 def get_integrity_report(user_id):
