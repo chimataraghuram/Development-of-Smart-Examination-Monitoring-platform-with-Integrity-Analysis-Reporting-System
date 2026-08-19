@@ -7,6 +7,7 @@ from flask import Flask, request, jsonify, send_from_directory, send_file, sessi
 from flask_cors import CORS
 from functools import wraps
 from datetime import datetime
+from skimage.feature import local_binary_pattern
 import cv2
 import numpy as np
 import database as db
@@ -518,6 +519,120 @@ def ai_ask():
 @admin_required
 def admin_logs_page():
     return render_template('admin_logs.html')
+@app.route('/api/check_verification', methods=['GET'])
+@login_required
+def check_verification():
+    user_id = session['user_id']
+    path = db.get_verification_photo(user_id)
+    return jsonify({'exists': bool(path)}), 200
+
+@app.route('/api/verify_photo', methods=['POST'])
+@login_required
+def verify_photo():
+    data = request.json
+    image_b64 = data.get('image')
+    if not image_b64:
+        return jsonify({'error': 'No image'}), 400
+    if ',' in image_b64:
+        image_b64 = image_b64.split(',')[1]
+
+    user_id = session['user_id']
+    user = db.get_user_by_id(user_id)
+    candidate_folder_id = user['student_id'] if user and user['student_id'] else user_id
+
+    # Create verification folder
+    user_folder = os.path.join(app.config['UPLOAD_FOLDER'], str(candidate_folder_id), 'verification')
+    os.makedirs(user_folder, exist_ok=True)
+
+    filename = f"verification_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+    file_path = os.path.join(user_folder, filename)
+
+    with open(file_path, 'wb') as f:
+        f.write(base64.b64decode(image_b64))
+
+    screenshot_path = f"{candidate_folder_id}/verification/{filename}"
+    db.save_evidence(user_id, screenshot_path)
+    db.log_event(user_id, 'Verification Photo', 0, screenshot_path)
+
+    return jsonify({'message': 'Photo saved', 'path': screenshot_path}), 200
+
+@app.route('/api/verify_face', methods=['POST'])
+@login_required
+def verify_face():
+    try:
+        data = request.json
+        image_b64 = data.get('image')
+        if not image_b64:
+            return jsonify({'error': 'No image provided'}), 400
+
+        # Decode base64 image
+        if ',' in image_b64:
+            image_b64 = image_b64.split(',')[1]
+        image_data = base64.b64decode(image_b64)
+        np_arr = np.frombuffer(image_data, np.uint8)
+        live_img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        if live_img is None:
+            return jsonify({'error': 'Invalid image data'}), 400
+
+        user_id = session['user_id']
+        ref_path = db.get_verification_photo(user_id)
+        if not ref_path:
+            return jsonify({'error': 'No reference photo found'}), 400
+
+        full_ref_path = os.path.join(app.config['UPLOAD_FOLDER'], ref_path)
+        if not os.path.exists(full_ref_path):
+            return jsonify({'error': 'Reference photo missing'}), 400
+
+        ref_img = cv2.imread(full_ref_path)
+        if ref_img is None:
+            return jsonify({'error': 'Cannot read reference photo'}), 400
+
+        # ----- Face detection using Haar cascade -----
+        face_cascade = cv2.CascadeClassifier( 'haarcascade_frontalface_default.xml')
+
+        # Convert to grayscale (both images are BGR from imread/imdecode)
+        gray_ref = cv2.cvtColor(ref_img, cv2.COLOR_BGR2GRAY)
+        gray_live = cv2.cvtColor(live_img, cv2.COLOR_BGR2GRAY)
+
+        # Detect faces
+        faces_ref = face_cascade.detectMultiScale(gray_ref, scaleFactor=1.1, minNeighbors=4, minSize=(30, 30))
+        faces_live = face_cascade.detectMultiScale(gray_live, scaleFactor=1.1, minNeighbors=4, minSize=(30, 30))
+
+        if len(faces_ref) != 1:
+            return jsonify({'error': 'Reference must contain exactly one face'}), 400
+        if len(faces_live) != 1:
+            return jsonify({'error': 'Live image must contain exactly one face'}), 400
+
+        # Extract face regions
+        (x, y, w, h) = faces_ref[0]
+        face_ref = gray_ref[y:y+h, x:x+w]
+        (x, y, w, h) = faces_live[0]
+        face_live = gray_live[y:y+h, x:x+w]
+
+        # Resize to same size
+        face_ref = cv2.resize(face_ref, (100, 100))
+        face_live = cv2.resize(face_live, (100, 100))
+
+        # Compute Local Binary Pattern histograms
+        radius = 1
+        n_points = 8 * radius
+        lbp_ref = local_binary_pattern(face_ref, n_points, radius, method='uniform')
+        lbp_live = local_binary_pattern(face_live, n_points, radius, method='uniform')
+
+        hist_ref, _ = np.histogram(lbp_ref.ravel(), bins=np.arange(0, n_points + 3), density=True)
+        hist_live, _ = np.histogram(lbp_live.ravel(), bins=np.arange(0, n_points + 3), density=True)
+
+        # Chi‑squared distance
+        eps = 1e-10
+        chi_sq = 0.5 * np.sum(((hist_ref - hist_live) ** 2) / (hist_ref + hist_live + eps))
+        threshold = 1.5   # Adjust this value based on testing (lower = stricter)
+        match = bool(chi_sq < threshold)
+
+        return jsonify({'match': match}), 200
+
+    except Exception as e:
+        logger.error(f"Face verification error: {e}")
+        return jsonify({'error': str(e)}), 500
 
 # ---------- Run ----------
 if __name__ == '__main__':
