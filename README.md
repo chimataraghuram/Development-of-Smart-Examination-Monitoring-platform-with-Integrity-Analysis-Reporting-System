@@ -9,42 +9,39 @@ An AI-powered Online Exam Monitoring System developed as part of an internship p
 ### 👤 Candidate Management
 - Candidate Registration
 - Candidate Login
-- Dashboard
+- Modern Dark-Themed Candidate Dashboard
 - SQLite Database Integration
 
 ### 📷 OpenCV Integration
 - Access System Webcam
 - Live Video Feed
-- Capture Candidate Photo
+- Capture Candidate Photo (Evidence)
 - Save Photos Automatically
 
-### 😀 Face Detection
+### 😀 Face Detection & Analytics
 - Haar Cascade Face Detection
 - Real-Time Face Monitoring
-- Face Detected / Face Not Detected Status
-- Bounding Box Around Face
+- Face Detected / Face Not Detected / Multiple Faces Status
+- Dynamic Integrity Scoring Algorithm
 
 ### ⏱️ Monitoring Features
 - Continuous Face Presence Monitoring
-- Face Absence Duration Tracking
-- Current Time Display
+- Browser Tab & Focus Loss Tracking
 - Real-Time Monitoring Information
+- Animated Statistical Pie Charts
 
 ### 📋 Event Logging
-Whenever a candidate's face is not detected, the system automatically logs:
+Whenever a suspicious event occurs, the system automatically logs:
 
 - Candidate ID
-- Event Type
+- Event Type (Face Absence, Focus Loss, Tab Switching)
 - Timestamp
-- Remarks
-
-All events are stored in an SQLite database.
+- Evidence (Base64 Screenshots)
 
 ### 📝 Session Management
 - Start Exam
-- Pause Exam
-- Resume Exam
 - End Exam
+- Continuous Uninterrupted Sessions
 
 ### 🤖 AI Chatbot Assistant
 - **Admin Assistant:** Instantly summarizes candidate logs, identifies high-risk behaviors, and gives actionable recommendations.
@@ -55,54 +52,44 @@ All events are stored in an SQLite database.
 
 ## 🛠️ Technologies Used
 
-- Python
-- Flask
+- Python (Flask)
 - SQLite
-- OpenCV
-- Haar Cascade Classifier
-- HTML
-- CSS
-- JavaScript
+- OpenCV (Haar Cascade Classifier)
+- Scikit-Image
+- HTML / CSS / JavaScript
+- Google Gemini API
 
 ---
 
 ## 📂 Project Structure
 
-```
+```text
 Development-of-Smart-Examination-Monitoring-platform-with-Integrity-Analysis-Reporting-System
 │
-├── app.py
-├── requirements.txt
+├── app.py                         # Main Flask Application Entry Point
+├── requirements.txt               # Python Dependencies
 ├── README.md
-├── LICENSE
+├── .env                           # Environment Variables (API Keys)
 │
-├── database/
-│   ├── exam.db
-│   └── candidates.csv
+├── backend/                       # Core Backend Logic
+│   ├── database.py                # SQLite Database Operations
+│   ├── ai_service.py              # LLM Chatbot Integration
+│   ├── export_service.py          # CSV/PDF Export Logic
+│   ├── integrity_scorer.py        # Algorithmic Scoring Engine
+│   └── haarcascade_frontalface_default.xml
 │
-├── models/
-│   ├── database.py
-│   ├── candidate.py
-│   └── faker_data.py
+├── frontend/                      # Frontend UI
+│   └── templates/                 # HTML Views (Jinja2)
+│       ├── _ai_assistant.html     # AI Chatbot Component
+│       ├── admin_dashboard.html   # Admin View
+│       ├── dashboard.html         # Candidate View
+│       ├── login.html
+│       ├── register.html
+│       └── report.html
 │
-├── modules/
-│   ├── authentication.py
-│   ├── registration.py
-│   ├── monitoring.py
-│   ├── report.py
-│   └── scoring.py
-│
-├── scripts/
-│   ├── face_detection.py
-│   ├── camera_test.py
-│   ├── check_database.py
-│   ├── export_exam_db.py
-│   └── exam.py
-│
-├── static/
-├── templates/
-├── photos/
-└── haarcascade/
+├── scripts/                       # Testing & Diagnostic Scripts
+├── logs/                          # Application Logs
+└── evidence/                      # Stored Webcam Screenshots
 ```
 
 ---
@@ -127,6 +114,9 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
+Set up your environment variables:
+Create a `.env` file from `.env.example` and add your Google Gemini API key.
+
 ---
 
 ## ▶️ Run the Project
@@ -137,44 +127,32 @@ Start the Flask application:
 python app.py
 ```
 
-Run Face Detection:
-
-```bash
-python scripts/face_detection.py
-```
-
-Run Camera Test:
-
-```bash
-python scripts/camera_test.py
-```
+The application will run on `http://127.0.0.1:5000/`.
 
 ---
 
 ## 📸 Current Modules
 
-- ✅ Candidate Registration
-- ✅ Candidate Login
+- ✅ Candidate Registration & Login
 - ✅ Admin Dashboard & Live Analytics
 - ✅ Browser Tab & Focus Monitoring
-- ✅ Photo Capture
-- ✅ Face Detection
+- ✅ Photo/Evidence Capture
+- ✅ Face Detection (OpenCV)
 - ✅ Continuous Face Monitoring
-- ✅ Face Absence Tracking
-- ✅ Event Logging
+- ✅ Integrity Scoring Algorithm
+- ✅ Event Logging & Timeline
 - ✅ Session Management
 - ✅ SQLite Database
-- ✅ AI Chatbot Assistant
+- ✅ Context-Aware AI Chatbot Assistant
 
 ---
 
 ## 📈 Future Improvements
 
-- Face Recognition
-- Multiple Face Detection Alerts
+- Face Recognition Integration
 - Eye Gaze Tracking
 - Head Pose Detection
-- PDF Report Generation
+- Advanced PDF Report Generation
 - Email Notifications
 
 ---
