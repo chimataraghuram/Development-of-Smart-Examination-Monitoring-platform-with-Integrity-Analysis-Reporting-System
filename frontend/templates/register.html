@@ -787,7 +787,7 @@
             }
 
             function validatePassword(val) {
-                if (!val || val.length !== 6) return { ok: false, msg: 'Exactly 6 characters' };
+                if (!val || val.length < 8 || val.length > 128) return { ok: false, msg: 'Use 8–128 characters' };
                 return { ok: true, msg: '✓ Strong enough' };
             }
 
@@ -858,7 +858,7 @@
             });
             sEmail.addEventListener('input', () => validateStudentField('email'));
             sPass.addEventListener('input', () => {
-                sPass.value = sPass.value.slice(0, 6);
+                sPass.value = sPass.value.slice(0, 128);
                 validateStudentField('password');
             });
 
@@ -866,7 +866,7 @@
             aName.addEventListener('input', () => validateAdminField('name'));
             aEmail.addEventListener('input', () => validateAdminField('email'));
             aPass.addEventListener('input', () => {
-                aPass.value = aPass.value.slice(0, 6);
+                aPass.value = aPass.value.slice(0, 128);
                 validateAdminField('password');
             });
 

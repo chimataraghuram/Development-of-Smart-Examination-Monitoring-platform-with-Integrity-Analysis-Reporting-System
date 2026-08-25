@@ -2,10 +2,11 @@
 from collections import Counter
 from datetime import datetime
 
-SCORE_MAX = 1000
-VIOLATION_DEDUCTION = 100
+SCORE_MAX = 100
+VIOLATION_DEDUCTION = 5
 
-# Each recognized integrity violation reduces the score by the same 100 points.
+# Each recognized integrity violation reduces the score by five points.
+
 VIOLATION_EVENTS = frozenset({
     'Face Not Detected',
     'Face Absence',
@@ -35,7 +36,7 @@ def get_event_deduction(event_type):
 
 
 class IntegrityScorer:
-    """Calculate integrity metrics using a 1000-point, fixed-deduction model."""
+    """Calculate integrity metrics using a 100-point, five-point-per-violation model."""
 
     def __init__(self, events, stats=None):
         self.events = [event for event in (events or []) if isinstance(event, dict)]

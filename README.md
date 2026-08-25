@@ -27,8 +27,16 @@ An AI-powered Online Exam Monitoring System developed as part of an internship p
 ### ⏱️ Monitoring Features
 - Continuous Face Presence Monitoring
 - Browser Tab & Focus Loss Tracking
+- Server-authoritative Start / Pause / Resume / End lifecycle
 - Real-Time Monitoring Information
+- Connection and readiness indicators
 - Animated Statistical Pie Charts
+
+### 🗓️ Examination Management
+- Admin-created examination drafts
+- Publish and close examination lifecycle
+- Duration, break-policy, and custom-rule configuration
+- Candidate assignment workflow
 
 ### 📋 Event Logging
 Whenever a suspicious event occurs, the system automatically logs:
@@ -40,8 +48,11 @@ Whenever a suspicious event occurs, the system automatically logs:
 
 ### 📝 Session Management
 - Start Exam
+- Pause and Resume Exam
 - End Exam
 - Continuous Uninterrupted Sessions
+- Persistent integrity review decisions and administrator notes
+- Student notifications for exam and review updates
 
 ### 🤖 AI Chatbot Assistant
 - **Admin Assistant:** Instantly summarizes candidate logs, identifies high-risk behaviors, and gives actionable recommendations.
@@ -57,7 +68,8 @@ Whenever a suspicious event occurs, the system automatically logs:
 - OpenCV (Haar Cascade Classifier)
 - Scikit-Image
 - HTML / CSS / JavaScript
-- Google Gemini API
+- OpenRouter API (optional AI assistant)
+- Werkzeug password hashing
 
 ---
 
@@ -71,7 +83,8 @@ Development-of-Smart-Examination-Monitoring-platform-with-Integrity-Analysis-Rep
 ├── README.md
 ├── .env                           # Environment Variables (API Keys)
 │
-├── backend/                       # Core Backend Logic
+├── backend/                      # Core Backend Logic
+
 │   ├── database.py                # SQLite Database Operations
 │   ├── ai_service.py              # LLM Chatbot Integration
 │   ├── export_service.py          # CSV/PDF Export Logic
@@ -115,7 +128,7 @@ pip install -r requirements.txt
 ```
 
 Set up your environment variables:
-Create a `.env` file from `.env.example` and add your Google Gemini API key.
+Create a `.env` file from `.env.example`. Add a long random `FLASK_SECRET_KEY`; add `OPENROUTER_API_KEY` only if you want to use the AI assistant. The local seeded administrator is `admin@gmail.com` with the password configured by `ADMIN_DEFAULT_PASSWORD` (default: `admin@123`). Change it before any shared deployment.
 
 ---
 
@@ -141,7 +154,10 @@ The application will run on `http://127.0.0.1:5000/`.
 - ✅ Continuous Face Monitoring
 - ✅ Integrity Scoring Algorithm
 - ✅ Event Logging & Timeline
-- ✅ Session Management
+- ✅ Session Management with Persistent Pause/Resume
+- ✅ Examination Creation, Publishing, and Candidate Assignment
+- ✅ Persistent Integrity Review Workflow
+- ✅ Student Notifications and Connection Status
 - ✅ SQLite Database
 - ✅ Context-Aware AI Chatbot Assistant
 

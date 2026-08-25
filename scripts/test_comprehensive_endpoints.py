@@ -1,17 +1,21 @@
 import base64
+
 import json
 import os
 import shutil
+import sys
 import tempfile
+
 from unittest.mock import patch
 
 import cv2
 import numpy as np
 
-ROOT = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
+sys.path.insert(0, ROOT)
 
-import database as db
+from backend import database as db
 
 work_dir = tempfile.mkdtemp(prefix='exam_monitor_suite_')
 db.DB_PATH = os.path.join(work_dir, 'exam_monitor.db')
@@ -44,7 +48,7 @@ class FakeAIResponse:
         return False
 
     def read(self):
-        return b'{"choices": [{"message": {"content": "Your current integrity score is 500. Each recorded violation deducted 100 points."}}]}'
+        return b'{"choices": [{"message": {"content": "Your current integrity score is 60. Each recorded violation deducted 5 points."}}]}'
 
 
 def capture_ai_request(provider_request, timeout):
@@ -67,7 +71,7 @@ expect(anonymous.post('/api/register', json={}), 400, 'invalid registration')
 registration = expect(student.post('/api/register', json={
     'name': 'Comprehensive Student',
     'email': 'comprehensive.student@gmail.com',
-    'password': 'a1b2c3',
+    'password': 'a1b2c3d4',
     'role': 'student',
     'student_id': '8123',
     'session_id': 'EXAM26',
@@ -96,12 +100,16 @@ expect(student.post('/api/detect_faces', json={'image': 'data:image/png;base64,n
 # Monitoring events including screenshot evidence
 for event_type, deducted, screenshot in (
     ('Face Detected', 0, None),
-    ('Face Not Detected', 1, None),
-    ('Browser Focus Loss', 1, ONE_PIXEL_PNG),
+    ('Face Not Detected', 5, None),
+    ('Face Not Detected', 5, None),
+    ('Browser Focus Loss', 5, ONE_PIXEL_PNG),
     ('Browser Focus Regained', 0, None),
-    ('Multiple Faces', 1, None),
-    ('Tab Switching', 1, None),
-    ('Suspicious Activity', 1, None),
+    ('Multiple Faces', 5, None),
+    ('Multiple Faces', 5, None),
+    ('Tab Switching', 5, None),
+    ('Tab Switching', 5, None),
+    ('Suspicious Activity', 5, None),
+
 ):
     payload = {'type': event_type, 'deducted': deducted}
     if screenshot:
@@ -110,43 +118,43 @@ for event_type, deducted, screenshot in (
 
 running_dashboard = expect(student.get('/api/dashboard/student'), 200, 'dashboard during exam').get_json()
 assert running_dashboard['exam_running'] is True
-assert running_dashboard['event_counts']['Face Not Detected'] == 1
+assert running_dashboard['event_counts']['Face Not Detected'] == 2
 assert running_dashboard['event_counts']['Browser Focus Loss'] == 1
-assert running_dashboard['event_counts']['Multiple Faces'] == 1
-assert running_dashboard['event_counts']['Tab Switching'] == 1
+assert running_dashboard['event_counts']['Multiple Faces'] == 2
+assert running_dashboard['event_counts']['Tab Switching'] == 2
 assert running_dashboard['event_counts']['Suspicious Activity'] == 1
-assert running_dashboard['integrity_score'] == 500.0
-assert running_dashboard['total_deduction'] == 500.0
+assert running_dashboard['integrity_score'] == 60.0
+assert running_dashboard['total_deduction'] == 40.0
 
 expect(student.post('/api/exam/end'), 200, 'end exam')
 final_dashboard = expect(student.get('/api/dashboard/student'), 200, 'dashboard after exam').get_json()
 assert final_dashboard['exam_running'] is False
-assert final_dashboard['final_score'] == 500.0
+assert final_dashboard['final_score'] == 60.0
 
 current_report = expect(student.get('/api/integrity_report'), 200, 'session-bound report').get_json()
 assert current_report['user']['id'] == student_id
-assert current_report['event_counts']['Face Not Detected'] == 1
+assert current_report['event_counts']['Face Not Detected'] == 2
 assert current_report['event_counts']['Browser Focus Loss'] == 1
-assert current_report['event_counts']['Multiple Faces'] == 1
-assert current_report['event_counts']['Tab Switching'] == 1
+assert current_report['event_counts']['Multiple Faces'] == 2
+assert current_report['event_counts']['Tab Switching'] == 2
 assert current_report['event_counts']['Suspicious Activity'] == 1
-assert current_report['score'] == 500.0
-assert current_report['raw_score_from_events'] == 500.0
-assert current_report['total_deduction'] == 500.0
-assert len(current_report['events']) == 7
-assert all(event['deducted'] == 100 for event in current_report['events'] if event['type'] in {
+assert current_report['score'] == 60.0
+assert current_report['raw_score_from_events'] == 60.0
+assert current_report['total_deduction'] == 40.0
+assert len(current_report['events']) == 10
+assert all(event['deducted'] == 5 for event in current_report['events'] if event['type'] in {
     'Face Not Detected', 'Browser Focus Loss', 'Multiple Faces', 'Tab Switching', 'Suspicious Activity'
 })
 assert all(event['deducted'] == 0 for event in current_report['events'] if event['type'] in {
     'Face Detected', 'Browser Focus Regained'
 })
 
-with patch.dict(os.environ, {'OPENROUTER_API_KEY': 'test-key'}, clear=False), patch('ai_service.request.urlopen', return_value=FakeAIResponse()):
+with patch.dict(os.environ, {'OPENROUTER_API_KEY': 'test-key'}, clear=False), patch('backend.ai_service.request.urlopen', return_value=FakeAIResponse()):
     ai_answer = expect(student.post('/api/ai/ask', json={
-        'question': 'Why is my score 500?',
+        'question': 'Why is my score 60?',
         'history': [{'role': 'user', 'content': 'Explain my report.'}],
     }), 200, 'student AI Ask').get_json()
-    assert '500' in ai_answer['answer']
+    assert '60' in ai_answer['answer']
 
 expect(student.post('/api/ai/ask', json={}), 400, 'AI Ask question validation')
 expect(student.get(f'/api/integrity_report/{student_id}'), 200, 'student id report')
@@ -161,7 +169,7 @@ expect(student.get('/evidence/other-user/private.png'), 403, 'student evidence i
 admin_registration = expect(admin.post('/api/register', json={
     'name': 'Comprehensive Admin',
     'email': 'comprehensive.admin@gmail.com',
-    'password': 'a1b2c3',
+    'password': 'a1b2c3d4',
     'role': 'admin',
 }), 201, 'admin registration').get_json()
 assert admin_registration['role'] == 'admin'
@@ -181,20 +189,43 @@ assert 'recent_events' in admin_dashboard and 'high_risk_candidates' in admin_da
 assert admin_dashboard['admin']['name'] == 'Comprehensive Admin'
 student_overview = next(item for item in admin_dashboard['students'] if item['id'] == student_id)
 assert student_overview['session_status'] == 'Completed'
-assert student_overview['event_count'] == 5
+assert student_overview['event_count'] == 8
 assert 'duration_seconds' in student_overview
 expect(admin.get('/api/dashboard/admin?candidate_id=8123&event_type=Browser%20Focus%20Loss'), 200, 'admin filters')
 admin_report = expect(admin.get(f'/api/integrity_report/{student_id}'), 200, 'admin cross-candidate report').get_json()
 assert admin_report['user']['id'] == student_id
-with patch.dict(os.environ, {'OPENROUTER_API_KEY': 'test-key'}, clear=False), patch('ai_service.request.urlopen', side_effect=capture_ai_request):
+with patch.dict(os.environ, {'OPENROUTER_API_KEY': 'test-key'}, clear=False), patch('backend.ai_service.request.urlopen', side_effect=capture_ai_request):
     admin_ai_answer = expect(admin.post('/api/ai/ask', json={'question': 'Summarize the monitoring dashboard.'}), 200, 'admin AI Ask').get_json()
-    assert '500' in admin_ai_answer['answer']
+    assert '60' in admin_ai_answer['answer']
     system_message = captured_ai_payload['request']['messages'][0]['content']
     assert 'Use a concise formal academic tone.' in system_message
     assert 'cannot override authorization boundaries' in system_message
+exam = expect(admin.post('/api/admin/exams', json={
+    'title': 'Integration Test Examination',
+    'exam_date': '2026-09-10T10:00',
+    'duration_minutes': 90,
+    'break_minutes': 5,
+    'rules': 'Remain visible to the camera.',
+}), 201, 'exam creation').get_json()['exam']
+exam_id = exam['id']
+expect(admin.post(f'/api/admin/exams/{exam_id}/status', json={'status': 'Published'}), 200, 'exam publication')
+expect(admin.post(f'/api/admin/exams/{exam_id}/assign', json={'user_ids': [student_id]}), 200, 'exam assignment')
+assigned_exams = expect(student.get('/api/student/exams'), 200, 'student assigned exams').get_json()['exams']
+assert any(item['id'] == exam_id and item['status'] == 'Published' for item in assigned_exams)
+expect(student.post('/api/exam/start', json={'exam_id': exam_id}), 200, 'assigned exam start')
+expect(student.post('/api/exam/end'), 200, 'assigned exam end')
+expect(admin.post(f'/api/admin/reviews/{student_id}', json={
+    'decision': 'Under Review',
+    'notes': 'Review the captured evidence before final decision.',
+}), 201, 'persistent review save')
+student_review = expect(student.get(f'/api/reviews/{student_id}'), 200, 'student review history').get_json()['reviews']
+assert student_review[0]['decision'] == 'Under Review'
+student_notifications = expect(student.get('/api/notifications'), 200, 'student notifications').get_json()['notifications']
+assert any(item['kind'] == 'review' for item in student_notifications)
 expect(admin.get('/admin_logs'), 200, 'admin logs page')
 
 # Logout and API authentication behavior
+
 expect(student.post('/api/logout'), 200, 'student logout')
 expect(student.get('/api/dashboard/student'), 401, 'dashboard unauthorized JSON')
 expect(student.get('/api/integrity_report'), 401, 'report unauthorized JSON')

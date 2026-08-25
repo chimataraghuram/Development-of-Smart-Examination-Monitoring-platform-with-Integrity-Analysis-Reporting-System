@@ -193,8 +193,11 @@
                 <div class="info-card"><div class="label">Name</div><div class="value" id="repName">-</div></div>
                 <div class="info-card"><div class="label">ID</div><div class="value" id="repId">-</div></div>
                 <div class="info-card"><div class="label">Session ID</div><div class="value" id="repSession">-</div></div>
-                <div class="info-card"><div class="label">Final Score</div><div class="value" id="repScore">-</div></div>
-                <div class="info-card"><div class="label">Remark</div><div class="value small" id="repRemark">-</div></div>
+                                <div class="info-card"><div class="label">Final Score (out of 100)</div><div class="value" id="repScore">-</div></div>
+
+                                <div class="info-card"><div class="label">Remark</div><div class="value small" id="repRemark">-</div></div>
+                <div class="info-card"><div class="label">Review Status</div><div class="value small" id="repReviewState">Not Reviewed</div></div>
+
             </div>
         </div>
 
@@ -312,9 +315,9 @@
             const scoreDisplay = data.score !== null && data.score !== undefined ? data.score : (data.final_score !== null && data.final_score !== undefined ? data.final_score : data.integrity_score);
             document.getElementById('repScore').textContent = scoreDisplay;
             let remark = '';
-            if (scoreDisplay >= 900) remark = 'Excellent';
-            else if (scoreDisplay >= 700) remark = 'Good';
-            else if (scoreDisplay >= 500) remark = 'Fair';
+            if (scoreDisplay >= 90) remark = 'Excellent';
+            else if (scoreDisplay >= 70) remark = 'Good';
+            else if (scoreDisplay >= 50) remark = 'Fair';
             else remark = 'Needs Improvement';
             document.getElementById('repRemark').textContent = remark;
 
@@ -363,6 +366,8 @@
             // ---- Risk & Face Ratio (if you added those fields) ----
             document.getElementById('repRisk').textContent = data.risk_label || 'N/A';
             document.getElementById('repFaceRatio').textContent = data.face_ratio !== undefined ? data.face_ratio + '%' : 'N/A';
+            const reviewHistory = data.reviews || [];
+            document.getElementById('repReviewState').textContent = reviewHistory.length ? reviewHistory[0].decision : (stats.review_state || 'Not Reviewed');
 
             // ---- Event Table (only sessionEvents) ----
             const tbody = document.getElementById('eventTableBody');

@@ -8,8 +8,12 @@ from datetime import datetime
 from pathlib import Path
 from urllib import error, request
 
-import database as db
-from integrity_scorer import SCORE_MAX, VIOLATION_DEDUCTION, VIOLATION_EVENTS
+try:
+    from . import database as db
+    from .integrity_scorer import SCORE_MAX, VIOLATION_DEDUCTION, VIOLATION_EVENTS
+except ImportError:
+    import database as db
+    from integrity_scorer import SCORE_MAX, VIOLATION_DEDUCTION, VIOLATION_EVENTS
 
 logger = logging.getLogger(__name__)
 
@@ -200,7 +204,7 @@ Integrity-score rules: starts at {SCORE_MAX}. Each violation deducts {VIOLATION_
 As a Student Assistant:
 1. Personalization: Use the provided `candidate` and `current_or_latest_session` data to answer questions like "What is my score?", "Why did I lose points?", "Is my exam active?". If asked "Do I have an exam today?", check if a session exists today. Do NOT assume an exam exists.
 2. Exam Rules & Breaks: Answer rule/break questions using the EXACT `exam_rules` and `break_policy` in the context. Do not invent rules. If the rule is empty or missing, say exactly: "I don't have that rule information available." or "I don't have the break policy for this examination."
-3. Style: Keep responses conversational and short. (e.g. "Your current integrity score is 800. You lost 100 points for a face-not-detected event.") Avoid long paragraphs, internal IDs, huge tables, or SQL.
+3. Style: Keep responses conversational and short. (e.g. "Your current integrity score is 80. You lost 5 points for a face-not-detected event.") Avoid long paragraphs, internal IDs, huge tables, or SQL.
 4. Boundaries: ONLY access the logged-in candidate's information. Do NOT show other candidates' info, compare candidates, or help bypass monitoring. Do not provide answers to exam questions.
 """
 

@@ -3,10 +3,14 @@ import base64
 import hashlib
 import sqlite3
 import logging
-from flask import Flask, request, jsonify, send_from_directory, send_file, session, redirect, url_for, render_template
+import secrets
+from flask import Flask, request, jsonify, send_from_directory, send_file, session, redirect, url_for, render_template, make_response
+
 from flask_cors import CORS
 from functools import wraps
 from datetime import datetime
+from werkzeug.security import check_password_hash
+
 from skimage.feature import local_binary_pattern
 import cv2
 import numpy as np
@@ -24,11 +28,14 @@ from backend.ai_service import (
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__, template_folder='frontend/templates')
-app.secret_key = 'exam'   # Keep this consistent
-CORS(app, supports_credentials=True)
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+app = Flask(__name__, template_folder=os.path.join(PROJECT_ROOT, 'frontend', 'templates'))
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'local-development-secret-change-me')
+CORS(app, supports_credentials=True, origins=os.getenv('CORS_ORIGINS', 'http://127.0.0.1:5000,http://localhost:5000').split(','))
 
-app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'evidence')
+app.config['UPLOAD_FOLDER'] = os.path.join(PROJECT_ROOT, 'evidence')
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+
 # Session configuration – critical for local development
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
@@ -36,12 +43,14 @@ app.config.update(
     SESSION_COOKIE_SECURE=False,   # False for HTTP (localhost)
     SESSION_COOKIE_PATH='/',
     PERMANENT_SESSION_LIFETIME=3600,  # 1 hour
+    TEMPLATES_AUTO_RELOAD=True,
 )
 
 # Configuration
-UPLOAD_FOLDER = 'evidence'
+UPLOAD_FOLDER = os.path.join(PROJECT_ROOT, 'evidence')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -96,7 +105,11 @@ def login_page():
 @app.route('/dashboard.html')
 @login_required
 def dashboard_page():
-    return render_template('dashboard.html')
+    response = make_response(render_template('dashboard.html'))
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @app.route('/admin_dashboard')
 @app.route('/admin_dashboard.html')
@@ -164,10 +177,11 @@ def register():
         return jsonify({'error': 'Missing required fields'}), 400
     if not email.endswith('@gmail.com'):
         return jsonify({'error': 'Email must be @gmail.com'}), 400
-    if len(password) != 6:
-        return jsonify({'error': 'Password must be exactly 6 characters'}), 400
+    if len(password) < 8 or len(password) > 128:
+        return jsonify({'error': 'Password must be between 8 and 128 characters'}), 400
 
     # Check email exists
+
     if db.get_user_by_email(email):
         return jsonify({'error': 'Email already registered'}), 400
 
@@ -231,11 +245,16 @@ def login():
         return jsonify({'error': 'Email and password required'}), 400
     if not email.endswith('@gmail.com'):
         return jsonify({'error': 'Email must be @gmail.com'}), 400
-    if len(password) != 6:
-        return jsonify({'error': 'Password must be exactly 6 characters'}), 400
 
     user = db.get_user_by_email(email)
-    if not user or user['password'] != password:
+    valid_password = False
+    if user:
+        try:
+            valid_password = check_password_hash(user['password'], password)
+        except (ValueError, TypeError):
+            valid_password = secrets.compare_digest(str(user['password']), password)
+    if not user or not valid_password:
+
         logger.warning(f"Invalid credentials for {email}")
         return jsonify({'error': 'Invalid credentials'}), 401
 
@@ -303,8 +322,12 @@ def student_dashboard():
         'face_ratio': scorer['face_ratio'],
         'total_deduction': scorer['total_deduction'],
         'event_counts': scorer['event_counts'],
+        'exams': db.get_student_exams(user_id),
+        'current_exam': db.get_current_exam_for_student(user_id),
+        'notifications': db.get_notifications(user_id),
+        'reviews': db.get_reviews(user_id),
     }), 200
-    
+
 # ---------- Admin Dashboard API ----------
 @app.route('/api/dashboard/admin', methods=['GET'])
 @admin_required
@@ -346,13 +369,17 @@ def admin_export(export_type):
 @login_required
 def log_event():
     user_id = session['user_id']
-    data = request.json
-    event_type = data.get('type')
-    deducted = data.get('deducted', 0)
+    data = request.get_json(silent=True) or {}
+    event_type = str(data.get('type', '')).strip()
     screenshot_base64 = data.get('screenshot')
-
-    if not event_type:
-        return jsonify({'error': 'Event type required'}), 400
+    allowed_event_types = {
+        'Face Detected', 'Face Not Detected', 'Face Absence', 'Multiple Faces',
+        'Browser Focus Loss', 'Browser Focus Regained', 'Tab Switching',
+        'Tab Switch', 'Copy Paste', 'Suspicious Activity', 'Suspicious App',
+        'Screen Share', 'Audio Noise', 'Verification Photo',
+    }
+    if event_type not in allowed_event_types:
+        return jsonify({'error': 'Unsupported event type'}), 400
 
     # Fetch the user to get student_id
     user = db.get_user_by_id(user_id)
@@ -362,8 +389,11 @@ def log_event():
     screenshot_path = None
     if screenshot_base64 and screenshot_base64.startswith('data:image'):
         header, encoded = screenshot_base64.split(',', 1)
-        ext = header.split(';')[0].split('/')[1]
-        filename = f"{event_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{ext}"
+        ext = header.split(';')[0].split('/')[1].lower()
+        if ext not in ALLOWED_EXTENSIONS:
+            return jsonify({'error': 'Unsupported evidence image type'}), 400
+        filename = f"{event_type.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}_{secrets.token_hex(4)}.{ext}"
+
         # Use candidate_folder_id for the folder name
         user_folder = os.path.join(app.config['UPLOAD_FOLDER'], str(candidate_folder_id))
         os.makedirs(user_folder, exist_ok=True)
@@ -374,8 +404,15 @@ def log_event():
         screenshot_path = f"{candidate_folder_id}/{filename}"
         db.save_evidence(user_id, screenshot_path)
 
-    event_id = db.log_event(user_id, event_type, deducted, screenshot_path)
-    db.update_stats_after_event(user_id, deducted, event_type)
+    event_id = db.log_event(user_id, event_type, None, screenshot_path)
+    db.update_stats_after_event(user_id, None, event_type)
+    if event_type in {'Face Absence', 'Multiple Faces'}:
+        db.create_notification(
+            user_id,
+            'Monitoring attention required',
+            f'{event_type} was recorded. Please keep your face clearly visible and ensure no other person is in frame.',
+            'warning',
+        )
 
     return jsonify({'message': 'Event logged', 'event_id': event_id, 'screenshot_path': screenshot_path}), 201
 
@@ -384,12 +421,17 @@ def log_event():
 @login_required
 def serve_evidence(filepath):
     user = db.get_user_by_id(session['user_id'])
-    full_path = os.path.join(app.config['UPLOAD_FOLDER'], filepath)
-    
+    normalized_path = os.path.normpath(filepath).replace('\\', '/')
+    if normalized_path in {'..', '.'} or normalized_path.startswith('../') or os.path.isabs(filepath):
+        return jsonify({'error': 'Invalid evidence path'}), 400
+    if not user:
+        session.clear()
+        return jsonify({'error': 'Authentication required'}), 401
+
     # Admin can see everything
     if user['role'] == 'admin':
-        return send_from_directory(app.config['UPLOAD_FOLDER'], filepath)
-    
+        return send_from_directory(app.config['UPLOAD_FOLDER'], normalized_path)
+
     # For students: check that the filepath starts with their student_id or user_id
     allowed_prefixes = []
     if user['student_id']:   # if student_id exists and is not None
@@ -399,8 +441,9 @@ def serve_evidence(filepath):
     if not any(filepath.startswith(prefix + '/') for prefix in allowed_prefixes):
         return jsonify({'error': 'Forbidden'}), 403
     
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filepath)
+    return send_from_directory(app.config['UPLOAD_FOLDER'], normalized_path)
 # ---------- Report ----------
+
 @app.route('/api/report/<int:user_id>', methods=['GET'])
 @login_required
 def get_report(user_id):
@@ -422,8 +465,23 @@ def get_report(user_id):
 @app.route('/api/exam/start', methods=['POST'])
 @login_required
 def start_exam():
-    db.set_exam_running(session['user_id'], True)
-    return jsonify({'message': 'Exam started'}), 200
+    payload = request.get_json(silent=True) or {}
+    exam_id = payload.get('exam_id')
+    if exam_id is not None:
+        try:
+            exam_id = int(exam_id)
+        except (TypeError, ValueError):
+            return jsonify({'error': 'Invalid examination'}), 400
+        exam = db.get_current_exam_for_student(session['user_id'])
+        if not exam or exam['id'] != exam_id:
+            return jsonify({'error': 'This examination is not assigned or published'}), 403
+    else:
+        exam = db.get_current_exam_for_student(session['user_id'])
+        exam_id = exam['id'] if exam else None
+    stats = db.set_exam_running(session['user_id'], True, exam_id)
+    if exam:
+        db.create_notification(session['user_id'], 'Examination started', f"Your examination '{exam['title']}' is now in progress.", 'exam')
+    return jsonify({'message': 'Exam started', 'exam': exam, 'stats': dict(stats) if stats else {}}), 200
 
 @app.route('/api/exam/pause', methods=['POST'])
 @login_required
@@ -446,8 +504,8 @@ def resume_exam():
 @app.route('/api/exam/end', methods=['POST'])
 @login_required
 def end_exam():
-    db.set_exam_running(session['user_id'], False)
-    return jsonify({'message': 'Exam ended'}), 200
+    stats = db.set_exam_running(session['user_id'], False)
+    return jsonify({'message': 'Exam ended', 'stats': dict(stats) if stats else {}}), 200
 
 # Integrity report APIs
 @app.route('/api/integrity_report', methods=['GET'])
@@ -634,6 +692,126 @@ def verify_face():
         logger.error(f"Face verification error: {e}")
         return jsonify({'error': str(e)}), 500
 
+# ---------- Examination management ----------
+
+@app.route('/api/admin/exams', methods=['GET', 'POST'])
+@admin_required
+def admin_exams():
+    if request.method == 'GET':
+        exams = db.get_exams()
+        for exam in exams:
+            exam['candidates'] = db.get_exam_candidates(exam['id'])
+            exam['candidate_count'] = len(exam['candidates'])
+        return jsonify({'exams': exams}), 200
+
+    payload = request.get_json(silent=True) or {}
+    title = str(payload.get('title', '')).strip()
+    exam_date = str(payload.get('exam_date', '')).strip()
+    rules = str(payload.get('rules', '')).strip()
+    try:
+        duration_minutes = int(payload.get('duration_minutes', 60))
+        break_minutes = int(payload.get('break_minutes', 5))
+    except (TypeError, ValueError):
+        return jsonify({'error': 'Duration and break values must be numbers'}), 400
+    if not title or len(title) > 120:
+        return jsonify({'error': 'Exam title is required and must be 120 characters or fewer'}), 400
+    if not exam_date:
+        return jsonify({'error': 'Exam date and time are required'}), 400
+    if not 15 <= duration_minutes <= 480:
+        return jsonify({'error': 'Duration must be between 15 and 480 minutes'}), 400
+    if not 0 <= break_minutes <= 60:
+        return jsonify({'error': 'Break time must be between 0 and 60 minutes'}), 400
+    if len(rules) > 5000:
+        return jsonify({'error': 'Exam rules must be 5000 characters or fewer'}), 400
+    try:
+        exam = db.create_exam(title, exam_date, duration_minutes, break_minutes, rules, session['user_id'])
+        return jsonify({'exam': exam, 'message': 'Examination created as a draft'}), 201
+    except Exception:
+        logger.exception('Exam creation failed')
+        return jsonify({'error': 'Unable to create examination'}), 500
+
+
+@app.route('/api/admin/exams/<int:exam_id>/status', methods=['POST'])
+@admin_required
+def update_exam_status(exam_id):
+    payload = request.get_json(silent=True) or {}
+    try:
+        exam = db.update_exam_status(exam_id, payload.get('status'))
+    except ValueError as exc:
+        return jsonify({'error': str(exc)}), 400
+    if not exam:
+        return jsonify({'error': 'Examination not found'}), 404
+    return jsonify({'exam': exam}), 200
+
+
+@app.route('/api/admin/exams/<int:exam_id>/assign', methods=['POST'])
+@admin_required
+def assign_exam_candidates(exam_id):
+    if not db.get_exam(exam_id):
+        return jsonify({'error': 'Examination not found'}), 404
+    payload = request.get_json(silent=True) or {}
+    user_ids = payload.get('user_ids') or []
+    if not isinstance(user_ids, list):
+        return jsonify({'error': 'user_ids must be a list'}), 400
+    valid_ids = []
+    for user_id in user_ids:
+        try:
+            candidate = db.get_user_by_id(int(user_id))
+            if candidate and candidate['role'] == 'student':
+                valid_ids.append(int(user_id))
+        except (TypeError, ValueError):
+            continue
+    assigned = db.assign_students_to_exam(exam_id, valid_ids)
+    return jsonify({'assigned_user_ids': assigned, 'candidates': db.get_exam_candidates(exam_id)}), 200
+
+
+@app.route('/api/student/exams', methods=['GET'])
+@login_required
+def student_exams():
+    return jsonify({'exams': db.get_student_exams(session['user_id'])}), 200
+
+
+@app.route('/api/notifications', methods=['GET'])
+@login_required
+def notifications():
+    return jsonify({'notifications': db.get_notifications(session['user_id'])}), 200
+
+
+@app.route('/api/notifications/read', methods=['POST'])
+@login_required
+def notifications_read():
+    db.mark_notifications_read(session['user_id'])
+    return jsonify({'message': 'Notifications marked as read'}), 200
+
+
+@app.route('/api/reviews/<int:user_id>', methods=['GET'])
+@login_required
+def reviews(user_id):
+    current_user = db.get_user_by_id(session['user_id'])
+    if session['user_id'] != user_id and (not current_user or current_user['role'] != 'admin'):
+        return jsonify({'error': 'Forbidden'}), 403
+    return jsonify({'reviews': db.get_reviews(user_id)}), 200
+
+
+@app.route('/api/admin/reviews/<int:user_id>', methods=['POST'])
+@admin_required
+def create_review(user_id):
+    if not db.get_user_by_id(user_id):
+        return jsonify({'error': 'Candidate not found'}), 404
+    payload = request.get_json(silent=True) or {}
+    decision = str(payload.get('decision', '')).strip()
+    notes = str(payload.get('notes', '')).strip()
+    if len(notes) > 2000:
+        return jsonify({'error': 'Review notes must be 2000 characters or fewer'}), 400
+    try:
+        history = db.save_review(user_id, session['user_id'], decision, notes)
+        db.create_notification(user_id, 'Integrity review updated', f'Your examination review status is now: {decision}.', 'review')
+        return jsonify({'reviews': history, 'message': 'Review saved'}), 201
+    except ValueError as exc:
+        return jsonify({'error': str(exc)}), 400
+
+
 # ---------- Run ----------
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    debug_mode = os.getenv('FLASK_DEBUG', '0') == '1'
+    app.run(debug=debug_mode, port=int(os.getenv('PORT', '5000')), use_reloader=False)

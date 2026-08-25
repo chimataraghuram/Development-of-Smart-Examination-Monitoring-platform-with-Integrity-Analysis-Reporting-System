@@ -2,7 +2,10 @@ import io
 import openpyxl
 from datetime import datetime
 
-import database as db
+try:
+    from . import database as db
+except ImportError:
+    import database as db
 
 def generate_excel_export(export_type: str) -> io.BytesIO:
     """Generate an Excel file for the requested export type."""

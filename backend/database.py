@@ -1,10 +1,28 @@
-import sqlite3
 import hashlib
 import os
+import sqlite3
 from datetime import datetime
-import shutil
 
-DB_PATH = 'backend/exam_monitor.db'
+import shutil
+from werkzeug.security import generate_password_hash
+
+try:
+    from .integrity_scorer import SCORE_MAX, VIOLATION_DEDUCTION
+except ImportError:
+    from integrity_scorer import SCORE_MAX, VIOLATION_DEDUCTION
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DB_PATH = os.path.join(BASE_DIR, 'backend', 'exam_monitor.db')
+DEFAULT_ADMIN_PASSWORD = os.getenv('ADMIN_DEFAULT_PASSWORD', 'admin@123')
+
+VIOLATION_EVENT_TYPES = frozenset({
+    'Face Not Detected', 'Face Absence', 'Multiple Faces',
+    'Browser Focus Loss', 'Tab Switching', 'Copy Paste',
+    'Suspicious Activity', 'Suspicious App', 'Screen Share', 'Audio Noise',
+})
+NON_VIOLATION_EVENT_TYPES = frozenset({
+    'Face Detected', 'Browser Focus Regained', 'Verification Photo',
+})
 
 def get_filtered_events(candidate_id=None, event_type=None, date_str=None):
     """Fetch events with dynamic filters. Handles partial matching and date formatting."""
@@ -38,8 +56,10 @@ def get_filtered_events(candidate_id=None, event_type=None, date_str=None):
         return [dict(row) for row in rows]
     
 def get_db_connection():
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
+    conn.execute('PRAGMA foreign_keys = ON')
     return conn
 
 def init_db():
@@ -105,6 +125,7 @@ def init_db():
                 start_time TIMESTAMP,
                 end_time TIMESTAMP,
                 integrity_score INTEGER DEFAULT 100,
+                exam_id INTEGER,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         ''')
@@ -115,8 +136,59 @@ def init_db():
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS examinations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                exam_date TEXT NOT NULL,
+                duration_minutes INTEGER NOT NULL DEFAULT 60,
+                break_minutes INTEGER NOT NULL DEFAULT 5,
+                rules TEXT NOT NULL DEFAULT '',
+                status TEXT NOT NULL DEFAULT 'Draft' CHECK(status IN ('Draft', 'Published', 'Closed')),
+                created_by INTEGER,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+            )
+        ''')
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS exam_assignments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                exam_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                status TEXT NOT NULL DEFAULT 'Assigned',
+                UNIQUE(exam_id, user_id),
+                FOREIGN KEY (exam_id) REFERENCES examinations(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        ''')
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS review_records (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                admin_id INTEGER,
+                decision TEXT NOT NULL,
+                notes TEXT NOT NULL DEFAULT '',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE SET NULL
+            )
+        ''')
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS notifications (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                title TEXT NOT NULL,
+                message TEXT NOT NULL,
+                kind TEXT NOT NULL DEFAULT 'info',
+                is_read BOOLEAN NOT NULL DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        ''')
 
         # ---------- Add missing columns to stats ----------
+
         cursor = conn.execute("PRAGMA table_info(stats)")
         existing_cols = [row[1] for row in cursor.fetchall()]
         required_cols = {
@@ -128,20 +200,41 @@ def init_db():
             'session_count': 'INTEGER DEFAULT 0',
             'face_not_detected_count': 'INTEGER DEFAULT 0',
             'multiple_faces_count': 'INTEGER DEFAULT 0',
+            'exam_id': 'INTEGER',
+            'review_state': "TEXT DEFAULT 'Not Reviewed'",
+
         }
+
         for col, col_type in required_cols.items():
             if col not in existing_cols:
                 conn.execute(f'ALTER TABLE stats ADD COLUMN {col} {col_type}')
 
-        # ---------- Create default admin ----------
+        session_cols = [row[1] for row in conn.execute("PRAGMA table_info(sessions)").fetchall()]
+        if 'exam_id' not in session_cols:
+            conn.execute('ALTER TABLE sessions ADD COLUMN exam_id INTEGER')
+
+        # Convert scores produced by the previous 1000-point version to the new 100-point scale.
+        conn.execute("UPDATE stats SET integrity_score = ROUND(integrity_score / 10.0, 1) WHERE integrity_score > 100")
+        conn.execute("UPDATE sessions SET integrity_score = ROUND(integrity_score / 10.0, 1) WHERE integrity_score > 100")
+
+        # ---------- Create/migrate default admin and credentials ----------
+
         admin = conn.execute("SELECT * FROM users WHERE email = 'admin@gmail.com'").fetchone()
         if not admin:
             conn.execute(
                 "INSERT INTO users (email, password, name, role) VALUES (?, ?, ?, ?)",
-                ('admin@gmail.com', 'admin@123', 'Administrator', 'admin')
+                ('admin@gmail.com', generate_password_hash(DEFAULT_ADMIN_PASSWORD), 'Administrator', 'admin')
             )
+        for row in conn.execute("SELECT id, password FROM users").fetchall():
+            password = str(row['password'] or '')
+            if not password.startswith(('scrypt:', 'pbkdf2:', 'argon2:')):
+                conn.execute(
+                    "UPDATE users SET password = ? WHERE id = ?",
+                    (generate_password_hash(password), row['id'])
+                )
 
         # ============================================================
+
         #  MIGRATE EXISTING DATA FROM stats INTO sessions
         # ============================================================
         # For every user with a completed exam (ended_at NOT NULL)
@@ -188,11 +281,11 @@ def create_user(email, password, name, role, student_id=None, session_id=None):
         if role == 'student':
             cursor = conn.execute(
                 "INSERT INTO users (email, password, name, role, student_id, session_id) VALUES (?, ?, ?, ?, ?, ?)",
-                (email, password, name, role, student_id, session_id)
+                (email, generate_password_hash(password), name, role, student_id, session_id)
             )
             user_id = cursor.lastrowid
             conn.execute(
-                "INSERT INTO stats (user_id, integrity_score, exam_running, session_count, tab_switch_count) VALUES (?, 1000, 0, 0, 0)",
+                "INSERT INTO stats (user_id, integrity_score, exam_running, session_count, tab_switch_count) VALUES (?, 100, 0, 0, 0)",
                 (user_id,)
             )
             conn.commit()
@@ -200,7 +293,7 @@ def create_user(email, password, name, role, student_id=None, session_id=None):
         else:
             cursor = conn.execute(
                 "INSERT INTO users (email, password, name, role) VALUES (?, ?, ?, ?)",
-                (email, password, name, role)
+                (email, generate_password_hash(password), name, role)
             )
             conn.commit()
             return cursor.lastrowid
@@ -245,59 +338,45 @@ def get_user_stats(user_id):
         return conn.execute("SELECT * FROM stats WHERE user_id = ?", (user_id,)).fetchone()
 
 def update_stats_after_event(user_id, deducted, event_type):
+    """Update counters using the server-owned fixed deduction policy.
+
+    The client may send a legacy ``deducted`` value, but it is deliberately
+    ignored. Only recognized violation types can change the integrity score.
+    """
+    deduction_points = VIOLATION_DEDUCTION if event_type in VIOLATION_EVENT_TYPES else 0
     with get_db_connection() as conn:
         stats = conn.execute("SELECT * FROM stats WHERE user_id = ?", (user_id,)).fetchone()
-        if stats:
-            raw_deducted = float(deducted) if deducted is not None else 0.0
-            deduction_points = (raw_deducted * 100) if raw_deducted > 0 else 0
-            new_integrity = max(0, stats['integrity_score'] - deduction_points)
-            new_total_susp = stats['total_suspicious'] + (1 if raw_deducted > 0 else 0)
-
-            if event_type == 'Face Absence':
-                conn.execute(
-                    "UPDATE stats SET integrity_score = ?, total_suspicious = ?, face_absence_count = face_absence_count + 1 WHERE user_id = ?",
-                    (new_integrity, new_total_susp, user_id)
-                )
-            elif event_type == 'Browser Focus Loss':
-                conn.execute(
-                    "UPDATE stats SET integrity_score = ?, total_suspicious = ?, focus_loss_count = focus_loss_count + 1 WHERE user_id = ?",
-                    (new_integrity, new_total_susp, user_id)
-                )
-            elif event_type == 'Face Not Detected':
-                conn.execute(
-                    "UPDATE stats SET integrity_score = ?, total_suspicious = ?, face_not_detected_count = face_not_detected_count + 1 WHERE user_id = ?",
-                    (new_integrity, new_total_susp, user_id)
-                )
-            elif event_type == 'Multiple Faces':
-                conn.execute(
-                    "UPDATE stats SET integrity_score = ?, total_suspicious = ?, multiple_faces_count = multiple_faces_count + 1 WHERE user_id = ?",
-                    (new_integrity, new_total_susp, user_id)
-                )
-            elif event_type in ('Tab Switch', 'Tab Switching') or (event_type and event_type.lower() in ('tab_switch', 'tab switching')):
-                conn.execute(
-                    "UPDATE stats SET integrity_score = ?, total_suspicious = ?, tab_switch_count = tab_switch_count + 1 WHERE user_id = ?",
-                    (new_integrity, new_total_susp, user_id)
-                )
-            else:
-                conn.execute(
-                    "UPDATE stats SET integrity_score = ?, total_suspicious = ? WHERE user_id = ?",
-                    (new_integrity, new_total_susp, user_id)
-                )
-        else:
-            # Create stats row with all counters at 0
-            raw_deducted = float(deducted) if deducted is not None else 0.0
-            initial_score = max(0, 1000 - (raw_deducted * 100 if raw_deducted > 0 else 0))
+        if not stats:
             conn.execute(
                 "INSERT INTO stats (user_id, integrity_score, total_suspicious, session_count, tab_switch_count) VALUES (?, ?, ?, 0, 0)",
-                (user_id, initial_score, 1 if raw_deducted > 0 else 0)
+                (user_id, max(0, SCORE_MAX - deduction_points), 1 if deduction_points else 0)
             )
+            stats = conn.execute("SELECT * FROM stats WHERE user_id = ?", (user_id,)).fetchone()
+
+        new_integrity = max(0, float(stats['integrity_score'] if stats['integrity_score'] is not None else SCORE_MAX) - deduction_points)
+        new_total_susp = int(stats['total_suspicious'] or 0) + (1 if deduction_points else 0)
+        counter_column = {
+            'Face Absence': 'face_absence_count',
+            'Browser Focus Loss': 'focus_loss_count',
+            'Face Not Detected': 'face_not_detected_count',
+            'Multiple Faces': 'multiple_faces_count',
+            'Tab Switch': 'tab_switch_count',
+            'Tab Switching': 'tab_switch_count',
+        }.get(event_type)
+
+        assignments = ['integrity_score = ?', 'total_suspicious = ?']
+        params = [new_integrity, new_total_susp]
+        if counter_column:
+            assignments.append(f'{counter_column} = COALESCE({counter_column}, 0) + 1')
+        params.append(user_id)
+        conn.execute(f"UPDATE stats SET {', '.join(assignments)} WHERE user_id = ?", params)
         conn.commit()
 
 
 def log_event(user_id, event_type, deducted, screenshot_path=None):
+    """Persist an event with a server-calculated deduction."""
+    stored_deducted = VIOLATION_DEDUCTION if event_type in VIOLATION_EVENT_TYPES else 0
     with get_db_connection() as conn:
-        raw_deducted = float(deducted) if deducted is not None else 0.0
-        stored_deducted = int(raw_deducted * 100) if raw_deducted > 0 else 0
         cursor = conn.execute(
             "INSERT INTO events (user_id, type, deducted, screenshot_path, timestamp) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)",
             (user_id, event_type, stored_deducted, screenshot_path)
@@ -314,47 +393,49 @@ def get_all_events():
     with get_db_connection() as conn:
         return conn.execute("SELECT e.*, u.name, u.student_id FROM events e JOIN users u ON e.user_id = u.id ORDER BY e.timestamp DESC").fetchall()
 
-def set_exam_running(user_id, running):
+def set_exam_running(user_id, running, exam_id=None):
     with get_db_connection() as conn:
         if running:
-            # Start exam: reset stats
             conn.execute('''
                 UPDATE stats
                 SET exam_running = 1,
                     exam_paused = 0,
                     started_at = CURRENT_TIMESTAMP,
                     ended_at = NULL,
-                    integrity_score = 1000,
+                    exam_id = ?,
+                    integrity_score = 100,
                     face_absence_count = 0,
                     focus_loss_count = 0,
                     face_not_detected_count = 0,
                     multiple_faces_count = 0,
                     tab_switch_count = 0,
-                    total_suspicious = 0
+                    total_suspicious = 0,
+                    review_state = 'Not Reviewed'
                 WHERE user_id = ?
-            ''', (user_id,))
+            ''', (exam_id, user_id))
             if conn.total_changes == 0:
                 conn.execute('''
-                    INSERT INTO stats (user_id, integrity_score, exam_running, exam_paused, started_at, session_count, tab_switch_count)
-                    VALUES (?, 1000, 1, 0, CURRENT_TIMESTAMP, 0, 0)
-                ''', (user_id,))
+                    INSERT INTO stats (user_id, integrity_score, exam_running, exam_paused, exam_id, started_at, session_count, tab_switch_count)
+                    VALUES (?, 100, 1, 0, ?, CURRENT_TIMESTAMP, 0, 0)
+                ''', (user_id, exam_id))
         else:
-            # End exam: log session and update stats
             stats = conn.execute("SELECT * FROM stats WHERE user_id = ?", (user_id,)).fetchone()
-            if stats:
+            if stats and stats['exam_running']:
+                ended_at = datetime.now().isoformat()
                 conn.execute(
-                    "INSERT INTO sessions (user_id, start_time, end_time, integrity_score) VALUES (?, ?, ?, ?)",
-                    (user_id, stats['started_at'], datetime.now().isoformat(), stats['integrity_score'])
+                    "INSERT INTO sessions (user_id, start_time, end_time, integrity_score, exam_id) VALUES (?, ?, ?, ?, ?)",
+                    (user_id, stats['started_at'], ended_at, stats['integrity_score'], stats['exam_id'])
                 )
-            conn.execute('''
-                UPDATE stats
-                SET exam_running = 0,
-                    exam_paused = 0,
-                    ended_at = CURRENT_TIMESTAMP,
-                    session_count = session_count + 1
-                WHERE user_id = ?
-            ''', (user_id,))
+                conn.execute('''
+                    UPDATE stats
+                    SET exam_running = 0,
+                        exam_paused = 0,
+                        ended_at = CURRENT_TIMESTAMP,
+                        session_count = session_count + 1
+                    WHERE user_id = ?
+                ''', (user_id,))
         conn.commit()
+    return get_user_stats(user_id)
 
 
 def set_exam_paused(user_id, paused):
@@ -393,7 +474,10 @@ def get_evidence_by_user(user_id):
 
 def get_admin_dashboard_data():
     """Return all needed stats, analytics, and event list for admin dashboard, with risk labels."""
-    from integrity_scorer import IntegrityScorer
+    try:
+        from .integrity_scorer import IntegrityScorer
+    except ImportError:
+        from integrity_scorer import IntegrityScorer
     with get_db_connection() as conn:
         students = conn.execute("SELECT * FROM users WHERE role = 'student'").fetchall()
         stats_list = []
@@ -419,13 +503,14 @@ def get_admin_dashboard_data():
                     active += 1
                 completed += stats['session_count']
             else:
-                stats_dict = {'user_id': s['id'], 'exam_running': 0, 'integrity_score': 100,
+                stats_dict = {'user_id': s['id'], 'exam_running': 0, 'integrity_score': SCORE_MAX,
+
                               'face_absence_count': 0, 'focus_loss_count': 0,
                               'total_suspicious': 0, 'session_count': 0,'started_at': None,
                                'ended_at': None,
                               'face_not_detected_count': 0}
                 stats_list.append(stats_dict)
-                integrity_values.append(100)
+                integrity_values.append(SCORE_MAX)
 
             # ---- Compute risk for this student ----
             events = conn.execute("SELECT * FROM events WHERE user_id = ?", (s['id'],)).fetchall()
@@ -445,7 +530,10 @@ def get_admin_dashboard_data():
             student_data['face_absence_count'] = stats_dict.get('face_absence_count', 0)
             student_data['focus_loss_count'] = stats_dict.get('focus_loss_count', 0)
             student_data['session_count'] = stats_dict.get('session_count', 0)
+            student_data['exam_id'] = stats_dict.get('exam_id')
+            student_data['review_state'] = stats_dict.get('review_state', 'Not Reviewed')
             student_data['event_count'] = sum(1 for event in events_list if int(event.get('deducted', 0) or 0) > 0)
+
             student_data['session_status'] = 'Completed' if not student_data['exam_running'] and student_data['session_count'] > 0 else ('Active' if student_data['exam_running'] else 'Not Started')
             student_data['duration_seconds'] = 0
             if student_data['started_at'] and student_data['ended_at']:
@@ -480,13 +568,13 @@ def get_admin_dashboard_data():
             })
 
         high_risk_candidates = []
-        for student in sorted(students_with_risk, key=lambda item: (item.get('integrity_score', 1000), item.get('total_suspicious', 0)))[:10]:
-            if student.get('integrity_score', 1000) <= 600:
+        for student in sorted(students_with_risk, key=lambda item: (item.get('integrity_score', SCORE_MAX), item.get('total_suspicious', 0)))[:10]:
+            if student.get('integrity_score', SCORE_MAX) <= 49:
                 high_risk_candidates.append({
                     'id': student.get('id'),
                     'name': student.get('name'),
                     'student_id': student.get('student_id'),
-                    'integrity_score': student.get('integrity_score', 1000),
+                    'integrity_score': student.get('integrity_score', SCORE_MAX),
                     'risk_label': student.get('risk_label', 'Low Risk'),
                     'total_suspicious': student.get('total_suspicious', 0),
                 })
@@ -520,6 +608,7 @@ def get_admin_dashboard_data():
             'recent_events': recent_events,
             'high_risk_candidates': high_risk_candidates,
             'session_summary': session_summary,
+            'examinations': get_exams(),
         }
 
 def get_integrity_report(user_id):
@@ -530,13 +619,18 @@ def get_integrity_report(user_id):
     events_list = [dict(e) for e in events] if events else []
     stats_dict = dict(stats) if stats else {}
 
-    from integrity_scorer import IntegrityScorer
+    try:
+        from .integrity_scorer import IntegrityScorer
+    except ImportError:
+        from integrity_scorer import IntegrityScorer
     scorer = IntegrityScorer(events_list, stats_dict)
     report = scorer.compute()
     return {
         'user': dict(user) if user else None,
         'stats': stats_dict,
         'events': events_list,
+        'exams': get_student_exams(user_id),
+        'reviews': get_reviews(user_id),
         **report
     }
 
@@ -547,3 +641,134 @@ def get_verification_photo(user_id):
             (user_id,)
         ).fetchone()
         return row['file_path'] if row else None
+
+
+def create_exam(title, exam_date, duration_minutes=60, break_minutes=5, rules='', created_by=None):
+    with get_db_connection() as conn:
+        cursor = conn.execute(
+            "INSERT INTO examinations (title, exam_date, duration_minutes, break_minutes, rules, status, created_by) VALUES (?, ?, ?, ?, ?, 'Draft', ?)",
+            (title.strip(), exam_date, int(duration_minutes), int(break_minutes), (rules or '').strip(), created_by),
+        )
+        conn.commit()
+        return get_exam(cursor.lastrowid)
+
+
+def get_exam(exam_id):
+    with get_db_connection() as conn:
+        row = conn.execute("SELECT * FROM examinations WHERE id = ?", (exam_id,)).fetchone()
+        return dict(row) if row else None
+
+
+def get_exams():
+    with get_db_connection() as conn:
+        rows = conn.execute("SELECT * FROM examinations ORDER BY exam_date DESC, id DESC").fetchall()
+        return [dict(row) for row in rows]
+
+
+def update_exam_status(exam_id, status):
+    if status not in {'Draft', 'Published', 'Closed'}:
+        raise ValueError('Invalid examination status')
+    with get_db_connection() as conn:
+        conn.execute("UPDATE examinations SET status = ? WHERE id = ?", (status, exam_id))
+        conn.commit()
+    return get_exam(exam_id)
+
+
+def assign_students_to_exam(exam_id, user_ids):
+    assigned = []
+    with get_db_connection() as conn:
+        for user_id in user_ids:
+            try:
+                conn.execute(
+                    "INSERT OR IGNORE INTO exam_assignments (exam_id, user_id) VALUES (?, ?)",
+                    (int(exam_id), int(user_id)),
+                )
+                assigned.append(int(user_id))
+            except (TypeError, ValueError):
+                continue
+        conn.commit()
+    return assigned
+
+
+def get_exam_candidates(exam_id):
+    with get_db_connection() as conn:
+        rows = conn.execute(
+            "SELECT u.id, u.name, u.email, u.student_id, u.session_id, ea.status, ea.assigned_at "
+            "FROM exam_assignments ea JOIN users u ON u.id = ea.user_id "
+            "WHERE ea.exam_id = ? ORDER BY u.name",
+            (exam_id,),
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+
+def get_student_exams(user_id):
+    with get_db_connection() as conn:
+        rows = conn.execute(
+            "SELECT e.*, ea.status AS assignment_status FROM exam_assignments ea "
+            "JOIN examinations e ON e.id = ea.exam_id WHERE ea.user_id = ? "
+            "ORDER BY e.exam_date DESC, e.id DESC",
+            (user_id,),
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+
+def get_current_exam_for_student(user_id):
+    with get_db_connection() as conn:
+        row = conn.execute(
+            "SELECT e.*, ea.status AS assignment_status FROM exam_assignments ea "
+            "JOIN examinations e ON e.id = ea.exam_id "
+            "WHERE ea.user_id = ? AND e.status = 'Published' "
+            "ORDER BY e.exam_date DESC, e.id DESC LIMIT 1",
+            (user_id,),
+        ).fetchone()
+        return dict(row) if row else None
+
+
+def save_review(user_id, admin_id, decision, notes=''):
+    allowed = {'Cleared', 'Under Review', 'Confirmed Violation', 'Appeal Pending'}
+    if decision not in allowed:
+        raise ValueError('Invalid review decision')
+    with get_db_connection() as conn:
+        conn.execute(
+            "INSERT INTO review_records (user_id, admin_id, decision, notes) VALUES (?, ?, ?, ?)",
+            (user_id, admin_id, decision, (notes or '').strip()),
+        )
+        conn.execute("UPDATE stats SET review_state = ? WHERE user_id = ?", (decision, user_id))
+        conn.commit()
+    return get_reviews(user_id)
+
+
+def get_reviews(user_id):
+    with get_db_connection() as conn:
+        rows = conn.execute(
+            "SELECT r.*, a.name AS admin_name FROM review_records r "
+            "LEFT JOIN users a ON a.id = r.admin_id WHERE r.user_id = ? ORDER BY r.created_at DESC, r.id DESC",
+            (user_id,),
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+
+def create_notification(user_id, title, message, kind='info'):
+    with get_db_connection() as conn:
+        conn.execute(
+            "INSERT INTO notifications (user_id, title, message, kind) VALUES (?, ?, ?, ?)",
+            (user_id, title.strip(), message.strip(), kind),
+        )
+        conn.commit()
+
+
+def get_notifications(user_id, unread_only=False):
+    query = "SELECT * FROM notifications WHERE user_id = ?"
+    params = [user_id]
+    if unread_only:
+        query += " AND is_read = 0"
+    query += " ORDER BY created_at DESC, id DESC LIMIT 50"
+    with get_db_connection() as conn:
+        rows = conn.execute(query, params).fetchall()
+        return [dict(row) for row in rows]
+
+
+def mark_notifications_read(user_id):
+    with get_db_connection() as conn:
+        conn.execute("UPDATE notifications SET is_read = 1 WHERE user_id = ?", (user_id,))
+        conn.commit()

@@ -434,8 +434,8 @@
             }
 
             function validatePassword(val) {
-                if (!val || val.length !== 6) {
-                    return { ok: false, msg: 'Exactly 6 characters' };
+                if (!val || val.length < 6 || val.length > 128) {
+                    return { ok: false, msg: 'Use 6–128 characters' };
                 }
                 return { ok: true, msg: '' };
             }
@@ -447,7 +447,7 @@
             });
 
             passwordInput.addEventListener('input', function() {
-                this.value = this.value.slice(0, 6);
+                this.value = this.value.slice(0, 128);
                 const res = validatePassword(this.value);
                 setFieldState(passWrap, passHint, res.ok, res.msg);
             });
@@ -513,7 +513,7 @@
 
             // Set default hints
             emailHint.textContent = 'Must be @gmail.com';
-            passHint.textContent = 'Exactly 6 characters';
+            passHint.textContent = 'Use 6–128 characters (existing accounts supported)';
         })();
     </script>
 

@@ -472,8 +472,33 @@
             border-radius: 16px; padding: 24px; max-height: 70vh; overflow-y: auto;
         }
 
+            .exam-management-grid { display:grid; grid-template-columns:minmax(300px,0.8fr) minmax(420px,1.2fr); gap:20px; align-items:start; }
+        .exam-form-card, .exam-list-card { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:22px; }
+        .form-card-title { font-size:18px; font-weight:700; margin-bottom:18px; color:#f0f0ff; display:flex; gap:10px; align-items:center; }
+        .exam-form-card label { display:block; font-size:12px; color:rgba(255,255,255,0.65); margin-bottom:12px; }
+        .exam-form-card input, .exam-form-card textarea { width:100%; margin-top:6px; border-radius:10px; border:1px solid rgba(255,255,255,0.12); background:rgba(0,0,0,0.18); color:#fff; padding:11px 12px; font:inherit; }
+        .exam-form-card textarea { resize:vertical; }
+        .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        .form-status { min-height:20px; margin-top:10px; color:#74c0fc; font-size:13px; }
+        .exam-card { background:rgba(0,0,0,0.16); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:16px; margin-bottom:12px; }
+        .exam-card-head { display:flex; justify-content:space-between; gap:12px; align-items:start; }
+        .exam-card h3 { font-size:16px; margin-bottom:6px; }
+        .exam-meta { color:rgba(255,255,255,0.55); font-size:12px; line-height:1.6; }
+        .exam-status { display:inline-flex; padding:4px 9px; border-radius:999px; font-size:11px; font-weight:700; background:rgba(77,171,247,0.15); color:#74c0fc; }
+        .exam-status.published { background:rgba(81,207,102,0.15); color:#69db7c; }
+        .exam-status.closed { background:rgba(255,107,107,0.15); color:#ff8787; }
+        .exam-card-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:13px; }
+        .exam-card-actions button { border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.06); color:#fff; border-radius:8px; padding:8px 11px; cursor:pointer; font-size:12px; }
+        .exam-card-actions button:hover { background:rgba(255,255,255,0.12); }
+        @media (max-width:900px) { .exam-management-grid { grid-template-columns:1fr; } }
+        .review-box { margin-top:16px; padding-top:16px; border-top:1px solid rgba(255,255,255,.08); }
+        .review-box select, .review-box textarea { display:block; width:100%; margin:8px 0; padding:10px 12px; border:1px solid rgba(255,255,255,.12); border-radius:9px; background:rgba(0,0,0,.2); color:#fff; font:inherit; }
+        .review-box textarea { resize:vertical; }
+        .review-history { margin-top:12px; color:rgba(255,255,255,.55); font-size:12px; line-height:1.55; }
+        .review-history-item { padding:7px 0; border-bottom:1px solid rgba(255,255,255,.06); }
     </style>
 </head>
+
 <body>
  <div class="user-info">
             {% include '_ai_assistant.html' %}
@@ -492,10 +517,12 @@
         <button class="nav-item" data-page="action"><i class="fas fa-bullseye"></i> <span class="label">Action Center</span>
             <span class="badge-side" id="actionBadge">0</span>
         </button>
-        <button class="nav-item" data-page="alerts"><i class="fas fa-exclamation-triangle"></i> <span class="label">Suspicious Alerts</span>
+                <button class="nav-item" data-page="alerts"><i class="fas fa-exclamation-triangle"></i> <span class="label">Suspicious Alerts</span>
             <span class="badge-side" id="alertBadge">0</span>
         </button>
+        <button class="nav-item" data-page="exams"><i class="fas fa-calendar-alt"></i> <span class="label">Examinations</span></button>
         <button class="nav-item" data-page="logs"><i class="fas fa-list-ul"></i> <span class="label">Event Logs</span></button>
+
         <div class="spacer"></div>
         <button class="nav-item logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> <span class="label">Logout</span></button>
     </nav>
@@ -643,7 +670,32 @@
             <div id="alertsContainer"><div class="no-data">Loading...</div></div>
         </div>
 
+                <!-- ===== PAGE: EXAMINATIONS ===== -->
+        <div class="page" id="page-exams">
+            <h2><i class="fas fa-calendar-alt" style="color:#4dabf7;margin-right:12px;"></i>Examination Management</h2>
+            <div class="sub">Create examinations, publish rules, and assign registered candidates.</div>
+            <div class="exam-management-grid">
+                <form class="exam-form-card" id="examCreateForm">
+                    <div class="form-card-title"><i class="fas fa-plus-circle"></i> Create Examination</div>
+                    <label>Exam title<input id="examTitleInput" maxlength="120" required placeholder="e.g. Database Systems Final"></label>
+                    <label>Date and time<input id="examDateInput" type="datetime-local" required></label>
+                    <div class="form-row">
+                        <label>Duration (minutes)<input id="examDurationInput" type="number" min="15" max="480" value="60" required></label>
+                        <label>Break (minutes)<input id="examBreakInput" type="number" min="0" max="60" value="5" required></label>
+                    </div>
+                    <label>Exam rules<textarea id="examRulesInput" maxlength="5000" rows="5" placeholder="Enter rules shown to students before the exam..."></textarea></label>
+                    <button class="btn btn-primary" type="submit"><i class="fas fa-save"></i> Save Draft</button>
+                    <div id="examFormStatus" class="form-status"></div>
+                </form>
+                <div class="exam-list-card">
+                    <div class="form-card-title"><i class="fas fa-layer-group"></i> Examinations</div>
+                    <div id="examManagementList"><div class="no-data">Loading examinations...</div></div>
+                </div>
+            </div>
+        </div>
+
         <!-- ===== PAGE: EVENT LOGS (redirect) ===== -->
+
         <div class="page" id="page-logs">
             <h2><i class="fas fa-list-ul" style="color:#4dabf7;margin-right:12px;"></i>Event Logs</h2>
             <div class="sub">All monitoring events and activity logs</div>
@@ -972,7 +1024,7 @@
                             </div>
                             <div class="status-row">
                                 <span class="badge ${riskClass}">${s.risk_label || 'N/A'}</span>
-                                <span class="score">Score: <span>${s.integrity_score || 100}</span></span>
+                                <span class="score">Score: <span>${s.integrity_score ?? 100}</span></span>
                             </div>
                         </div>
                     `;
@@ -1173,12 +1225,14 @@
                     <div class="detail-grid">
                         <div class="detail-item"><div class="label">Name</div><div class="value">${student.name || 'Unknown'}</div></div>
                         <div class="detail-item"><div class="label">ID</div><div class="value">${student.student_id || student.id}</div></div>
-                        <div class="detail-item"><div class="label">Score</div><div class="value">${student.integrity_score || 100}</div></div>
+                        <div class="detail-item"><div class="label">Score</div><div class="value">${student.integrity_score ?? 100}</div></div>
                         <div class="detail-item"><div class="label">Risk Level</div><div class="value ${riskClass}">${student.risk_label || 'N/A'}</div></div>
                         <div class="detail-item"><div class="label">Face Status</div><div class="value">${faceRatio}</div></div>
                         <div class="detail-item"><div class="label">Browser Status</div><div class="value">${student.focus_loss_count || 0} focus losses</div></div>
                         <div class="detail-item"><div class="label">Exam Duration</div><div class="value">${duration}</div></div>
-                        <div class="detail-item"><div class="label">Suspicious Events</div><div class="value">${student.total_suspicious || 0}</div></div>
+                                                <div class="detail-item"><div class="label">Suspicious Events</div><div class="value">${student.total_suspicious || 0}</div></div>
+                        <div class="detail-item"><div class="label">Review Status</div><div class="value">${student.review_state || 'Not Reviewed'}</div></div>
+
                     </div>
                     <div style="margin-top:12px;">
                         <div style="font-weight:600;font-size:15px;margin-bottom:8px;">Recent Events</div>
@@ -1192,16 +1246,53 @@
                             `).join('')}
                         </div>
                     </div>
-                    <div class="modal-actions">
-                        <button class="btn btn-success" id="investOkBtn"><i class="fas fa-check"></i> OK (Mark as Done)</button>
-                        <button class="btn btn-danger" id="investDismissBtn"><i class="fas fa-times"></i> Dismiss (Remove)</button>
+                                        <div class="modal-actions">
+                        <button class="btn btn-success" id="investOkBtn"><i class="fas fa-check"></i> Mark as Done</button>
+                        <button class="btn btn-danger" id="investDismissBtn"><i class="fas fa-times"></i> Remove from Queue</button>
                     </div>
+                    <div class="review-box">
+                        <div style="font-weight:700;margin-bottom:8px;">Official review decision</div>
+                        <select id="reviewDecision">
+                            <option>Under Review</option><option>Cleared</option><option>Confirmed Violation</option><option>Appeal Pending</option>
+                        </select>
+                        <textarea id="reviewNotes" maxlength="2000" rows="3" placeholder="Add an auditable review note..."></textarea>
+                        <button class="btn btn-primary" id="saveReviewBtn"><i class="fas fa-stamp"></i> Save Review</button>
+                        <div class="review-history" id="reviewHistory">Loading review history...</div>
+                    </div>
+
                 `;
 
-                investContent.innerHTML = html;
+                                investContent.innerHTML = html;
                 investModal.classList.add('active');
 
+                const safeReviewText = value => String(value ?? '').replace(/[&<>\"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[ch]));
+                const reviewHistory = document.getElementById('reviewHistory');
+                fetch(`/api/reviews/${student.id}`, { credentials: 'include' })
+                    .then(response => response.json())
+                    .then(data => {
+                        const history = data.reviews || [];
+                        reviewHistory.innerHTML = history.length ? history.map(item => `<div class="review-history-item"><b>${safeReviewText(item.decision)}</b> · ${safeReviewText(item.admin_name || 'Administrator')}<br>${safeReviewText(item.notes || 'No note')}<br><small>${safeReviewText(item.created_at)}</small></div>`).join('') : 'No review decisions recorded yet.';
+                    })
+                    .catch(() => { reviewHistory.textContent = 'Review history unavailable.'; });
+                document.getElementById('saveReviewBtn').addEventListener('click', async function() {
+                    const button = this;
+                    button.disabled = true;
+                    try {
+                        const response = await fetch(`/api/admin/reviews/${student.id}`, {
+                            method: 'POST', credentials: 'include', headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({ decision: document.getElementById('reviewDecision').value, notes: document.getElementById('reviewNotes').value })
+                        });
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.error || 'Unable to save review');
+                        reviewHistory.innerHTML = (data.reviews || []).map(item => `<div class="review-history-item"><b>${safeReviewText(item.decision)}</b> · ${safeReviewText(item.admin_name || 'Administrator')}<br>${safeReviewText(item.notes || 'No note')}<br><small>${safeReviewText(item.created_at)}</small></div>`).join('');
+                        showToast('Review decision saved', 'success');
+                        loadData();
+                    } catch (error) { showToast(error.message, 'error'); }
+                    finally { button.disabled = false; }
+                });
+
                 document.getElementById('investOkBtn').addEventListener('click', function() {
+
                     doneIds.add(student.id);
                     hiddenIds.delete(student.id);
                     investModal.classList.remove('active');
@@ -1554,7 +1645,7 @@
             const container = document.getElementById('logsInlineContainer');
             if (!container) return;
             
-            fetch('/api/admin/dashboard', { credentials: 'include' })
+            fetch('/api/dashboard/admin', { credentials: 'include' })
                 .then(r => r.json())
                 .then(data => {
                     const events = data.events || [];
@@ -1606,5 +1697,107 @@
         });
     </script>
 
+<script>
+(function() {
+    'use strict';
+    const examList = document.getElementById('examManagementList');
+    const examForm = document.getElementById('examCreateForm');
+    const examStatus = document.getElementById('examFormStatus');
+    if (!examList || !examForm) return;
+
+    const api = (url, options = {}) => fetch(url, {
+        ...options,
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
+    });
+    const esc = value => String(value ?? '').replace(/[&<>\"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[ch]));
+    const formatExamDate = value => {
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? esc(value) : date.toLocaleString();
+    };
+
+    async function loadExamManagement() {
+        try {
+            const response = await api('/api/admin/exams');
+            const payload = await response.json();
+            if (!response.ok) throw new Error(payload.error || 'Unable to load examinations');
+            renderExams(payload.exams || []);
+        } catch (error) {
+            examList.innerHTML = '<div class="no-data">Unable to load examinations.</div>';
+            examStatus.textContent = error.message;
+        }
+    }
+
+    function renderExams(exams) {
+        if (!exams.length) {
+            examList.innerHTML = '<div class="no-data">No examinations created yet. Save your first draft.</div>';
+            return;
+        }
+        examList.innerHTML = exams.map(exam => {
+            const statusClass = String(exam.status || '').toLowerCase();
+            const publishButton = exam.status === 'Draft' ? `<button data-exam-status="Published" data-exam-id="${exam.id}">Publish</button>` : '';
+            const closeButton = exam.status === 'Published' ? `<button data-exam-status="Closed" data-exam-id="${exam.id}">Close</button>` : '';
+            return `<article class="exam-card">
+                <div class="exam-card-head">
+                    <div><h3>${esc(exam.title)}</h3><div class="exam-meta">${formatExamDate(exam.exam_date)} · ${exam.duration_minutes} minutes · Break ${exam.break_minutes} minutes</div></div>
+                    <span class="exam-status ${statusClass}">${esc(exam.status)}</span>
+                </div>
+                <div class="exam-meta" style="margin-top:8px;">${esc(exam.rules || 'No custom rules configured.')}<br>Assigned candidates: ${exam.candidate_count || 0}</div>
+                <div class="exam-card-actions">
+                    ${publishButton}${closeButton}
+                    <button data-assign-all="${exam.id}">Assign all students</button>
+                </div>
+            </article>`;
+        }).join('');
+    }
+
+    examForm.addEventListener('submit', async event => {
+        event.preventDefault();
+        examStatus.textContent = 'Saving draft...';
+        const payload = {
+            title: document.getElementById('examTitleInput').value,
+            exam_date: document.getElementById('examDateInput').value,
+            duration_minutes: document.getElementById('examDurationInput').value,
+            break_minutes: document.getElementById('examBreakInput').value,
+            rules: document.getElementById('examRulesInput').value
+        };
+        try {
+            const response = await api('/api/admin/exams', { method: 'POST', body: JSON.stringify(payload) });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Unable to save draft');
+            examForm.reset();
+            document.getElementById('examDurationInput').value = 60;
+            document.getElementById('examBreakInput').value = 5;
+            examStatus.textContent = 'Draft saved successfully.';
+            loadExamManagement();
+        } catch (error) { examStatus.textContent = error.message; }
+    });
+
+    examList.addEventListener('click', async event => {
+        const statusButton = event.target.closest('[data-exam-status]');
+        const assignButton = event.target.closest('[data-assign-all]');
+        try {
+            if (statusButton) {
+                const response = await api(`/api/admin/exams/${statusButton.dataset.examId}/status`, { method: 'POST', body: JSON.stringify({ status: statusButton.dataset.examStatus }) });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Unable to update exam');
+                loadExamManagement();
+            }
+            if (assignButton) {
+                const dashboardResponse = await api('/api/dashboard/admin');
+                const dashboard = await dashboardResponse.json();
+                const ids = (dashboard.students || []).map(student => student.id);
+                const response = await api(`/api/admin/exams/${assignButton.dataset.assignAll}/assign`, { method: 'POST', body: JSON.stringify({ user_ids: ids }) });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Unable to assign candidates');
+                examStatus.textContent = `${(data.assigned_user_ids || []).length} candidate assignments saved.`;
+                loadExamManagement();
+            }
+        } catch (error) { examStatus.textContent = error.message; }
+    });
+
+    document.addEventListener('DOMContentLoaded', loadExamManagement);
+})();
+</script>
 </body>
 </html>
