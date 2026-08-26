@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ExamMonitor · Dashboard</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
     <style>
         /* ---------- RESET & BASE ---------- */
@@ -494,6 +495,16 @@
         .panel .info-card .label { font-size: 12px; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.5px; }
         .panel .info-card .value { font-size: 22px; font-weight: 600; margin-top: 6px; color: #f0f0ff; }
         .panel .info-card .value.small { font-size: 16px; }
+        .report-panel-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:20px; }
+        .report-panel-header h2 { margin-bottom:6px; }
+        .report-panel-sub { color:rgba(255,255,255,0.38); font-size:13px; }
+        .report-refresh-btn { border:1px solid rgba(124,77,255,0.35); background:rgba(124,77,255,0.12); color:#b8aaff; border-radius:10px; padding:9px 14px; cursor:pointer; font:inherit; font-size:12px; font-weight:600; white-space:nowrap; }
+        .report-refresh-btn:hover { background:rgba(124,77,255,0.22); }
+        .report-event-table td, .report-event-table th { white-space:nowrap; }
+        .report-event-table td:last-child, .report-event-table th:last-child { text-align:center; }
+        .report-screenshot { color:#74c0fc; text-decoration:underline; cursor:pointer; }
+        .report-empty { text-align:center; padding:28px 16px; color:rgba(255,255,255,0.32); }
+        @media (max-width:600px) { .report-panel-header { flex-direction:column; } .report-refresh-btn { width:100%; } }
 
         /* Table and Timeline */
         .table-wrap {
@@ -871,22 +882,361 @@
         ::-webkit-scrollbar-thumb:hover { background: rgba(124,77,255,0.5); }
 
     
+        /* ---------- LIVE NETWORK STATUS ---------- */
+        .network-status-button {
+            border: 1px solid rgba(105,219,124,0.18) !important;
+            background: rgba(18, 28, 58, 0.72) !important;
+            color: #fff;
+            border-radius: 13px;
+            min-width: 166px;
+            padding: 9px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            text-align: left;
+            transition: transform .2s ease, background .2s ease, border-color .2s ease;
+        }
+        .network-status-button:hover { transform: translateY(-1px); background: rgba(35, 44, 82, 0.9) !important; }
+        .network-status-button:focus-visible { outline: 2px solid #74c0fc; outline-offset: 2px; }
+        .network-status-button .network-icon {
+            width: 34px; height: 34px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(77,171,247,0.15); color: #74c0fc; flex: 0 0 auto;
+        }
+        .network-status-button .network-copy { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+        .network-status-button small { color: rgba(255,255,255,0.5); font-size: 10px; line-height: 1.1; }
+        .network-status-button strong { color: #fff; font-size: 12px; line-height: 1.2; white-space: nowrap; }
+        .network-status-button.is-checking .network-icon i { animation: networkPulse 1s ease-in-out infinite; }
+        .network-status-button.is-online { border-color: rgba(81,207,102,0.35) !important; }
+        .network-status-button.is-online .network-icon { background: rgba(81,207,102,0.14); color: #69db7c; }
+        .network-status-button.is-degraded { border-color: rgba(252,196,25,0.35) !important; }
+        .network-status-button.is-degraded .network-icon { background: rgba(252,196,25,0.14); color: #ffd43b; }
+        .network-status-button.is-offline { border-color: rgba(255,107,107,0.4) !important; }
+        .network-status-button.is-offline .network-icon { background: rgba(255,107,107,0.14); color: #ff8787; }
+        @keyframes networkPulse { 0%,100% { transform: scale(1); opacity: .7; } 50% { transform: scale(1.14); opacity: 1; } }
+
+        .network-modal { position: fixed; inset: 0; background: rgba(0,0,0,.68); backdrop-filter: blur(10px); z-index: 10000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .network-modal.is-open { display: flex; animation: fadeIn .2s ease; }
+        .network-modal-card { width: min(430px, 100%); background: linear-gradient(145deg, #1d174d, #11132f); padding: 28px; border-radius: 24px; border: 1px solid rgba(124,77,255,.28); box-shadow: 0 24px 70px rgba(0,0,0,.55); }
+        .network-modal-head { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+        .network-modal-badge { width: 54px; height:54px; border-radius:17px; display:flex; align-items:center; justify-content:center; background:rgba(81,207,102,.14); color:#69db7c; font-size:24px; }
+        .network-modal-close { border:0; background:rgba(255,255,255,.07); color:rgba(255,255,255,.65); width:32px; height:32px; border-radius:50%; cursor:pointer; }
+        .network-modal-close:hover { color:#fff; background:rgba(255,255,255,.13); }
+        .network-modal h3 { margin: 22px 0 7px; color:#fff; font-size:20px; }
+        .network-modal-description { color:rgba(255,255,255,.56); font-size:13px; line-height:1.5; margin-bottom:20px; }
+        .network-diagnostics { display:grid; gap:9px; }
+        .network-diagnostic-row { display:flex; align-items:center; gap:11px; padding:12px 13px; border-radius:13px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.06); }
+        .network-diagnostic-row i { width:19px; text-align:center; color:#74c0fc; }
+        .network-diagnostic-row .diagnostic-label { flex:1; color:rgba(255,255,255,.7); font-size:13px; }
+        .network-diagnostic-row .diagnostic-value { color:#fff; font-size:12px; font-weight:600; text-align:right; }
+        .network-diagnostic-row.pass i, .network-diagnostic-row.pass .diagnostic-value { color:#69db7c; }
+        .network-diagnostic-row.warn i, .network-diagnostic-row.warn .diagnostic-value { color:#ffd43b; }
+        .network-diagnostic-row.fail i, .network-diagnostic-row.fail .diagnostic-value { color:#ff8787; }
+        .network-modal-actions { display:flex; gap:10px; margin-top:20px; }
+        .network-modal-action { flex:1; border:0; border-radius:12px; padding:11px 15px; font:600 13px Inter,sans-serif; cursor:pointer; }
+        .network-modal-action.primary { color:#fff; background:linear-gradient(135deg,#7c4dff,#448aff); }
+        .network-modal-action.secondary { color:rgba(255,255,255,.72); background:rgba(255,255,255,.08); }
+        .network-last-checked { margin-top:13px; text-align:center; color:rgba(255,255,255,.3); font-size:11px; }
+        @media (max-width: 768px) {
+            .network-status-button { min-width: 0; padding: 8px; }
+            .network-status-button .network-copy { display: none; }
+            .network-status-button .network-icon { width: 32px; height: 32px; }
+        }
+
+        /* ---------- REFERENCE-STYLE NETWORK DIAGNOSIS SCREEN ---------- */
+        .network-modal { background: #000 !important; padding: 0 !important; align-items: stretch !important; justify-content: stretch !important; }
+        .network-modal-card { width: 100% !important; max-width: none !important; height: 100%; min-height: 100vh; max-height: none !important; border: 0 !important; border-radius: 0 !important; padding: 0 32px 26px !important; background: #000 !important; box-shadow: none !important; display: flex; flex-direction: column; overflow: hidden; }
+        .network-reference-header { display:flex; align-items:center; gap:20px; min-height:88px; padding-top:18px; color:#f2f2f2; }
+        .network-reference-header h2 { margin:0; font-size:26px; font-weight:500; letter-spacing:-.5px; }
+        .network-back-button { width:42px; height:42px; border:0; border-radius:50%; background:transparent; color:#e7e7e7; cursor:pointer; font-size:25px; display:flex; align-items:center; justify-content:center; }
+        .network-back-button:hover { background:rgba(255,255,255,.1); }
+        .network-header-clock { margin-left:auto; color:rgba(255,255,255,.42); font-size:12px; }
+        .network-diagnosis-stage { flex:0 0 auto; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:58px 0 45px; }
+        .network-orb-outer { width:min(360px, 72vw); height:min(360px, 72vw); position:relative; border-radius:50%; display:flex; align-items:center; justify-content:center; background:radial-gradient(circle, rgba(255,255,255,.02) 0 31%, rgba(0,0,0,0) 32% 51%, rgba(255,255,255,.045) 52% 53%, rgba(0,0,0,0) 54% 70%, rgba(255,255,255,.12) 71% 72%, rgba(0,0,0,0) 73%); filter:drop-shadow(0 0 30px rgba(110,140,125,.12)); }
+        .network-orb-outer::before, .network-orb-outer::after { content:''; position:absolute; inset:9%; border-radius:50%; border:1px solid rgba(111,148,127,.18); animation: networkRingPulse 2.8s ease-out infinite; }
+        .network-orb-outer::after { inset:19%; border-color:rgba(75,157,88,.3); animation-delay:.55s; }
+        .network-orb-core { width:54%; height:54%; border-radius:50%; display:flex; align-items:center; justify-content:center; background:radial-gradient(circle at 40% 30%, rgba(91,124,103,.24), rgba(30,39,35,.78) 65%, rgba(16,20,19,.96)); border:1px solid rgba(145,178,155,.25); box-shadow:0 0 0 17px rgba(46,98,61,.18), 0 0 0 34px rgba(45,106,55,.09), inset 0 0 38px rgba(122,168,133,.12); animation:networkCorePulse 2.2s ease-in-out infinite; }
+        .network-orb-core i { color:rgba(220,226,221,.68); font-size:58px; filter:drop-shadow(0 0 10px rgba(132,179,143,.2)); animation:networkWifiFloat 2.2s ease-in-out infinite; }
+        @keyframes networkRingPulse { 0% { transform:scale(.83); opacity:.1; } 52% { opacity:.55; } 100% { transform:scale(1.08); opacity:0; } }
+        @keyframes networkCorePulse { 0%,100% { transform:scale(.98); box-shadow:0 0 0 17px rgba(46,98,61,.18), 0 0 0 34px rgba(45,106,55,.09), inset 0 0 38px rgba(122,168,133,.12); } 50% { transform:scale(1.02); box-shadow:0 0 0 21px rgba(46,118,63,.24), 0 0 0 42px rgba(45,106,55,.12), inset 0 0 48px rgba(122,168,133,.18); } }
+        @keyframes networkWifiFloat { 0%,100% { transform:translateY(0); opacity:.58; } 50% { transform:translateY(-4px); opacity:.92; } }
+        .network-diagnosis-stage h3 { margin:0 0 8px !important; font-size:31px !important; font-weight:500 !important; color:#f4f4f4 !important; letter-spacing:-.6px; }
+        .network-diagnosis-stage p { margin:0 !important; color:rgba(255,255,255,.48) !important; font-size:18px !important; }
+        .network-check-list { flex:1 1 auto; width:min(760px, 100%); align-self:center; display:flex; flex-direction:column; justify-content:center; gap:0; min-height:270px; }
+        .network-check-row { display:flex; align-items:center; gap:16px; min-height:68px; padding:0 16px; border-bottom:1px solid rgba(255,255,255,.16); color:#f0f0f0; }
+        .network-check-row:first-child { border-top:1px solid rgba(255,255,255,.16); }
+        .network-check-row .network-check-icon { width:28px; text-align:center; color:rgba(255,255,255,.55); font-size:20px; }
+        .network-check-row .network-check-label { flex:1; font-size:19px; letter-spacing:-.15px; }
+        .network-check-row .network-check-status { min-width:124px; text-align:right; color:rgba(255,255,255,.46); font-size:13px; }
+        .network-check-row.pass .network-check-icon, .network-check-row.pass .network-check-status { color:#32d74b; }
+        .network-check-row.warn .network-check-icon, .network-check-row.warn .network-check-status { color:#f5c84b; }
+        .network-check-row.fail .network-check-icon, .network-check-row.fail .network-check-status { color:#ff6b6b; }
+        .network-check-row.pending .network-check-icon i { animation:spin 1s linear infinite; }
+        .network-reference-footer { flex:0 0 auto; width:min(760px, 100%); align-self:center; padding-top:24px; }
+        .network-cancel-button { width:100%; border:0; border-radius:38px; padding:16px 22px; color:#e7e7e7; background:#353535; font:500 18px Inter,sans-serif; cursor:pointer; transition:background .2s ease, transform .2s ease; }
+        .network-cancel-button:hover { background:#4a4a4a; transform:translateY(-1px); }
+        .network-last-checked { color:rgba(255,255,255,.32) !important; font-size:11px !important; margin-top:12px !important; }
+        @media (max-width: 640px) {
+            .network-modal-card { padding:0 18px 18px !important; }
+            .network-reference-header h2 { font-size:22px; }
+            .network-diagnosis-stage { padding:32px 0 30px; }
+            .network-orb-outer { width:min(300px, 80vw); height:min(300px, 80vw); }
+            .network-orb-core i { font-size:48px; }
+            .network-diagnosis-stage h3 { font-size:27px !important; }
+            .network-diagnosis-stage p { font-size:16px !important; }
+            .network-check-row { min-height:58px; gap:9px; padding:0 4px; }
+            .network-check-row .network-check-label { font-size:15px; }
+            .network-check-row .network-check-status { min-width:88px; font-size:11px; }
+        }
+
+        /* ---------- POPUP OVERRIDE FOR NETWORK DIAGNOSIS ---------- */
+        .network-modal { background: rgba(0,0,0,.72) !important; padding: 20px !important; align-items: center !important; justify-content: center !important; }
+        .network-modal-card { width: min(430px, 100%) !important; height: auto !important; min-height: 0 !important; max-height: 92vh !important; border: 1px solid rgba(124,77,255,.28) !important; border-radius: 28px !important; padding: 0 22px 20px !important; background: linear-gradient(145deg, #1d174d, #11132f) !important; box-shadow: 0 28px 90px rgba(0,0,0,.68) !important; overflow-y: auto !important; }
+        .network-reference-header { min-height: 68px; padding-top: 8px; }
+        .network-reference-header h2 { font-size: 21px; }
+        .network-back-button { width: 36px; height: 36px; font-size: 21px; }
+        .network-header-clock { font-size: 11px; }
+        .network-diagnosis-stage { padding: 22px 0 20px; }
+        .network-orb-outer { width: min(235px, 58vw); height: min(235px, 58vw); }
+        .network-orb-core i { font-size: 42px; }
+        .network-diagnosis-stage h3 { font-size: 25px !important; }
+        .network-diagnosis-stage p { font-size: 14px !important; text-align: center; }
+        .network-check-list { min-height: 0; }
+        .network-check-row { min-height: 53px; padding: 0 8px; gap: 10px; }
+        .network-check-row .network-check-label { font-size: 14px; }
+        .network-check-row .network-check-status { min-width: 94px; font-size: 11px; }
+        .network-reference-footer { padding-top: 17px; }
+        .network-cancel-button { padding: 13px 20px; font-size: 15px; }
+        .network-last-checked { font-size: 10px !important; }
+
+        /* ---------- FINAL REFERENCE-MATCHED POPUP POLISH ---------- */
+        .network-modal { background: rgba(2, 2, 14, .72) !important; }
+        .network-modal-card { width: min(430px, calc(100vw - 32px)) !important; max-height: min(690px, calc(100vh - 32px)) !important; padding: 0 22px 18px !important; border-radius: 25px !important; background: linear-gradient(155deg, #211957 0%, #17134a 58%, #14113e 100%) !important; border-color: rgba(113, 96, 231, .32) !important; }
+        .network-reference-header { min-height: 64px; padding-top: 8px; gap: 14px; }
+        .network-reference-header h2 { font-size: 20px; font-weight: 600; }
+        .network-back-button { width: 34px; height: 34px; font-size: 20px; }
+        .network-header-clock { color: rgba(255,255,255,.45); font-size: 10px; }
+        .network-diagnosis-stage { padding: 20px 0 18px; }
+        .network-orb-outer { width: min(204px, 52vw); height: min(204px, 52vw); }
+        .network-orb-core { width: 55%; height: 55%; box-shadow: 0 0 0 14px rgba(46,98,61,.18), 0 0 0 29px rgba(45,106,55,.09), inset 0 0 32px rgba(122,168,133,.12); }
+        .network-orb-core i { font-size: 43px; }
+        .network-diagnosis-stage h3 { margin: 0 0 6px !important; font-size: 24px !important; font-weight: 600 !important; }
+        .network-diagnosis-stage p { font-size: 13px !important; color: rgba(255,255,255,.52) !important; max-width: 100%; }
+        .network-check-list { width: 100%; }
+        .network-check-row { min-height: 51px; padding: 0 10px; border-color: rgba(255,255,255,.13); }
+        .network-check-row .network-check-icon { width: 24px; font-size: 18px; }
+        .network-check-row .network-check-label { font-size: 13px; }
+        .network-check-row .network-check-status { min-width: 116px; font-size: 10px; }
+        .network-reference-footer { width: 100%; padding-top: 17px; }
+        .network-cancel-button { padding: 13px 20px; background: #454545; font-size: 15px; }
+        .network-cancel-button:hover { background: #565656; }
+        .network-cancel-button.is-complete { color: #07120a; background: linear-gradient(135deg, #69db7c, #2fb344); box-shadow: 0 6px 20px rgba(47,179,68,.22); }
+        .network-cancel-button.is-complete:hover { background: linear-gradient(135deg, #8ce99a, #40c057); }
+        .network-last-checked { margin-top: 10px !important; font-size: 9px !important; }
+        @media (max-width: 640px) {
+            .network-modal { padding: 16px !important; }
+            .network-modal-card { width: min(430px, calc(100vw - 32px)) !important; }
+            .network-diagnosis-stage { padding: 18px 0 16px; }
+            .network-orb-outer { width: min(194px, 52vw); height: min(194px, 52vw); }
+            .network-check-row { min-height: 49px; }
+            .network-check-row .network-check-label { font-size: 12px; }
+            .network-check-row .network-check-status { min-width: 102px; font-size: 9px; }
+        }
+
         /* Hide Pause Button */
         #togglePauseBtn {
             display: none !important;
         }
 
+            /* ---------- CANDIDATE PROFILE POPUP ---------- */
+        .profile-modal { position:fixed; inset:0; z-index:10001; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(2,2,14,.72); backdrop-filter:blur(9px); }
+        .profile-modal.is-open { display:flex; animation:fadeIn .2s ease; }
+        .profile-card { width:min(560px,100%); max-height:92vh; overflow:auto; padding:26px; border-radius:25px; background:linear-gradient(155deg,#211957 0%,#17134a 58%,#14113e 100%); border:1px solid rgba(113,96,231,.32); box-shadow:0 28px 90px rgba(0,0,0,.68); color:#f4f4f4; }
+        .profile-card-header { display:flex; align-items:center; gap:14px; }
+        .profile-avatar-large { width:56px; height:56px; border-radius:18px; display:flex; align-items:center; justify-content:center; overflow:hidden; background:linear-gradient(135deg,#7c4dff,#448aff); box-shadow:0 10px 28px rgba(124,77,255,.25); }
+        .profile-avatar-large img { width:100%; height:100%; object-fit:contain; display:block; }
+        .profile-card-heading { flex:1; }
+        .profile-card-heading h2 { margin:0 0 4px; font-size:21px; font-weight:650; }
+        .profile-card-heading p { margin:0; color:rgba(255,255,255,.48); font-size:12px; }
+        .profile-close-button { width:34px; height:34px; border:0; border-radius:50%; color:rgba(255,255,255,.68); background:rgba(255,255,255,.08); cursor:pointer; }
+        .profile-close-button:hover { color:#fff; background:rgba(255,255,255,.15); }
+        .profile-identity { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:23px 0 16px; padding-bottom:16px; border-bottom:1px solid rgba(255,255,255,.12); }
+        .profile-identity strong { font-size:20px; }
+        .profile-identity span { color:#69db7c; background:rgba(81,207,102,.12); border:1px solid rgba(81,207,102,.25); border-radius:20px; padding:6px 10px; font-size:11px; white-space:nowrap; }
+        .profile-details-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+        .profile-detail-item { min-width:0; padding:13px 14px; border-radius:14px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.07); }
+        .profile-detail-wide { grid-column:1 / -1; }
+        .profile-detail-label { display:block; margin-bottom:7px; color:rgba(255,255,255,.46); font-size:11px; }
+        .profile-detail-label i { width:16px; margin-right:5px; color:#9a82ff; }
+        .profile-detail-item strong { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#fff; font-size:13px; font-weight:600; }
+        .profile-note { display:flex; gap:8px; margin:16px 0; padding:11px 12px; border-radius:12px; background:rgba(116,192,252,.08); color:rgba(255,255,255,.52); font-size:11px; line-height:1.45; }
+        .profile-note i { color:#74c0fc; margin-top:2px; }
+        .profile-done-button { width:100%; padding:13px; border:0; border-radius:13px; color:#fff; background:linear-gradient(135deg,#7c4dff,#448aff); font:600 14px Inter,sans-serif; cursor:pointer; }
+        .profile-done-button:hover { filter:brightness(1.12); }
+        .profile-trigger { width:44px; height:44px; padding:0; border:0; border-radius:50%; overflow:hidden; background:linear-gradient(135deg,#eef0ff,#c8ccdf); color:#25254d; cursor:pointer; line-height:1; display:inline-flex; align-items:center; justify-content:center; transition:transform .2s ease, color .2s ease, background .2s ease, box-shadow .2s ease; box-shadow:0 4px 14px rgba(0,0,0,.22); }
+        .profile-trigger-avatar { width:100%; height:100%; object-fit:contain; display:block; }
+        .profile-trigger:hover { color:#151535; background:#fff; transform:scale(1.08); box-shadow:0 6px 18px rgba(124,77,255,.3); }
+        .profile-welcome { gap:10px !important; }
+        @media (max-width:640px) { .profile-card { padding:20px; border-radius:21px; } .profile-details-grid { grid-template-columns:1fr; } .profile-detail-wide { grid-column:auto; } .profile-identity strong { font-size:17px; } }
+        .profile-actions { display:flex; gap:10px; margin-top:16px; }
+        .profile-settings-button, .profile-done-button { flex:1; padding:13px; border:0; border-radius:13px; font:600 14px Inter,sans-serif; cursor:pointer; }
+        .profile-settings-button { color:#d9d4ff; background:rgba(124,77,255,.18); border:1px solid rgba(124,77,255,.28); }
+        .profile-settings-button:hover { background:rgba(124,77,255,.3); }
+
+        /* ---------- PROFILE SETTINGS MODAL ---------- */
+        .settings-modal { position:fixed; inset:0; z-index:10002; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(2,2,14,.78); backdrop-filter:blur(10px); }
+        .settings-modal.is-open { display:flex; animation:fadeIn .2s ease; }
+        .settings-card { width:min(520px,100%); max-height:92vh; overflow:auto; padding:26px; border-radius:25px; background:linear-gradient(155deg,#211957 0%,#17134a 58%,#14113e 100%); border:1px solid rgba(113,96,231,.32); box-shadow:0 28px 90px rgba(0,0,0,.68); }
+        .settings-card-header { display:flex; align-items:flex-start; gap:16px; margin-bottom:22px; }
+        .settings-card-header > div { flex:1; }
+        .settings-card-header h2 { margin:0 0 5px; font-size:21px; color:#fff; }
+        .settings-card-header p { margin:0; color:rgba(255,255,255,.5); font-size:12px; }
+        .settings-field { display:block; margin-bottom:14px; }
+        .settings-field > span { display:block; margin-bottom:7px; color:rgba(255,255,255,.58); font-size:12px; font-weight:600; }
+        .settings-field input { width:100%; padding:12px 13px; border:1px solid rgba(255,255,255,.1); border-radius:12px; outline:none; color:#fff; background:rgba(255,255,255,.06); font:500 14px Inter,sans-serif; }
+        .settings-field input:focus { border-color:#7c4dff; box-shadow:0 0 0 3px rgba(124,77,255,.15); }
+        .settings-upload { display:flex; align-items:center; gap:15px; margin:19px 0; padding:14px; border-radius:15px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.07); }
+        .settings-upload-preview { width:76px; height:76px; flex:0 0 76px; overflow:hidden; border-radius:19px; background:rgba(255,255,255,.08); }
+        .settings-upload-preview img { width:100%; height:100%; object-fit:contain; display:block; }
+        .settings-upload-copy { min-width:0; display:flex; flex-direction:column; gap:5px; }
+        .settings-upload-copy strong { color:#fff; font-size:13px; }
+        .settings-upload-copy span { color:rgba(255,255,255,.42); font-size:10px; line-height:1.3; }
+        .settings-upload-button { display:inline-flex; align-items:center; gap:7px; width:max-content; margin-top:4px; padding:8px 11px; border-radius:9px; color:#fff; background:rgba(124,77,255,.28); font-size:11px; font-weight:600; cursor:pointer; }
+        .settings-upload-button:hover { background:rgba(124,77,255,.42); }
+        #settingsAvatarInput { display:none; }
+        .settings-form-message { min-height:18px; margin:5px 0 9px; color:#ff8787; font-size:11px; }
+        .settings-form-message.success { color:#69db7c; }
+        .settings-actions { display:flex; gap:10px; }
+        .settings-secondary-button, .settings-save-button { flex:1; padding:13px; border:0; border-radius:13px; font:600 13px Inter,sans-serif; cursor:pointer; }
+        .settings-secondary-button { color:rgba(255,255,255,.72); background:rgba(255,255,255,.08); }
+        .settings-save-button { color:#fff; background:linear-gradient(135deg,#7c4dff,#448aff); }
+        .settings-save-button:disabled { opacity:.55; cursor:wait; }
+        @media (max-width:640px) { .settings-card { padding:20px; border-radius:21px; } .settings-upload-preview { width:64px; height:64px; flex-basis:64px; } }
+
+        /* ---------- REFERENCE WORKSPACE CARD ---------- */
+        .reference-workspace-card { position:relative; display:grid; grid-template-columns:minmax(0,1.35fr) minmax(330px,.9fr); gap:38px; align-items:center; min-height:270px; margin:18px 0 24px; padding:28px 30px; overflow:hidden; border:1px solid rgba(179,103,255,.82); border-radius:26px; background:radial-gradient(circle at 18% 80%, rgba(90,32,188,.35), transparent 34%), radial-gradient(circle at 88% 15%, rgba(74,39,207,.34), transparent 30%), linear-gradient(135deg,#100b38 0%,#161044 48%,#0c092f 100%); box-shadow:0 0 0 1px rgba(122,57,255,.18), 0 18px 60px rgba(34,10,107,.38), inset 0 0 55px rgba(105,39,205,.12); }
+        .reference-workspace-card::before { content:""; position:absolute; inset:-30% -10% 0 47%; pointer-events:none; background:repeating-radial-gradient(ellipse at 25% 50%, transparent 0 10px, rgba(179,103,255,.14) 11px 12px, transparent 13px 19px); opacity:.45; transform:rotate(-18deg); mask-image:linear-gradient(90deg, transparent, #000 30%, #000 72%, transparent); }
+        .reference-workspace-card::after { content:""; position:absolute; left:0; bottom:0; width:255px; height:170px; pointer-events:none; opacity:.65; background-image:radial-gradient(circle, rgba(181,95,255,.72) 1.5px, transparent 2px); background-size:15px 15px; mask-image:linear-gradient(45deg,#000,transparent 80%); }
+        .workspace-reference-left, .workspace-reference-status { position:relative; z-index:1; }
+        .workspace-reference-left { display:flex; align-items:center; gap:34px; min-width:0; }
+        .workspace-avatar-orbit { position:relative; width:148px; height:148px; flex:0 0 148px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(151,93,255,.4); border-radius:50%; background:radial-gradient(circle at 35% 25%, #8d4eff, #4d13ba 62%, #241057); box-shadow:0 0 0 15px rgba(101,44,213,.08), 0 0 34px rgba(129,69,255,.48), inset 0 -18px 28px rgba(7,3,38,.3); }
+        .workspace-avatar-orbit::before { content:""; position:absolute; inset:-13px; border:1px solid rgba(165,102,255,.42); border-radius:50%; transform:rotate(27deg) scaleX(.92); }
+        .workspace-avatar-orbit::after { content:""; position:absolute; inset:-27px; border:1px solid rgba(125,68,231,.24); border-radius:50%; transform:rotate(-24deg) scaleX(.82); }
+        .workspace-initial { color:#fff; font-size:62px; line-height:1; font-weight:800; text-shadow:0 3px 14px rgba(18,4,80,.46); }
+        .workspace-orbit-dot { position:absolute; width:12px; height:12px; border-radius:50%; background:#9b5cff; box-shadow:0 0 14px #aa6dff; }
+        .orbit-dot-one { top:-21px; right:17px; }
+        .orbit-dot-two { bottom:-18px; left:57px; }
+        .workspace-reference-copy { min-width:0; }
+        .workspace-reference-name { margin-bottom:12px; overflow:hidden; color:#fff; font-size:38px; line-height:1.03; font-weight:800; letter-spacing:1px; text-transform:uppercase; text-overflow:ellipsis; white-space:nowrap; text-shadow:0 3px 14px rgba(0,0,0,.25); }
+        .workspace-reference-kicker { display:flex; align-items:center; gap:8px; color:#a57aff; font-size:13px; font-weight:750; letter-spacing:.3px; text-transform:uppercase; }
+        .workspace-reference-kicker i { font-size:14px; }
+        .workspace-reference-divider { width:240px; max-width:80%; height:1px; margin:24px 0 20px; background:linear-gradient(90deg,rgba(126,79,255,.42),transparent); }
+        .workspace-reference-exam { display:flex; align-items:center; gap:9px; color:#fff; font-size:17px; font-weight:750; text-transform:uppercase; }
+        .workspace-reference-exam i { color:#a57aff; font-size:16px; }
+        .workspace-reference-copy p { margin:10px 0 0; color:rgba(255,255,255,.74); font-size:13px; line-height:1.5; }
+        .workspace-reference-status { display:flex; flex-direction:column; gap:12px; padding-right:0; }
+        .reference-status-card { width:100%; min-height:68px; display:flex; align-items:center; gap:14px; padding:11px 15px; border:1px solid rgba(120,105,209,.25); border-radius:17px; color:#fff; background:linear-gradient(120deg,rgba(24,19,73,.92),rgba(18,15,60,.83)); box-shadow:0 13px 26px rgba(3,1,25,.2), inset 0 1px 0 rgba(255,255,255,.025); }
+        button.reference-status-card { appearance:none; text-align:left; cursor:pointer; }
+        button.reference-status-card:hover { border-color:rgba(154,106,255,.58); transform:translateY(-2px); }
+        .reference-status-card:focus-visible { outline:2px solid #a57aff; outline-offset:3px; }
+        .reference-status-icon { width:54px; height:54px; flex:0 0 54px; display:flex; align-items:center; justify-content:center; border-radius:14px; font-size:27px; }
+        .connection-icon { color:#58f59a; background:linear-gradient(145deg,rgba(0,108,80,.7),rgba(0,49,58,.64)); border:1px solid rgba(43,222,137,.34); }
+        .readiness-icon { color:#7d9fff; background:linear-gradient(145deg,rgba(21,65,166,.74),rgba(17,37,111,.65)); border:1px solid rgba(80,129,255,.36); }
+        .notifications-icon { color:#ffbf19; background:linear-gradient(145deg,rgba(84,47,13,.8),rgba(62,30,11,.64)); border:1px solid rgba(255,174,0,.35); }
+        .reference-status-copy { min-width:0; flex:1; display:flex; flex-direction:column; gap:4px; }
+        .reference-status-copy small { color:rgba(255,255,255,.72); font-size:12px; }
+        .reference-status-copy strong { color:#fff; font-size:18px; line-height:1.1; }
+        .reference-status-copy em { color:#40ed8c; font-size:11px; font-style:normal; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .reference-status-badge { width:30px; height:30px; flex:0 0 30px; display:flex; align-items:center; justify-content:center; border-radius:50%; color:#071d17; background:#52f394; font-size:13px; }
+        .reference-status-card:nth-child(2) .reference-status-badge { color:#17245f; background:#82a5ff; }
+        .reference-status-card:nth-child(3) .reference-status-badge { color:#3d2700; background:#ffb816; }
+        .reference-connection-card.is-checking .connection-icon { animation:networkPulse 1.4s ease-in-out infinite; }
+        .reference-connection-card.is-offline .connection-icon, .reference-connection-card.is-degraded .connection-icon { color:#ff8787; border-color:rgba(255,107,107,.45); background:rgba(107,22,53,.48); }
+        .reference-connection-card.is-degraded .reference-status-copy em { color:#ffd43b; }
+        .reference-connection-card.is-offline .reference-status-copy em { color:#ff8787; }
+        @media (max-width:1100px) { .reference-workspace-card { grid-template-columns:1fr; gap:42px; padding:38px 34px; margin-top:20px; } .workspace-reference-status { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); } .reference-status-card { min-height:136px; flex-direction:column; align-items:flex-start; gap:9px; padding:15px; } .reference-status-icon { width:50px; height:50px; flex-basis:50px; font-size:25px; border-radius:14px; } .reference-status-copy small { font-size:12px; } .reference-status-copy strong { font-size:18px; } .reference-status-copy em { font-size:11px; } .reference-status-badge { position:absolute; top:15px; right:15px; width:28px; height:28px; font-size:12px; } }
+        @media (max-width:640px) { .reference-workspace-card { min-height:0; padding:32px 24px; margin:18px 0 28px; gap:30px; border-radius:21px; } .workspace-reference-left { gap:22px; align-items:flex-start; } .workspace-avatar-orbit { width:92px; height:92px; flex-basis:92px; } .workspace-initial { font-size:42px; } .workspace-avatar-orbit::before { inset:-8px; } .workspace-avatar-orbit::after { inset:-15px; } .workspace-orbit-dot { width:7px; height:7px; } .orbit-dot-one { top:-11px; right:7px; } .orbit-dot-two { bottom:-10px; left:26px; } .workspace-reference-name { font-size:30px; } .workspace-reference-kicker { font-size:11px; } .workspace-reference-divider { margin:24px 0 21px; } .workspace-reference-exam { font-size:16px; } .workspace-reference-copy p { font-size:12px; line-height:1.5; } .workspace-desktop-break { display:none; } .workspace-reference-status { display:flex; gap:10px; } .reference-status-card { min-height:74px; flex-direction:row; align-items:center; padding:11px 13px; border-radius:16px; } .reference-status-icon { width:49px; height:49px; flex-basis:49px; font-size:23px; } .reference-status-copy small { font-size:11px; } .reference-status-copy strong { font-size:16px; } .reference-status-copy em { font-size:10px; } .reference-status-badge { position:static; width:27px; height:27px; flex-basis:27px; font-size:11px; } }
+
+        /* ---------- COMPACT WORKSPACE OVERRIDES ---------- */
+        @media (max-width:1100px) { .reference-workspace-card { min-height:0; padding:30px 28px; gap:28px; } .workspace-reference-status { gap:12px; } .workspace-reference-status .reference-status-card { min-height:96px; padding:12px; } .workspace-reference-status .reference-status-icon { width:46px; height:46px; flex-basis:46px; font-size:22px; } .workspace-reference-status .reference-status-copy strong { font-size:16px; } }
+        @media (max-width:640px) { .reference-workspace-card { padding:22px 18px; gap:24px; } .workspace-reference-left { gap:18px; } .workspace-reference-name { font-size:24px; } .workspace-reference-exam { font-size:14px; } .workspace-reference-copy p { font-size:11px; } }
+
     </style>
 </head>
+
 <body>
-    <div id="networkModal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(5px); z-index:10000; display:none; align-items:center; justify-content:center;">
-        <div style="background:#1a1545; padding:30px; border-radius:16px; border:1px solid rgba(124,77,255,0.3); width:350px; text-align:center;">
-            <i class="fas fa-wifi" style="font-size:48px; color:#69db7c; margin-bottom:15px;"></i>
-            <h3 style="margin-bottom:10px; color:#fff;">Connection Stable</h3>
-            <p style="color:rgba(255,255,255,0.6); font-size:14px; margin-bottom:25px;">Your connection to the examination server is active and stable.</p>
-            <button onclick="document.getElementById('networkModal').style.display = 'none'" style="background:rgba(255,255,255,0.1); color:#fff; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">Close</button>
+        <div id="profileModal" class="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle">
+        <div class="profile-card">
+            <div class="profile-card-header">
+                <div class="profile-avatar-large"><img id="profileAvatarImage" src="{{ url_for('static', filename='student-profile-default.png') }}" alt="Default student profile" /></div>
+                <div class="profile-card-heading">
+                    <h2 id="profileModalTitle">Candidate profile</h2>
+                    <p id="profileRoleLabel">Candidate account</p>
+                </div>
+                <button type="button" class="profile-close-button" id="profileCloseButton" aria-label="Close profile"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="profile-identity">
+                <strong id="profileName">-</strong>
+                <span id="profileStatus">Account active</span>
+            </div>
+            <div class="profile-details-grid">
+                <div class="profile-detail-item"><span class="profile-detail-label"><i class="fas fa-id-card"></i> Roll / Student number</span><strong id="profileStudentId">Not provided</strong></div>
+                <div class="profile-detail-item"><span class="profile-detail-label"><i class="fas fa-birthday-cake"></i> Age</span><strong id="profileAge">Not provided</strong></div>
+                <div class="profile-detail-item profile-detail-wide"><span class="profile-detail-label"><i class="fas fa-envelope"></i> Email address</span><strong id="profileEmail">Not provided</strong></div>
+                <div class="profile-detail-item"><span class="profile-detail-label"><i class="fas fa-key"></i> Session ID</span><strong id="profileSessionId">Not provided</strong></div>
+                <div class="profile-detail-item"><span class="profile-detail-label"><i class="fas fa-user-shield"></i> Account role</span><strong id="profileRole">Candidate</strong></div>
+                <div class="profile-detail-item"><span class="profile-detail-label"><i class="fas fa-fingerprint"></i> Account ID</span><strong id="profileAccountId">Not provided</strong></div>
+                <div class="profile-detail-item"><span class="profile-detail-label"><i class="fas fa-calendar-plus"></i> Joined</span><strong id="profileCreatedAt">Not provided</strong></div>
+                <div class="profile-detail-item"><span class="profile-detail-label"><i class="fas fa-shield-alt"></i> Integrity score</span><strong id="profileIntegrityScore">100 / 100</strong></div>
+            </div>
+            <div class="profile-note"><i class="fas fa-info-circle"></i><span id="profileNoteText">Age is not stored for this account. Other available account and examination details are shown above.</span></div>
+            <div class="profile-actions"><button type="button" class="profile-settings-button" id="openSettingsButton"><i class="fas fa-cog"></i> Settings</button><button type="button" class="profile-done-button" id="profileDoneButton">Done</button></div>
         </div>
     </div>
+
+    <div id="settingsModal" class="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
+        <div class="settings-card">
+            <div class="settings-card-header"><div><h2 id="settingsModalTitle">Profile settings</h2><p>Update your account details and profile picture.</p></div><button type="button" class="profile-close-button" id="settingsCloseButton" aria-label="Close settings"><i class="fas fa-times"></i></button></div>
+            <form id="settingsForm" novalidate>
+                <label class="settings-field"><span>Full name</span><input id="settingsName" name="name" type="text" maxlength="100" required /></label>
+                <label class="settings-field"><span>Email address</span><input id="settingsEmail" name="email" type="email" maxlength="160" required /></label>
+                <label class="settings-field"><span>Roll / Student number</span><input id="settingsStudentId" name="student_id" type="text" inputmode="numeric" maxlength="4" placeholder="4-digit roll number" /></label>
+                <div class="settings-upload"><div class="settings-upload-preview"><img id="settingsAvatarPreview" src="{{ url_for('static', filename='student-profile-default.png') }}" alt="Profile preview" /></div><div class="settings-upload-copy"><strong>Profile picture</strong><span>PNG, JPG, JPEG, or WEBP · max 4 MB</span><label class="settings-upload-button" for="settingsAvatarInput"><i class="fas fa-camera"></i> Choose image</label><input id="settingsAvatarInput" type="file" accept="image/png,image/jpeg,image/webp" /></div></div>
+                <div class="settings-form-message" id="settingsFormMessage" role="status"></div>
+                <div class="settings-actions"><button type="button" class="settings-secondary-button" id="settingsCancelButton">Cancel</button><button type="submit" class="settings-save-button" id="settingsSaveButton">Save changes</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div id="networkModal" class="network-modal" role="dialog" aria-modal="true" aria-labelledby="networkModalTitle">
+        <div class="network-modal-card">
+            <div class="network-reference-header">
+                <button type="button" class="network-back-button" id="networkCloseButton" aria-label="Close network diagnosis"><i class="fas fa-arrow-left"></i></button>
+                <h2>Network diagnosis</h2>
+                <span class="network-header-clock" id="networkHeaderClock"></span>
+            </div>
+            <div class="network-diagnosis-stage">
+                <div class="network-orb-outer">
+                    <div class="network-orb-core"><i id="networkModalIcon" class="fas fa-wifi"></i></div>
+                </div>
+                <h3 id="networkModalTitle">Diagnosing...</h3>
+                <p id="networkModalDescription">Current: Checking network</p>
+            </div>
+            <div class="network-check-list" id="networkCheckList">
+                <div class="network-check-row pending" id="network-step-dns"><span class="network-check-icon"><i class="fas fa-spinner"></i></span><span class="network-check-label">DNS configurations</span><strong class="network-check-status">Checking...</strong></div>
+                <div class="network-check-row pending" id="network-step-vpn"><span class="network-check-icon"><i class="fas fa-spinner"></i></span><span class="network-check-label">VPN connection</span><strong class="network-check-status">Checking...</strong></div>
+                <div class="network-check-row pending" id="network-step-wifi"><span class="network-check-icon"><i class="fas fa-spinner"></i></span><span class="network-check-label">Wi-Fi connection</span><strong class="network-check-status">Checking...</strong></div>
+                <div class="network-check-row pending" id="network-step-quality"><span class="network-check-icon"><i class="fas fa-spinner"></i></span><span class="network-check-label">Wi-Fi connection quality</span><strong class="network-check-status">Checking...</strong></div>
+                <div class="network-check-row pending" id="network-step-ip"><span class="network-check-icon"><i class="fas fa-spinner"></i></span><span class="network-check-label">IP address configuration</span><strong class="network-check-status">Checking...</strong></div>
+            </div>
+            <div class="network-reference-footer">
+                <button type="button" class="network-cancel-button" id="networkCloseButtonSecondary">Cancel</button>
+                <div class="network-last-checked" id="networkLastChecked">Not checked yet</div>
+            </div>
+        </div>
+    </div>
+
     <div class="user-info">
         {% include '_ai_assistant.html' %}
     </div>
@@ -903,9 +1253,11 @@
             <button class="nav-pill" onclick="switchDashboardTab('stats')"><i class="fas fa-chart-pie"></i> Stats</button>
             <button class="nav-pill" onclick="switchDashboardTab('report')"><i class="fas fa-file-alt"></i> Report</button>
         </div>
-        <div class="user-area" style="display: flex; align-items: center; gap: 15px;">
-            <button id="connectionStatusButton" class="icon-btn" style="background:transparent; border:none; color:#69db7c; cursor:pointer;" onclick="document.getElementById('networkModal').style.display = 'flex'"><i class="fas fa-wifi"></i></button>
-            <span class="welcome" style="display:flex; align-items:center; gap:8px;">Welcome, <span id="userNameDisplay">User</span> <i class="fas fa-user-circle" style="font-size:20px;"></i></span>
+                <div class="user-area" style="display: flex; align-items: center; gap: 15px;">
+
+            
+                        <span class="welcome profile-welcome" style="display:flex; align-items:center;"><span id="userNameDisplay">User</span> <button type="button" id="profileButton" class="profile-trigger" aria-label="Open candidate profile"><img id="profileTriggerAvatar" class="profile-trigger-avatar" src="{{ url_for('static', filename='student-profile-default.png') }}" alt="Student profile" /></button></span>
+
             <button class="nav-pill" id="logoutBtn" style="color: #ff6b6b; background: rgba(255,107,107,0.1); border:none;"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
     </header>
@@ -914,38 +1266,22 @@
     <div class="content-panels">
         <!-- Candidate Panel -->
         <div class="panel active" id="panelCandidate">
-            <!-- Unified Modern Candidate & Exam Workspace Hero -->
-            <div class="exam-workspace unified-profile-hero" id="examWorkspace" style="display:flex; justify-content:space-between; align-items:center; background:linear-gradient(135deg, rgba(124,77,255,0.1), rgba(68,138,255,0.1)); border:1px solid rgba(124,77,255,0.2); border-radius:20px; padding:25px; margin-bottom:25px;">
-                <div class="workspace-hero-left" style="flex:1;">
-                    <div class="workspace-greeting" style="color:rgba(255,255,255,0.7); font-size:14px; margin-bottom:10px;">Welcome, <strong id="workspaceUserName" style="color:#fff;">Student</strong></div>
-                    <div class="workspace-kicker" style="color:#74c0fc; font-size:11px; text-transform:uppercase; letter-spacing:1px; font-weight:bold; margin-bottom:10px;"><i class="fas fa-graduation-cap"></i> Candidate Workspace</div>
-                    <h1 id="assignedExamTitle" style="font-size:28px; margin-bottom:8px;">Software Engineering Final Exam</h1>
-                    <p id="assignedExamMeta" style="color:rgba(255,255,255,0.6);">Your identity, examination result, and monitoring readiness in one place.</p>
-                </div>
-                <div class="workspace-hero-right" style="display:flex; align-items:center; gap:20px;">
-                    <div class="workspace-status-grid" style="display:flex; flex-direction:column; gap:10px;">
-                        <button type="button" id="connectionStatusButtonTop" style="background:rgba(0,0,0,0.2); border:none; padding:10px 15px; border-radius:12px; display:flex; align-items:center; gap:12px; cursor:pointer;" onclick="document.getElementById('networkModal').style.display='flex'">
-                            <div style="width:34px; height:34px; border-radius:10px; background:rgba(77,171,247,0.15); color:#74c0fc; display:flex; align-items:center; justify-content:center;"><i class="fas fa-wifi"></i></div>
-                            <div style="text-align:left;">
-                                <small style="display:block; color:rgba(255,255,255,0.5); font-size:11px;">Connection</small>
-                                <strong id="connectionState" style="color:#fff; font-size:13px;">Stable</strong>
-                            </div>
-                        </button>
-                        <div style="background:rgba(0,0,0,0.2); border:none; padding:10px 15px; border-radius:12px; display:flex; align-items:center; gap:12px;">
-                            <div style="width:34px; height:34px; border-radius:10px; background:rgba(177,151,252,0.15); color:#b197fc; display:flex; align-items:center; justify-content:center;"><i class="fas fa-clipboard-check"></i></div>
-                            <div style="text-align:left;">
-                                <small style="display:block; color:rgba(255,255,255,0.5); font-size:11px;">Readiness</small>
-                                <strong id="readinessState" style="color:#fff; font-size:13px;">Ready</strong>
-                            </div>
-                        </div>
-                        <div style="background:rgba(0,0,0,0.2); border:none; padding:10px 15px; border-radius:12px; display:flex; align-items:center; gap:12px;">
-                            <div style="width:34px; height:34px; border-radius:10px; background:rgba(252,196,25,0.15); color:#ffd43b; display:flex; align-items:center; justify-content:center;"><i class="fas fa-bell"></i></div>
-                            <div style="text-align:left;">
-                                <small style="display:block; color:rgba(255,255,255,0.5); font-size:11px;">Notifications</small>
-                                <strong id="notificationState" style="color:#fff; font-size:13px;">0 new</strong>
-                            </div>
-                        </div>
+            <!-- Reference-matched candidate workspace card -->
+            <div class="exam-workspace reference-workspace-card" id="examWorkspace">
+                <div class="workspace-reference-left">
+                    <div class="workspace-avatar-orbit"><div class="workspace-initial" id="workspaceInitial">S</div><span class="workspace-orbit-dot orbit-dot-one"></span><span class="workspace-orbit-dot orbit-dot-two"></span></div>
+                    <div class="workspace-reference-copy">
+                        <div class="workspace-reference-name" id="workspaceUserName">Student</div>
+                        <div class="workspace-reference-kicker"><i class="fas fa-briefcase"></i> Candidate Workspace</div>
+                        <div class="workspace-reference-divider"></div>
+                        <div class="workspace-reference-exam"><i class="fas fa-file-alt"></i><span id="assignedExamTitle">Exams</span></div>
+                        <p id="assignedExamMeta">Your identity, examination result,<br class="workspace-desktop-break" /> and monitoring readiness in one place.</p>
                     </div>
+                </div>
+                <div class="workspace-reference-status">
+                    <button type="button" id="connectionStatusButtonTop" class="reference-status-card reference-connection-card network-status-button" aria-label="Check live network connection"><span class="reference-status-icon connection-icon"><i class="fas fa-wifi"></i></span><span class="reference-status-copy"><small>Connection</small><strong id="connectionState">Check connection</strong><em id="connectionDetail">Click to check</em></span><span class="reference-status-badge" id="connectionCheckBadge"><i class="fas fa-check"></i></span></button>
+                    <div class="reference-status-card"><span class="reference-status-icon readiness-icon"><i class="fas fa-clipboard-check"></i></span><span class="reference-status-copy"><small>Readiness</small><strong id="readinessState">Ready</strong><em id="readinessDetail">All systems operational</em></span><span class="reference-status-badge"><i class="fas fa-check"></i></span></div>
+                    <div class="reference-status-card"><span class="reference-status-icon notifications-icon"><i class="fas fa-bell"></i></span><span class="reference-status-copy"><small>Notifications</small><strong id="notificationState">0 new</strong><em id="notificationDetail">You're all caught up!</em></span><span class="reference-status-badge"><i class="fas fa-check"></i></span></div>
                 </div>
             </div>
 
@@ -1060,6 +1396,44 @@
                 <canvas id="pieChart" width="300" height="300"></canvas>
             </div>
         </div>
+
+        <!-- Report Panel: rendered inline with the dashboard tabs -->
+        <div class="panel" id="panelReport">
+            <div class="report-panel-header">
+                <div>
+                    <h2><i class="fas fa-file-alt" style="color:#7c4dff;margin-right:10px;"></i>Exam Report</h2>
+                    <div class="report-panel-sub">Your examination result and integrity activity, displayed without leaving the dashboard.</div>
+                </div>
+                <button type="button" class="report-refresh-btn" id="reportRefreshBtn"><i class="fas fa-sync-alt"></i> Refresh report</button>
+            </div>
+            <div class="info-grid">
+                <div class="info-card"><div class="label">Name</div><div class="value small" id="reportName">-</div></div>
+                <div class="info-card"><div class="label">Student ID</div><div class="value small" id="reportStudentId">-</div></div>
+                <div class="info-card"><div class="label">Session ID</div><div class="value small" id="reportSessionId">-</div></div>
+                <div class="info-card"><div class="label">Final Score</div><div class="value" id="reportScore">-</div></div>
+                <div class="info-card"><div class="label">Remark</div><div class="value small" id="reportRemark">-</div></div>
+                <div class="info-card"><div class="label">Review Status</div><div class="value small" id="reportReviewState">Not Reviewed</div></div>
+            </div>
+            <div class="info-grid">
+                <div class="info-card"><div class="label">Start Time</div><div class="value small" id="reportStart">-</div></div>
+                <div class="info-card"><div class="label">End Time</div><div class="value small" id="reportEnd">-</div></div>
+                <div class="info-card"><div class="label">Duration</div><div class="value small" id="reportDuration">-</div></div>
+                <div class="info-card"><div class="label">Status</div><div class="value small" id="reportStatus">-</div></div>
+                <div class="info-card"><div class="label">Risk Level</div><div class="value small" id="reportRisk">-</div></div>
+                <div class="info-card"><div class="label">Face Presence Ratio</div><div class="value" id="reportFaceRatio">-</div></div>
+            </div>
+            <div class="info-grid">
+                <div class="info-card"><div class="label">Face Absence Count</div><div class="value" id="reportFaceAbsence">0</div></div>
+                <div class="info-card"><div class="label">Browser Focus Loss</div><div class="value" id="reportFocusLoss">0</div></div>
+                <div class="info-card"><div class="label">Suspicious Events</div><div class="value" id="reportSuspicious">0</div></div>
+            </div>
+            <div class="table-wrap">
+                <table class="report-event-table">
+                    <thead><tr><th>Event Type</th><th>Timestamp</th><th>Score Deducted</th><th>Screenshot</th></tr></thead>
+                    <tbody id="reportEventBody"><tr><td colspan="4" class="report-empty">Open the Report tab to load your report.</td></tr></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <!-- ====== EXAM CONTROLS ====== -->
@@ -1165,13 +1539,14 @@
         </div>
     </div>
 
-    <!-- ====== TOAST ====== -->
+        <!-- ====== TOAST ====== -->
     <div id="toast" class="toast">
         <i class="fas fa-check-circle"></i>
         <span id="toastMsg">Ready</span>
     </div>
 
     <!-- ============================================================ -->
+
     <!-- JAVASCRIPT -->
     <script>
         (function() {
@@ -1205,9 +1580,48 @@
             const toast = document.getElementById('toast');
             const toastMsg = document.getElementById('toastMsg');
             const pieCanvas = document.getElementById('pieChart');
-            const timeline = document.getElementById('timeline');
+                        const timeline = document.getElementById('timeline');
+
+            // ----- Live network status refs -----
+            const networkModal = document.getElementById('networkModal');
+            const networkStatusButtons = [
+                document.getElementById('connectionStatusButton'),
+                document.getElementById('connectionStatusButtonTop')
+            ].filter(Boolean);
+            const networkHeaderState = document.getElementById('headerConnectionState');
+            const networkState = document.getElementById('connectionState');
+            const networkModalIcon = document.getElementById('networkModalIcon');
+            const networkModalTitle = document.getElementById('networkModalTitle');
+            const networkHeaderClock = document.getElementById('networkHeaderClock');
+            const networkModalDescription = document.getElementById('networkModalDescription');
+            const networkRefreshButton = document.getElementById('networkRefreshButton');
+            const networkCloseButton = document.getElementById('networkCloseButton');
+            const networkCloseButtonSecondary = document.getElementById('networkCloseButtonSecondary');
+            const networkLastChecked = document.getElementById('networkLastChecked');
+            const profileModal = document.getElementById('profileModal');
+            const profileButton = document.getElementById('profileButton');
+            const profileCloseButton = document.getElementById('profileCloseButton');
+            const profileDoneButton = document.getElementById('profileDoneButton');
+            const profileAvatarImage = document.getElementById('profileAvatarImage');
+            const profileTriggerAvatar = document.getElementById('profileTriggerAvatar');
+            const openSettingsButton = document.getElementById('openSettingsButton');
+            const settingsModal = document.getElementById('settingsModal');
+            const settingsForm = document.getElementById('settingsForm');
+            const settingsName = document.getElementById('settingsName');
+            const settingsEmail = document.getElementById('settingsEmail');
+            const settingsStudentId = document.getElementById('settingsStudentId');
+            const settingsAvatarInput = document.getElementById('settingsAvatarInput');
+            const settingsAvatarPreview = document.getElementById('settingsAvatarPreview');
+            const settingsFormMessage = document.getElementById('settingsFormMessage');
+            const settingsSaveButton = document.getElementById('settingsSaveButton');
+            const settingsCloseButton = document.getElementById('settingsCloseButton');
+            const settingsCancelButton = document.getElementById('settingsCancelButton');
+            const DEFAULT_PROFILE_IMAGE = "{{ url_for('static', filename='student-profile-default.png') }}";
+            let networkCheckInFlight = false;
+            let networkCheckComplete = false;
 
             // ----- Wizard DOM refs -----
+
             const wizardOverlay = document.getElementById('wizardOverlay');
             const wizardVideo = document.getElementById('wizardVideo');
             const wizardCanvas = document.getElementById('wizardOverlayCanvas');
@@ -1398,8 +1812,304 @@
     timeline.innerHTML = html;
 }
 
+                        // ----- Candidate profile popup -----
+            function getShortDisplayName(name) {
+                const normalized = String(name || '').trim();
+                if (!normalized) return 'User';
+                const firstName = normalized.split(/\s+/)[0];
+                return firstName.length > 16 ? firstName.slice(0, 16) + '…' : firstName;
+            }
+
+            function calculateAge(dateOfBirth) {
+                if (!dateOfBirth) return null;
+                const birthDate = new Date(dateOfBirth);
+                if (Number.isNaN(birthDate.getTime())) return null;
+                const today = new Date();
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const beforeBirthday = today.getMonth() < birthDate.getMonth() || (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate());
+                if (beforeBirthday) age -= 1;
+                return age >= 0 ? age : null;
+            }
+
+            function formatProfileDate(value) {
+                if (!value) return 'Not provided';
+                const date = new Date(value);
+                return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
+            }
+
+            function renderProfile(user, dashboardData) {
+                if (!user) return;
+                const age = user.age ?? calculateAge(user.date_of_birth || user.birth_date);
+                const avatarUrl = user.profile_image ? '/api/profile/avatar/' + encodeURIComponent(user.id) + '?v=' + Date.now() : DEFAULT_PROFILE_IMAGE;
+                if (profileAvatarImage) profileAvatarImage.src = avatarUrl;
+                if (profileTriggerAvatar) profileTriggerAvatar.src = avatarUrl;
+                if (settingsAvatarPreview) settingsAvatarPreview.src = avatarUrl;
+                document.getElementById('profileName').textContent = user.name || 'Candidate';
+                document.getElementById('profileRoleLabel').textContent = user.role === 'admin' ? 'Administrator account' : 'Candidate account';
+                document.getElementById('profileRole').textContent = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Candidate';
+                document.getElementById('profileStudentId').textContent = user.student_id || 'Not provided';
+                document.getElementById('profileAge').textContent = age !== null && age !== undefined ? `${age} years` : 'Not provided';
+                document.getElementById('profileEmail').textContent = user.email || 'Not provided';
+                document.getElementById('profileSessionId').textContent = user.session_id || 'Not provided';
+                document.getElementById('profileAccountId').textContent = user.id ?? 'Not provided';
+                document.getElementById('profileCreatedAt').textContent = formatProfileDate(user.created_at);
+                const score = dashboardData && dashboardData.integrity_score !== undefined ? dashboardData.integrity_score : 100;
+                document.getElementById('profileIntegrityScore').textContent = `${score} / 100`;
+                document.getElementById('profileStatus').textContent = 'Account active';
+                document.getElementById('profileNoteText').textContent = age !== null && age !== undefined ? 'Profile information is loaded from your authenticated account and current examination session.' : 'Age is not stored for this account. Other available account and examination details are shown above.';
+            }
+
+            function closeProfileModal() {
+                profileModal.classList.remove('is-open');
+            }
+
+            function openSettingsModal() {
+                if (!currentUser) return;
+                settingsName.value = currentUser.name || '';
+                settingsEmail.value = currentUser.email || '';
+                settingsStudentId.value = currentUser.student_id || '';
+                settingsFormMessage.textContent = '';
+                settingsFormMessage.classList.remove('success');
+                settingsAvatarInput.value = '';
+                settingsAvatarPreview.src = profileAvatarImage.src;
+                closeProfileModal();
+                settingsModal.classList.add('is-open');
+            }
+
+            function closeSettingsModal() {
+                settingsModal.classList.remove('is-open');
+            }
+
+            function showSettingsMessage(message, success = false) {
+                settingsFormMessage.textContent = message;
+                settingsFormMessage.classList.toggle('success', success);
+            }
+
+            function setupProfileModal() {
+                profileButton.addEventListener('click', () => profileModal.classList.add('is-open'));
+                profileCloseButton.addEventListener('click', closeProfileModal);
+                profileDoneButton.addEventListener('click', closeProfileModal);
+                openSettingsButton.addEventListener('click', openSettingsModal);
+                settingsCloseButton.addEventListener('click', closeSettingsModal);
+                settingsCancelButton.addEventListener('click', closeSettingsModal);
+                profileModal.addEventListener('click', event => { if (event.target === profileModal) closeProfileModal(); });
+                settingsModal.addEventListener('click', event => { if (event.target === settingsModal) closeSettingsModal(); });
+                settingsAvatarInput.addEventListener('change', () => {
+                    const file = settingsAvatarInput.files && settingsAvatarInput.files[0];
+                    if (file) settingsAvatarPreview.src = URL.createObjectURL(file);
+                });
+                settingsForm.addEventListener('submit', saveProfileSettings);
+                document.addEventListener('keydown', event => {
+                    if (event.key === 'Escape') { closeProfileModal(); closeSettingsModal(); }
+                });
+            }
+
+            async function saveProfileSettings(event) {
+                event.preventDefault();
+                if (!currentUser) return;
+                const name = settingsName.value.trim();
+                const email = settingsEmail.value.trim().toLowerCase();
+                const studentId = settingsStudentId.value.trim();
+                if (!name || !email) {
+                    showSettingsMessage('Name and email are required.');
+                    return;
+                }
+                settingsSaveButton.disabled = true;
+                settingsSaveButton.textContent = 'Saving...';
+                showSettingsMessage('');
+                try {
+                    const profileResponse = await apiFetch('/api/profile', {
+                        method: 'PUT',
+                        body: JSON.stringify({ name, email, student_id: studentId })
+                    });
+                    const profileData = await profileResponse.json();
+                    if (!profileResponse.ok) throw new Error(profileData.error || 'Unable to update profile');
+                    currentUser = profileData.user;
+
+                    const imageFile = settingsAvatarInput.files && settingsAvatarInput.files[0];
+                    if (imageFile) {
+                        const formData = new FormData();
+                        formData.append('avatar', imageFile);
+                        const avatarResponse = await fetch('/api/profile/avatar', { method: 'POST', credentials: 'include', body: formData });
+                        const avatarData = await avatarResponse.json();
+                        if (!avatarResponse.ok) throw new Error(avatarData.error || 'Unable to upload profile image');
+                        currentUser = avatarData.user;
+                    }
+
+                    renderProfile(currentUser, { integrity_score: stats ? stats.integrity_score : 100 });
+                    const shortName = getShortDisplayName(currentUser.name);
+                    userNameDisplay.textContent = shortName;
+                    const workspaceUserName = document.getElementById('workspaceUserName');
+                    if (workspaceUserName) workspaceUserName.textContent = shortName;
+                    const workspaceInitial = document.getElementById('workspaceInitial');
+                    if (workspaceInitial) workspaceInitial.textContent = shortName.charAt(0).toUpperCase() || 'S';
+                    candName.textContent = currentUser.name || 'N/A';
+                    candId.textContent = currentUser.student_id || 'N/A';
+                    candSession.textContent = currentUser.session_id || 'N/A';
+                    showSettingsMessage('Profile updated successfully.', true);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    closeSettingsModal();
+                    profileModal.classList.add('is-open');
+                } catch (error) {
+                    showSettingsMessage(error.message || 'Unable to save changes.');
+                } finally {
+                    settingsSaveButton.disabled = false;
+                    settingsSaveButton.textContent = 'Save changes';
+                }
+            }
+
+            // ----- Live network diagnostics -----
+            function setNetworkStep(id, status, value, iconClass) {
+                const row = document.getElementById('network-step-' + id);
+                if (!row) return;
+                row.className = 'network-check-row ' + status;
+                const icon = row.querySelector('.network-check-icon i');
+                const statusElement = row.querySelector('.network-check-status');
+                if (icon) icon.className = 'fas ' + (iconClass || (status === 'pending' ? 'fa-spinner' : status === 'pass' ? 'fa-check' : status === 'fail' ? 'fa-times' : 'fa-minus'));
+                if (statusElement) statusElement.textContent = value;
+            }
+
+            function resetNetworkSteps() {
+                ['dns', 'vpn', 'wifi', 'quality', 'ip'].forEach(id => setNetworkStep(id, 'pending', 'Checking...'));
+            }
+
+            function getConnectionType() {
+                const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                if (!navigator.onLine) return 'Offline';
+                if (!connection) return 'Online';
+                const type = connection.effectiveType ? connection.effectiveType.toUpperCase() : 'Online';
+                const downlink = Number(connection.downlink);
+                return downlink > 0 ? `${type} · ${downlink} Mbps` : type;
+            }
+
+            function updateNetworkButtonState(state, label) {
+                networkStatusButtons.forEach(button => {
+                    button.classList.remove('is-checking', 'is-online', 'is-degraded', 'is-offline');
+                    button.classList.add('is-' + state);
+                    const text = button.querySelector('.network-copy strong, .reference-status-copy strong');
+                    if (text) text.textContent = label;
+                    const icon = button.querySelector('.network-icon i, .reference-status-icon i');
+                    if (icon) icon.className = state === 'offline' ? 'fas fa-wifi-slash' : (state === 'checking' ? 'fas fa-wifi' : 'fas fa-wifi');
+                });
+                const connectionDetail = document.getElementById('connectionDetail');
+                const connectionCheckBadge = document.getElementById('connectionCheckBadge');
+                if (connectionDetail) connectionDetail.textContent = state === 'checking' ? 'Checking examination server...' : state === 'online' ? 'Server connected' : state === 'offline' ? 'No network route' : 'Server connection issue';
+                if (connectionCheckBadge) connectionCheckBadge.innerHTML = `<i class="fas ${state === 'checking' ? 'fa-spinner fa-spin' : state === 'online' ? 'fa-check' : 'fa-exclamation'}"></i>`;
+                if (networkHeaderState) networkHeaderState.textContent = label;
+                if (networkState) networkState.textContent = label;
+            }
+
+            function updateNetworkModal(state, title, description) {
+                networkModalTitle.textContent = title;
+                networkModalDescription.textContent = description;
+                networkModalIcon.className = state === 'offline' ? 'fas fa-wifi-slash' : (state === 'checking' ? 'fas fa-spinner fa-spin' : 'fas fa-wifi');
+            }
+
+            function closeNetworkModal() {
+                networkModal.classList.remove('is-open');
+            }
+
+            function setNetworkCompletionState(completed) {
+                networkCheckComplete = completed;
+                if (networkCloseButtonSecondary) {
+                    networkCloseButtonSecondary.textContent = completed ? 'Done' : 'Cancel';
+                    networkCloseButtonSecondary.classList.toggle('is-complete', completed);
+                }
+            }
+
+            async function runNetworkDiagnosis() {
+                if (networkCheckInFlight) return;
+                networkCheckInFlight = true;
+                const diagnosisStartedAt = performance.now();
+                let completionState = null;
+                setNetworkCompletionState(false);
+                updateNetworkButtonState('checking', 'Checking...');
+                updateNetworkModal('checking', 'Diagnosing...', 'Current: Checking network');
+                resetNetworkSteps();
+                if (networkRefreshButton) networkRefreshButton.disabled = true;
+
+                const startedAt = performance.now();
+                let latency = null;
+                try {
+                    setNetworkStep('dns', 'pending', 'Resolving...');
+                    await new Promise(resolve => setTimeout(resolve, 180));
+                    if (!navigator.onLine) {
+                        setNetworkStep('dns', 'fail', 'No route');
+                        setNetworkStep('vpn', 'warn', 'Not exposed', 'fa-shield-alt');
+                        setNetworkStep('wifi', 'fail', 'Offline');
+                        setNetworkStep('quality', 'fail', 'No signal');
+                        setNetworkStep('ip', 'fail', 'Unavailable');
+                        completionState = { state: 'offline', label: 'Offline', title: 'Diagnosis complete', description: 'Current: No network connection' };
+                        return;
+                    }
+
+                    const response = await fetch('/api/network/health?ts=' + Date.now(), {
+                        method: 'GET', credentials: 'include', cache: 'no-store',
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    latency = Math.round(performance.now() - startedAt);
+                    if (!response.ok) throw new Error('Server returned HTTP ' + response.status);
+                    const result = await response.json();
+                    if (!result.ok) throw new Error('Server health check failed');
+
+                    setNetworkStep('dns', 'pass', 'Resolved');
+                    await new Promise(resolve => setTimeout(resolve, 120));
+                    // Browsers intentionally do not expose VPN state or local IP addresses.
+                    setNetworkStep('vpn', 'warn', 'Not exposed', 'fa-shield-alt');
+                    setNetworkStep('wifi', 'pass', 'Connected');
+                    setNetworkStep('quality', latency < 250 ? 'pass' : 'warn', `${latency} ms · ${getConnectionType()}`);
+                    setNetworkStep('ip', 'pass', 'Server route OK');
+                    const state = latency < 250 ? 'online' : 'degraded';
+                    const label = state === 'online' ? 'Stable' : 'Slow';
+                    completionState = { state, label, title: 'Connection stable', description: `Current: ${getConnectionType()} · ${latency} ms to examination server` };
+                } catch (error) {
+                    latency = latency || Math.round(performance.now() - startedAt);
+                    setNetworkStep('dns', 'fail', 'Unresolved');
+                    setNetworkStep('vpn', 'warn', 'Not exposed', 'fa-shield-alt');
+                    setNetworkStep('wifi', 'pass', 'Online');
+                    setNetworkStep('quality', 'fail', 'No response');
+                    setNetworkStep('ip', 'fail', 'Unreachable');
+                    completionState = { state: 'degraded', label: 'Server issue', title: 'Diagnosis complete', description: 'Current: Browser online · examination server unreachable' };
+                    console.warn('Network diagnosis failed:', error);
+                } finally {
+                    const remainingMs = Math.max(0, 5000 - (performance.now() - diagnosisStartedAt));
+                    if (remainingMs > 0) await new Promise(resolve => setTimeout(resolve, remainingMs));
+                    if (completionState) {
+                        updateNetworkButtonState(completionState.state, completionState.label);
+                        updateNetworkModal(completionState.state, completionState.title, completionState.description);
+                    }
+                    if (networkLastChecked) networkLastChecked.textContent = 'Last checked: ' + new Date().toLocaleTimeString();
+                    if (networkRefreshButton) networkRefreshButton.disabled = false;
+                    networkCheckInFlight = false;
+                    setNetworkCompletionState(true);
+                }
+            }
+
+            function setupNetworkStatus() {
+                networkStatusButtons.forEach(button => button.addEventListener('click', () => {
+                    networkModal.classList.add('is-open');
+                    runNetworkDiagnosis();
+                }));
+                if (networkRefreshButton) networkRefreshButton.addEventListener('click', runNetworkDiagnosis);
+                networkCloseButton.addEventListener('click', closeNetworkModal);
+                networkCloseButtonSecondary.addEventListener('click', closeNetworkModal);
+                networkModal.addEventListener('click', event => {
+                    if (event.target === networkModal) closeNetworkModal();
+                });
+                if (networkHeaderClock) {
+                    const updateClock = () => { networkHeaderClock.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
+                    updateClock();
+                    window.setInterval(updateClock, 1000);
+                }
+                document.addEventListener('keydown', event => {
+                    if (event.key === 'Escape') closeNetworkModal();
+                });
+                // The diagnostic runs only from an explicit workspace-button click.
+            }
+
             // ----- Load dashboard data -----
             function loadDashboard() {
+
                 apiFetch('/api/check_verification')
                     .then(res => res.json())
                     .then(data => {
@@ -1414,8 +2124,10 @@
                         return res.json();
                     })
                     .then(data => {
-                        currentUser = data.user;
+                                                currentUser = data.user;
+                        renderProfile(currentUser, data);
                         stats = data.stats || {};
+
                         allEvents = data.events || [];
                         examRunning = data.exam_running || false;
                         const integrityScore = data.integrity_score !== undefined ? data.integrity_score : 100;
@@ -1437,10 +2149,15 @@
                             if (ev.deducted) totalDeducted += ev.deducted;
                         });
 
-                        if (userNameDisplay) userNameDisplay.textContent = currentUser ? currentUser.name : 'User';
+                                                const shortDisplayName = getShortDisplayName(currentUser ? currentUser.name : 'User');
+                        if (userNameDisplay) userNameDisplay.textContent = shortDisplayName;
                         const workspaceUserName = document.getElementById('workspaceUserName');
-                        if (workspaceUserName) workspaceUserName.textContent = currentUser ? currentUser.name : 'Student';
+                                                if (workspaceUserName) workspaceUserName.textContent = shortDisplayName;
+                        const workspaceInitial = document.getElementById('workspaceInitial');
+                        if (workspaceInitial) workspaceInitial.textContent = shortDisplayName.charAt(0).toUpperCase() || 'S';
+
                         candId.textContent = currentUser ? (currentUser.student_id || 'N/A') : 'N/A';
+
                         candName.textContent = currentUser ? currentUser.name : 'N/A';
                         candSession.textContent = currentUser ? (currentUser.session_id || 'N/A') : 'N/A';
                         faceRatioEl.textContent = data.face_ratio !== undefined ? data.face_ratio : 'N/A';
@@ -1474,9 +2191,18 @@
                         });
                         faceAbsenceCountEl.textContent = faceAbsenceCount;
                         multipleFacesCountEl.textContent = multipleFacesCount;
-                        totalSuspiciousEl.textContent = totalSuspicious;
+                                                totalSuspiciousEl.textContent = totalSuspicious;
+                        const readinessStateEl = document.getElementById('readinessState');
+                        const readinessDetailEl = document.getElementById('readinessDetail');
+                        const notificationStateEl = document.getElementById('notificationState');
+                        const notificationDetailEl = document.getElementById('notificationDetail');
+                        if (readinessStateEl) readinessStateEl.textContent = examRunning ? 'In progress' : 'Ready';
+                        if (readinessDetailEl) readinessDetailEl.textContent = examRunning ? 'Monitoring active' : 'All systems operational';
+                        if (notificationStateEl) notificationStateEl.textContent = totalSuspicious ? `${totalSuspicious} flagged` : '0 new';
+                        if (notificationDetailEl) notificationDetailEl.textContent = totalSuspicious ? 'Review integrity events' : 'You\'re all caught up!';
 
                         scoreValue.textContent = integrityScore;
+
                         scoreBar.style.width = integrityScore + '%';
                         if (integrityScore >= 70) {
                             scoreBar.style.background = 'linear-gradient(90deg, #51cf66, #69db7c)';
@@ -2302,8 +3028,99 @@
                     .catch(() => window.location.href = '/login');
             }
 
+            function escapeReportHtml(value) {
+                return String(value ?? '').replace(/[&<>\"']/g, character => ({
+                    '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', "'": '&#039;'
+                }[character]));
+            }
+
+            function filterReportEvents(events, startedAt, endedAt) {
+                if (!startedAt) return events || [];
+                const start = new Date(startedAt).getTime();
+                const end = endedAt ? new Date(endedAt).getTime() : Date.now();
+                return (events || []).filter(event => {
+                    const timestamp = new Date(event.timestamp).getTime();
+                    return timestamp >= start && timestamp <= end;
+                });
+            }
+
+            function formatReportDuration(startedAt, endedAt) {
+                if (!startedAt) return 'N/A';
+                const start = new Date(startedAt);
+                const end = endedAt ? new Date(endedAt) : new Date();
+                const seconds = Math.max(0, Math.floor((end - start) / 1000));
+                const hours = Math.floor(seconds / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+                const remainingSeconds = seconds % 60;
+                return `${hours}h ${minutes}m ${remainingSeconds}s${endedAt ? '' : ' (ongoing)'}`;
+            }
+
+            async function loadInlineReport() {
+                const reportBody = document.getElementById('reportEventBody');
+                const refreshButton = document.getElementById('reportRefreshBtn');
+                if (!reportBody) return;
+                if (refreshButton) {
+                    refreshButton.disabled = true;
+                    refreshButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading report';
+                }
+                reportBody.innerHTML = '<tr><td colspan="4" class="report-empty">Loading report...</td></tr>';
+                try {
+                    const response = await apiFetch('/api/integrity_report');
+                    const payload = await response.json();
+                    if (!response.ok) throw new Error(payload.error || `Report request failed (HTTP ${response.status})`);
+
+                    const user = payload.user || {};
+                    const stats = payload.stats || {};
+                    const events = filterReportEvents(payload.events, stats.started_at, stats.ended_at);
+                    const score = payload.score ?? payload.final_score ?? payload.integrity_score ?? 'N/A';
+                    const remark = score >= 90 ? 'Excellent' : score >= 70 ? 'Good' : score >= 50 ? 'Fair' : 'Needs Improvement';
+                    const reviews = payload.reviews || [];
+                    const setReportText = (id, value) => {
+                        const element = document.getElementById(id);
+                        if (element) element.textContent = value ?? 'N/A';
+                    };
+
+                    setReportText('reportName', user.name || 'N/A');
+                    setReportText('reportStudentId', user.student_id || 'N/A');
+                    setReportText('reportSessionId', user.session_id || 'N/A');
+                    setReportText('reportScore', score);
+                    setReportText('reportRemark', remark);
+                    setReportText('reportReviewState', reviews.length ? reviews[0].decision : (stats.review_state || 'Not Reviewed'));
+                    setReportText('reportStart', stats.started_at || (events[0] && events[0].timestamp) || 'N/A');
+                    setReportText('reportEnd', stats.ended_at || (events.length && events[events.length - 1].timestamp) || 'N/A');
+                    setReportText('reportDuration', formatReportDuration(stats.started_at, stats.ended_at));
+                    setReportText('reportStatus', stats.exam_running ? 'In Progress' : (stats.started_at ? 'Completed' : 'Not Started'));
+                    setReportText('reportRisk', payload.risk_label || 'N/A');
+                    setReportText('reportFaceRatio', payload.face_ratio !== undefined ? `${payload.face_ratio}%` : 'N/A');
+                    setReportText('reportFaceAbsence', events.filter(event => event.type === 'Face Absence').length);
+                    setReportText('reportFocusLoss', events.filter(event => event.type === 'Browser Focus Loss').length);
+                    setReportText('reportSuspicious', events.filter(event => Number(event.deducted) > 0).length);
+
+                    if (!events.length) {
+                        reportBody.innerHTML = '<tr><td colspan="4" class="report-empty">No events recorded in this session.</td></tr>';
+                    } else {
+                        reportBody.innerHTML = events.map(event => {
+                            const screenshot = event.screenshot_path
+                                ? `<span class="report-screenshot" data-screenshot="${escapeReportHtml(event.screenshot_path)}">View</span>`
+                                : '<span style="color:rgba(255,255,255,0.25);">No</span>';
+                            return `<tr><td>${escapeReportHtml(event.type || 'Event')}</td><td>${escapeReportHtml(event.timestamp || 'N/A')}</td><td>${escapeReportHtml(event.deducted || 0)}</td><td>${screenshot}</td></tr>`;
+                        }).join('');
+                        reportBody.querySelectorAll('[data-screenshot]').forEach(link => {
+                            link.addEventListener('click', () => window.open(`/evidence/${encodeURIComponent(link.dataset.screenshot)}`, '_blank', 'noopener'));
+                        });
+                    }
+                } catch (error) {
+                    reportBody.innerHTML = `<tr><td colspan="4" class="report-empty">Unable to load report: ${escapeReportHtml(error.message)}</td></tr>`;
+                } finally {
+                    if (refreshButton) {
+                        refreshButton.disabled = false;
+                        refreshButton.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh report';
+                    }
+                }
+            }
+
             function generateReport() {
-                window.location.href = '/report';
+                switchDashboardTab('report');
             }
 
             // ----- Start Exam button on dashboard (opens wizard) -----
@@ -2322,17 +3139,22 @@
                 if (targetPanel) targetPanel.classList.add('active');
                 if (panelName === 'session') { renderEventLog(sessionEvents); renderTimeline(sessionEvents); }
                 else if (panelName === 'stats') { drawPieChart(sessionEvents); }
-                else if (panelName === 'report') { window.location.href = '/report'; }
+                                else if (panelName === 'report') { loadInlineReport(); }
+
             };
 
+                        document.getElementById('reportRefreshBtn')?.addEventListener('click', loadInlineReport);
             // ----- Event listeners for exam controls -----
             togglePauseBtn.addEventListener('click', togglePause);
+
             endBtn.addEventListener('click', endExam);
             logoutBtn.addEventListener('click', logout);
 
             // ----- Init -----
+            setupProfileModal();
             loadDashboard();
             setupFocusHandlers();
+            setupNetworkStatus();
 
             // Add camera section container (hidden initially) for main exam
             const cameraSection = document.createElement('div');

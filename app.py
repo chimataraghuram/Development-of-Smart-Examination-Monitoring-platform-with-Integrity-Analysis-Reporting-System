@@ -10,6 +10,7 @@ from flask_cors import CORS
 from functools import wraps
 from datetime import datetime
 from werkzeug.security import check_password_hash
+from werkzeug.utils import secure_filename
 
 from skimage.feature import local_binary_pattern
 import cv2
@@ -277,7 +278,98 @@ def logout():
     session.clear()
     return jsonify({'message': 'Logged out'}), 200
 
+@app.route('/api/profile', methods=['PUT'])
+@login_required
+def update_profile():
+    payload = request.get_json(silent=True) or {}
+    name = str(payload.get('name', '')).strip()
+    email = str(payload.get('email', '')).strip().lower()
+    student_id = str(payload.get('student_id', '')).strip() or None
+    current_user = db.get_user_by_id(session['user_id'])
+
+    if not name or len(name) > 100:
+        return jsonify({'error': 'Name is required and must be 100 characters or fewer'}), 400
+    if not email.endswith('@gmail.com'):
+        return jsonify({'error': 'Email must be @gmail.com'}), 400
+    if current_user and current_user['role'] == 'student' and student_id and (not student_id.isdigit() or len(student_id) != 4):
+        return jsonify({'error': 'Roll number must be exactly 4 numbers'}), 400
+    if current_user and current_user['role'] == 'student' and not student_id:
+        return jsonify({'error': 'Roll number is required for student accounts'}), 400
+
+    existing_email = db.get_user_by_email(email)
+    if existing_email and existing_email['id'] != session['user_id']:
+        return jsonify({'error': 'Email is already registered'}), 409
+
+    try:
+        user = db.update_user_profile(session['user_id'], name, email, student_id)
+    except sqlite3.IntegrityError:
+        return jsonify({'error': 'Roll number is already assigned to another user'}), 409
+    session['name'] = name
+    return jsonify({'message': 'Profile updated', 'user': dict(user) if user else None}), 200
+
+@app.route('/api/profile/avatar', methods=['POST'])
+@login_required
+def upload_profile_avatar():
+    avatar = request.files.get('avatar')
+    if not avatar or not avatar.filename:
+        return jsonify({'error': 'Please choose a profile image'}), 400
+
+    filename = secure_filename(avatar.filename)
+    extension = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+    allowed_extensions = {'png', 'jpg', 'jpeg', 'webp'}
+    if extension not in allowed_extensions:
+        return jsonify({'error': 'Use a PNG, JPG, JPEG, or WEBP image'}), 400
+
+    image_bytes = avatar.read(4 * 1024 * 1024 + 1)
+    if len(image_bytes) > 4 * 1024 * 1024:
+        return jsonify({'error': 'Profile image must be 4 MB or smaller'}), 413
+
+    avatar_directory = os.path.join(app.config['UPLOAD_FOLDER'], 'profile_avatars')
+    os.makedirs(avatar_directory, exist_ok=True)
+    stored_name = f"profile_{session['user_id']}_{secrets.token_hex(8)}.{extension}"
+    stored_path = os.path.join(avatar_directory, stored_name)
+    with open(stored_path, 'wb') as image_file:
+        image_file.write(image_bytes)
+
+    previous_user = db.get_user_by_id(session['user_id'])
+    previous_image = previous_user['profile_image'] if previous_user else None
+    user = db.update_user_profile_image(session['user_id'], f'profile_avatars/{stored_name}')
+    if previous_image and previous_image.startswith('profile_avatars/'):
+        old_path = os.path.join(app.config['UPLOAD_FOLDER'], previous_image)
+        if os.path.isfile(old_path) and old_path != stored_path:
+            try:
+                os.remove(old_path)
+            except OSError:
+                logger.warning('Unable to remove previous profile image: %s', old_path)
+    return jsonify({'message': 'Profile image updated', 'user': dict(user) if user else None}), 200
+
+@app.route('/api/profile/avatar/<int:user_id>', methods=['GET'])
+@login_required
+def serve_profile_avatar(user_id):
+    current_user = db.get_user_by_id(session['user_id'])
+    if not current_user or (current_user['id'] != user_id and current_user['role'] != 'admin'):
+        return jsonify({'error': 'Forbidden'}), 403
+    user = db.get_user_by_id(user_id)
+    image_path = user['profile_image'] if user else None
+    if not image_path or not image_path.startswith('profile_avatars/'):
+        return redirect(url_for('static', filename='student-profile-default.png'))
+    return send_from_directory(app.config['UPLOAD_FOLDER'], image_path)
+
+@app.route('/api/network/health', methods=['GET'])
+@login_required
+def network_health():
+    """Return a live response from the examination server for client diagnostics."""
+    response = jsonify({
+        'ok': True,
+        'service': 'exam-monitor-server',
+        'server_time': datetime.utcnow().isoformat(timespec='milliseconds') + 'Z',
+    })
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    return response, 200
+
 # ---------- Student Dashboard API ----------
+
  #@app.route('/api/dashboard/student', methods=['GET'])
 #@login_required
 #def student_dashboard():

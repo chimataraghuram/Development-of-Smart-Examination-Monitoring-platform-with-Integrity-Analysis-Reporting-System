@@ -73,12 +73,19 @@ def init_db():
                 password TEXT NOT NULL,
                 name TEXT NOT NULL,
                 role TEXT NOT NULL CHECK(role IN ('student', 'admin')),
-                student_id TEXT UNIQUE,
+                                student_id TEXT UNIQUE,
                 session_id TEXT,
+                profile_image TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
             )
         ''')
+        user_columns = [row[1] for row in conn.execute("PRAGMA table_info(users)").fetchall()]
+        if 'profile_image' not in user_columns:
+            conn.execute('ALTER TABLE users ADD COLUMN profile_image TEXT')
+
         # --- Events ---
+
         conn.execute('''
             CREATE TABLE IF NOT EXISTS events (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -302,7 +309,23 @@ def get_user_by_email(email):
     with get_db_connection() as conn:
         return conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
 
+def update_user_profile(user_id, name, email, student_id):
+    with get_db_connection() as conn:
+        conn.execute(
+            "UPDATE users SET name = ?, email = ?, student_id = ? WHERE id = ?",
+            (name, email, student_id, user_id),
+        )
+        conn.commit()
+    return get_user_by_id(user_id)
+
+def update_user_profile_image(user_id, filename):
+    with get_db_connection() as conn:
+        conn.execute("UPDATE users SET profile_image = ? WHERE id = ?", (filename, user_id))
+        conn.commit()
+    return get_user_by_id(user_id)
+
 def get_user_by_id(user_id):
+
     with get_db_connection() as conn:
         return conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
 

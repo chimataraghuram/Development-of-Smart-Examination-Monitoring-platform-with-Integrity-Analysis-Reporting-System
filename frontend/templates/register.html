@@ -576,9 +576,9 @@
                     <label for="studentPassword"><i class="fas fa-lock" style="margin-right:6px;color:rgba(255,255,255,0.3);"></i>Password</label>
                     <div class="input-wrap" id="studentPasswordWrap">
                         <span class="icon"><i class="fas fa-lock"></i></span>
-                        <input type="password" id="studentPassword" placeholder="••••••" maxlength="6" autocomplete="new-password" />
+                        <input type="password" id="studentPassword" placeholder="••••••••" maxlength="128" autocomplete="new-password" />
                     </div>
-                    <div class="hint" id="studentPasswordHint">Exactly 6 characters</div>
+                    <div class="hint" id="studentPasswordHint">Use 8–128 characters</div>
                 </div>
 
                 <button type="submit" class="btn-register" id="studentRegisterBtn">
@@ -615,9 +615,9 @@
                     <label for="adminPassword"><i class="fas fa-lock" style="margin-right:6px;color:rgba(255,255,255,0.3);"></i>Password</label>
                     <div class="input-wrap" id="adminPasswordWrap">
                         <span class="icon"><i class="fas fa-lock"></i></span>
-                        <input type="password" id="adminPassword" placeholder="••••••" maxlength="6" autocomplete="new-password" />
+                        <input type="password" id="adminPassword" placeholder="••••••••" maxlength="128" autocomplete="new-password" />
                     </div>
-                    <div class="hint" id="adminPasswordHint">Exactly 6 characters</div>
+                    <div class="hint" id="adminPasswordHint">Use 8–128 characters</div>
                 </div>
 
                 <button type="submit" class="btn-register" id="adminRegisterBtn">
@@ -1038,10 +1038,10 @@
             sIdHint.textContent = 'Exactly 4 numbers';
             sSessionHint.textContent = '4 letters + 2 numbers (e.g. ABCD12)';
             sEmailHint.textContent = 'Must be @gmail.com';
-            sPassHint.textContent = 'Exactly 6 characters';
+            sPassHint.textContent = 'Use 8–128 characters';
             aNameHint.textContent = 'At least 2 characters';
             aEmailHint.textContent = 'Must be @gmail.com (unique)';
-            aPassHint.textContent = 'Exactly 6 characters';
+            aPassHint.textContent = 'Use 8–128 characters';
 
         })();
     </script>
