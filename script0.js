@@ -941,7 +941,7 @@
                             const x = cx + Math.cos(midAngle) * labelRadius;
                             const y = cy + Math.sin(midAngle) * labelRadius;
                             ctx.fillStyle = '#fff';
-                            ctx.font = 'bold 12px Inter';
+                            ctx.font = 'bold 16px Inter';
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
                             ctx.fillText(val, x, y);
