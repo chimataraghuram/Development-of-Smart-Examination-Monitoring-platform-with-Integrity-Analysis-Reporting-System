@@ -1,4 +1,4 @@
-# Python bytecode
+﻿# Python bytecode
 __pycache__/
 *.py[cod]
 
@@ -20,3 +20,20 @@ MONITORING_DIAGNOSTICS_REPORT.md
 .env
 .env.*
 !.env.example
+
+# Node modules
+node_modules/
+package.json
+package-lock.json
+
+# Scratch scripts
+*.py
+!app.py
+!database.py
+!auth.py
+!camera_monitor.py
+*.js
+!script0.js
+!frontend/**/*.js
+test_stacking.html
+
