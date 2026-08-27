@@ -2262,6 +2262,7 @@
 
     <!-- ====== EXAM CONTROLS ====== -->
     <div class="exam-controls">
+        <button class="btn" id="sysDiagBtn" style="background:var(--accent-color);color:#fff;margin-right:10px;"><i class="fas fa-tasks"></i> Diagnostics</button>
         <button class="btn btn-start" id="startExamBtn"><i class="fas fa-play"></i> Start Exam</button>
         <button class="btn btn-toggle-pause" id="togglePauseBtn" disabled><i class="fas fa-pause"></i> Pause</button>
         <button class="btn btn-end" id="endExamBtn" disabled><i class="fas fa-stop"></i> End Exam</button>
@@ -3005,16 +3006,23 @@
                             if (ev.deducted) totalDeducted += ev.deducted;
                         });
 
-                                                const shortDisplayName = getShortDisplayName(currentUser ? currentUser.name : 'User');
-                        if (userNameDisplay) userNameDisplay.textContent = shortDisplayName;
+                        const renderBadge = (score) => {
+                            if (score >= 90) return ' <i class="fas fa-shield-check" style="color: #51cf66;" title="High Trust"></i>';
+                            if (score >= 70) return ' <i class="fas fa-shield-alt" style="color: #fcc419;" title="Verified"></i>';
+                            return ' <i class="fas fa-shield-virus" style="color: #ff6b6b;" title="Unverified"></i>';
+                        };
+
+                        const badgeHtml = renderBadge(integrityScore);
+                        const shortDisplayName = getShortDisplayName(currentUser ? currentUser.name : 'User');
+                        if (userNameDisplay) userNameDisplay.innerHTML = shortDisplayName + badgeHtml;
                         const workspaceUserName = document.getElementById('workspaceUserName');
-                                                if (workspaceUserName) workspaceUserName.textContent = shortDisplayName;
+                        if (workspaceUserName) workspaceUserName.innerHTML = shortDisplayName + badgeHtml;
                         const workspaceInitial = document.getElementById('workspaceInitial');
                         if (workspaceInitial) workspaceInitial.textContent = shortDisplayName.charAt(0).toUpperCase() || 'S';
 
                         if (candId) candId.textContent = currentUser ? (currentUser.student_id || 'N/A') : 'N/A';
 
-                        if (candName) candName.textContent = currentUser ? currentUser.name : 'N/A';
+                        if (candName) candName.innerHTML = (currentUser ? currentUser.name : 'N/A') + badgeHtml;
                         if (candSession) candSession.textContent = currentUser ? (currentUser.session_id || 'N/A') : 'N/A';
                         if (faceRatioEl) faceRatioEl.textContent = data.face_ratio !== undefined ? data.face_ratio : 'N/A';
 
@@ -4059,6 +4067,105 @@
             `;
             document.body.appendChild(cameraSection);
 
+        ﻿        // ====== SYSTEM DIAGNOSTICS LOGIC ======
+        const sysDiagBtn = document.getElementById('sysDiagBtn');
+        const systemDiagModal = document.getElementById('systemDiagModal');
+        const sysDiagCloseBtn = document.getElementById('sysDiagCloseBtn');
+        const runSysDiagBtn = document.getElementById('runSysDiagBtn');
+
+        if (sysDiagBtn) {
+            sysDiagBtn.addEventListener('click', () => {
+                if (systemDiagModal) systemDiagModal.classList.add('is-open');
+            });
+        }
+        if (sysDiagCloseBtn) {
+            sysDiagCloseBtn.addEventListener('click', () => {
+                if (systemDiagModal) systemDiagModal.classList.remove('is-open');
+            });
+        }
+        if (systemDiagModal) {
+            systemDiagModal.addEventListener('click', (e) => {
+                if (e.target === systemDiagModal) systemDiagModal.classList.remove('is-open');
+            });
+        }
+
+        const setDiagItemState = (id, state, message) => {
+            const li = document.getElementById(id);
+            if (!li) return;
+            const icon = li.querySelector('i');
+            const span = li.querySelector('span');
+            if (state === 'loading') {
+                icon.className = 'fas fa-spinner fa-spin';
+                icon.style.color = '#fff';
+            } else if (state === 'success') {
+                icon.className = 'fas fa-check-circle';
+                icon.style.color = '#51cf66';
+            } else if (state === 'error') {
+                icon.className = 'fas fa-times-circle';
+                icon.style.color = '#ff6b6b';
+            }
+            if (message) span.textContent = message;
+        };
+
+        if (runSysDiagBtn) {
+            runSysDiagBtn.addEventListener('click', async () => {
+                runSysDiagBtn.disabled = true;
+                runSysDiagBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running...';
+                
+                const ids = ['chkBrowser', 'chkCamera', 'chkMic', 'chkNetwork'];
+                ids.forEach(id => setDiagItemState(id, 'loading', 'Checking...'));
+
+                // 1. Browser
+                await new Promise(r => setTimeout(r, 600));
+                const isSupported = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+                setDiagItemState('chkBrowser', isSupported ? 'success' : 'error', isSupported ? 'Browser is compatible' : 'Incompatible browser');
+
+                // 2. Camera
+                if (isSupported) {
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                        stream.getTracks().forEach(t => t.stop());
+                        setDiagItemState('chkCamera', 'success', 'Camera access granted');
+                    } catch (err) {
+                        setDiagItemState('chkCamera', 'error', 'Camera access denied or unavailable');
+                    }
+                } else {
+                    setDiagItemState('chkCamera', 'error', 'Cannot test camera');
+                }
+
+                // 3. Mic
+                if (isSupported) {
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        stream.getTracks().forEach(t => t.stop());
+                        setDiagItemState('chkMic', 'success', 'Microphone access granted');
+                    } catch (err) {
+                        setDiagItemState('chkMic', 'error', 'Microphone access denied or unavailable');
+                    }
+                } else {
+                    setDiagItemState('chkMic', 'error', 'Cannot test microphone');
+                }
+
+                // 4. Network
+                await new Promise(r => setTimeout(r, 500));
+                if (navigator.onLine) {
+                    try {
+                        const start = performance.now();
+                        await fetch('/api/network/health?ts=' + Date.now());
+                        const ping = Math.round(performance.now() - start);
+                        setDiagItemState('chkNetwork', 'success', 'Connected (' + ping + 'ms latency)');
+                    } catch (err) {
+                        setDiagItemState('chkNetwork', 'error', 'Network unstable');
+                    }
+                } else {
+                    setDiagItemState('chkNetwork', 'error', 'Offline');
+                }
+
+                runSysDiagBtn.disabled = false;
+                runSysDiagBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Run Diagnostics Again';
+            });
+        }
+
         })();
     </script>
 
@@ -4097,5 +4204,48 @@
           detectRetina: true,
         });
     </script>
+﻿    <!-- ====== SYSTEM DIAGNOSTICS MODAL ====== -->
+    <div id="systemDiagModal" class="screenshot-modal">
+        <div class="screenshot-modal-content" style="max-width: 500px; padding: 30px; text-align: left; background: #2A2833; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;">
+            <button class="screenshot-close-btn" id="sysDiagCloseBtn"><i class="fas fa-times"></i></button>
+            <h2 style="margin-top:0; font-size: 22px;"><i class="fas fa-tasks" style="color:#51cf66; margin-right:10px;"></i> System Readiness Diagnostics</h2>
+            <p style="color:#8F8C9F; margin-bottom:20px;">We need to ensure your environment is fully prepared before you begin the exam.</p>
+            
+            <ul style="list-style:none; padding:0; margin:0;" id="sysDiagChecklist">
+                <li id="chkBrowser" style="padding:15px; background: rgba(255,255,255,0.05); margin-bottom:10px; border-radius:8px; display:flex; align-items:center;">
+                    <i class="fas fa-spinner fa-spin" style="margin-right:15px; font-size:18px;"></i>
+                    <div style="flex:1;">
+                        <strong style="display:block;">Browser Compatibility</strong>
+                        <span style="font-size:12px; color:#8F8C9F;">Checking browser version</span>
+                    </div>
+                </li>
+                <li id="chkCamera" style="padding:15px; background: rgba(255,255,255,0.05); margin-bottom:10px; border-radius:8px; display:flex; align-items:center;">
+                    <i class="fas fa-spinner fa-spin" style="margin-right:15px; font-size:18px;"></i>
+                    <div style="flex:1;">
+                        <strong style="display:block;">Camera Access</strong>
+                        <span style="font-size:12px; color:#8F8C9F;">Checking video input</span>
+                    </div>
+                </li>
+                <li id="chkMic" style="padding:15px; background: rgba(255,255,255,0.05); margin-bottom:10px; border-radius:8px; display:flex; align-items:center;">
+                    <i class="fas fa-spinner fa-spin" style="margin-right:15px; font-size:18px;"></i>
+                    <div style="flex:1;">
+                        <strong style="display:block;">Microphone Access</strong>
+                        <span style="font-size:12px; color:#8F8C9F;">Checking audio input</span>
+                    </div>
+                </li>
+                <li id="chkNetwork" style="padding:15px; background: rgba(255,255,255,0.05); border-radius:8px; display:flex; align-items:center;">
+                    <i class="fas fa-spinner fa-spin" style="margin-right:15px; font-size:18px;"></i>
+                    <div style="flex:1;">
+                        <strong style="display:block;">Network Connectivity</strong>
+                        <span style="font-size:12px; color:#8F8C9F;">Checking latency and stability</span>
+                    </div>
+                </li>
+            </ul>
+            <div style="margin-top: 25px; text-align: center;">
+                <button class="btn btn-start" id="runSysDiagBtn" style="width: 100%;"><i class="fas fa-sync-alt"></i> Run Diagnostics</button>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>

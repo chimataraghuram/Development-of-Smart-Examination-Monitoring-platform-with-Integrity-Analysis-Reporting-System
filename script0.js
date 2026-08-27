@@ -726,16 +726,23 @@
                             if (ev.deducted) totalDeducted += ev.deducted;
                         });
 
-                                                const shortDisplayName = getShortDisplayName(currentUser ? currentUser.name : 'User');
-                        if (userNameDisplay) userNameDisplay.textContent = shortDisplayName;
+                                                const renderBadge = (score) => {
+                            if (score >= 90) return ' <i class="fas fa-shield-check" style="color: #51cf66;" title="High Trust"></i>';
+                            if (score >= 70) return ' <i class="fas fa-shield-alt" style="color: #fcc419;" title="Verified"></i>';
+                            return ' <i class="fas fa-shield-virus" style="color: #ff6b6b;" title="Unverified"></i>';
+                        };
+
+                        const badgeHtml = renderBadge(integrityScore);
+                        const shortDisplayName = getShortDisplayName(currentUser ? currentUser.name : 'User');
+                        if (userNameDisplay) userNameDisplay.innerHTML = shortDisplayName + badgeHtml;
                         const workspaceUserName = document.getElementById('workspaceUserName');
-                                                if (workspaceUserName) workspaceUserName.textContent = shortDisplayName;
+                        if (workspaceUserName) workspaceUserName.innerHTML = shortDisplayName + badgeHtml;
                         const workspaceInitial = document.getElementById('workspaceInitial');
                         if (workspaceInitial) workspaceInitial.textContent = shortDisplayName.charAt(0).toUpperCase() || 'S';
 
                         if (candId) candId.textContent = currentUser ? (currentUser.student_id || 'N/A') : 'N/A';
 
-                        if (candName) candName.textContent = currentUser ? currentUser.name : 'N/A';
+                        if (candName) candName.innerHTML = (currentUser ? currentUser.name : 'N/A') + badgeHtml;
                         if (candSession) candSession.textContent = currentUser ? (currentUser.session_id || 'N/A') : 'N/A';
                         if (faceRatioEl) faceRatioEl.textContent = data.face_ratio !== undefined ? data.face_ratio : 'N/A';
 
@@ -1776,5 +1783,104 @@
             `;
             document.body.appendChild(cameraSection);
 
-        })();
+        ﻿        // ====== SYSTEM DIAGNOSTICS LOGIC ======
+        const sysDiagBtn = document.getElementById('sysDiagBtn');
+        const systemDiagModal = document.getElementById('systemDiagModal');
+        const sysDiagCloseBtn = document.getElementById('sysDiagCloseBtn');
+        const runSysDiagBtn = document.getElementById('runSysDiagBtn');
+
+        if (sysDiagBtn) {
+            sysDiagBtn.addEventListener('click', () => {
+                if (systemDiagModal) systemDiagModal.classList.add('is-open');
+            });
+        }
+        if (sysDiagCloseBtn) {
+            sysDiagCloseBtn.addEventListener('click', () => {
+                if (systemDiagModal) systemDiagModal.classList.remove('is-open');
+            });
+        }
+        if (systemDiagModal) {
+            systemDiagModal.addEventListener('click', (e) => {
+                if (e.target === systemDiagModal) systemDiagModal.classList.remove('is-open');
+            });
+        }
+
+        const setDiagItemState = (id, state, message) => {
+            const li = document.getElementById(id);
+            if (!li) return;
+            const icon = li.querySelector('i');
+            const span = li.querySelector('span');
+            if (state === 'loading') {
+                icon.className = 'fas fa-spinner fa-spin';
+                icon.style.color = '#fff';
+            } else if (state === 'success') {
+                icon.className = 'fas fa-check-circle';
+                icon.style.color = '#51cf66';
+            } else if (state === 'error') {
+                icon.className = 'fas fa-times-circle';
+                icon.style.color = '#ff6b6b';
+            }
+            if (message) span.textContent = message;
+        };
+
+        if (runSysDiagBtn) {
+            runSysDiagBtn.addEventListener('click', async () => {
+                runSysDiagBtn.disabled = true;
+                runSysDiagBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running...';
+                
+                const ids = ['chkBrowser', 'chkCamera', 'chkMic', 'chkNetwork'];
+                ids.forEach(id => setDiagItemState(id, 'loading', 'Checking...'));
+
+                // 1. Browser
+                await new Promise(r => setTimeout(r, 600));
+                const isSupported = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+                setDiagItemState('chkBrowser', isSupported ? 'success' : 'error', isSupported ? 'Browser is compatible' : 'Incompatible browser');
+
+                // 2. Camera
+                if (isSupported) {
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                        stream.getTracks().forEach(t => t.stop());
+                        setDiagItemState('chkCamera', 'success', 'Camera access granted');
+                    } catch (err) {
+                        setDiagItemState('chkCamera', 'error', 'Camera access denied or unavailable');
+                    }
+                } else {
+                    setDiagItemState('chkCamera', 'error', 'Cannot test camera');
+                }
+
+                // 3. Mic
+                if (isSupported) {
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        stream.getTracks().forEach(t => t.stop());
+                        setDiagItemState('chkMic', 'success', 'Microphone access granted');
+                    } catch (err) {
+                        setDiagItemState('chkMic', 'error', 'Microphone access denied or unavailable');
+                    }
+                } else {
+                    setDiagItemState('chkMic', 'error', 'Cannot test microphone');
+                }
+
+                // 4. Network
+                await new Promise(r => setTimeout(r, 500));
+                if (navigator.onLine) {
+                    try {
+                        const start = performance.now();
+                        await fetch('/api/network/health?ts=' + Date.now());
+                        const ping = Math.round(performance.now() - start);
+                        setDiagItemState('chkNetwork', 'success', 'Connected (' + ping + 'ms latency)');
+                    } catch (err) {
+                        setDiagItemState('chkNetwork', 'error', 'Network unstable');
+                    }
+                } else {
+                    setDiagItemState('chkNetwork', 'error', 'Offline');
+                }
+
+                runSysDiagBtn.disabled = false;
+                runSysDiagBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Run Diagnostics Again';
+            });
+        }
+
+})();
     
