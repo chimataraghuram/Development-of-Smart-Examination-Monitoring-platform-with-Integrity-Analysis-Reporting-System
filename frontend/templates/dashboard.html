@@ -3000,32 +3000,32 @@
                         const workspaceInitial = document.getElementById('workspaceInitial');
                         if (workspaceInitial) workspaceInitial.textContent = shortDisplayName.charAt(0).toUpperCase() || 'S';
 
-                        candId.textContent = currentUser ? (currentUser.student_id || 'N/A') : 'N/A';
+                        if (candId) candId.textContent = currentUser ? (currentUser.student_id || 'N/A') : 'N/A';
 
-                        candName.textContent = currentUser ? currentUser.name : 'N/A';
-                        candSession.textContent = currentUser ? (currentUser.session_id || 'N/A') : 'N/A';
-                        faceRatioEl.textContent = data.face_ratio !== undefined ? data.face_ratio : 'N/A';
+                        if (candName) candName.textContent = currentUser ? currentUser.name : 'N/A';
+                        if (candSession) candSession.textContent = currentUser ? (currentUser.session_id || 'N/A') : 'N/A';
+                        if (faceRatioEl) faceRatioEl.textContent = data.face_ratio !== undefined ? data.face_ratio : 'N/A';
 
                         const finalScore = data.final_score;
                         if (examRunning) {
-                            candScore.textContent = 'In Progress';
-                            candRemark.textContent = 'Exam ongoing';
+                            if (candScore) candScore.textContent = 'In Progress';
+                            if (candRemark) candRemark.textContent = 'Exam ongoing';
                         } else if (sessionEvents.length === 0 && !startedAt) {
-                            candScore.textContent = '0';
-                            candRemark.textContent = 'Not yet started';
+                            if (candScore) candScore.textContent = '0';
+                            if (candRemark) candRemark.textContent = 'Not yet started';
                         } else if (finalScore !== null && finalScore !== undefined && !examRunning) {
-                            candScore.textContent = finalScore;
+                            if (candScore) candScore.textContent = finalScore;
                             let remark = '';
                             if (finalScore >= 90) remark = 'Excellent';
                             else if (finalScore >= 70) remark = 'Good';
                             else if (finalScore >= 50) remark = 'Fair';
                             else remark = 'Needs Improvement';
-                            candRemark.textContent = remark;
+                            if (candRemark) candRemark.textContent = remark;
                         } else {
-                            candScore.textContent = '0';
-                            candRemark.textContent = 'No session';
+                            if (candScore) candScore.textContent = '0';
+                            if (candRemark) candRemark.textContent = 'No session';
                         }
-                        riskLabel.textContent = data.risk_label || 'N/A';
+                        if (riskLabel) riskLabel.textContent = data.risk_label || 'N/A';
 
                         let faceAbsenceCount = 0, multipleFacesCount = 0, totalSuspicious = 0;
                         sessionEvents.forEach(ev => {
@@ -3033,9 +3033,10 @@
                             else if (ev.type === 'Multiple Faces') multipleFacesCount++;
                             if (ev.deducted > 0) totalSuspicious++;
                         });
-                        faceAbsenceCountEl.textContent = faceAbsenceCount;
-                        multipleFacesCountEl.textContent = multipleFacesCount;
-                                                totalSuspiciousEl.textContent = totalSuspicious;
+                        if (faceAbsenceCountEl) faceAbsenceCountEl.textContent = faceAbsenceCount;
+                        if (multipleFacesCountEl) multipleFacesCountEl.textContent = multipleFacesCount;
+                        if (totalSuspiciousEl) totalSuspiciousEl.textContent = totalSuspicious;
+
                         const readinessStateEl = document.getElementById('readinessState');
                         const readinessDetailEl = document.getElementById('readinessDetail');
                         const notificationStateEl = document.getElementById('notificationState');
@@ -3045,21 +3046,23 @@
                         if (notificationStateEl) notificationStateEl.textContent = totalSuspicious ? `${totalSuspicious} flagged` : '0 new';
                         if (notificationDetailEl) notificationDetailEl.textContent = totalSuspicious ? 'Review integrity events' : 'You\'re all caught up!';
 
-                        scoreValue.textContent = integrityScore;
+                        if (scoreValue) scoreValue.textContent = integrityScore;
 
-                        scoreBar.style.width = integrityScore + '%';
-                        if (integrityScore >= 70) {
-                            scoreBar.style.background = 'linear-gradient(90deg, #51cf66, #69db7c)';
-                        } else if (integrityScore >= 40) {
-                            scoreBar.style.background = 'linear-gradient(90deg, #fcc419, #ffd43b)';
-                        } else {
-                            scoreBar.style.background = 'linear-gradient(90deg, #ff6b6b, #ff8787)';
+                        if (scoreBar) {
+                            scoreBar.style.width = integrityScore + '%';
+                            if (integrityScore >= 70) {
+                                scoreBar.style.background = 'linear-gradient(90deg, #51cf66, #69db7c)';
+                            } else if (integrityScore >= 40) {
+                                scoreBar.style.background = 'linear-gradient(90deg, #fcc419, #ffd43b)';
+                            } else {
+                                scoreBar.style.background = 'linear-gradient(90deg, #ff6b6b, #ff8787)';
+                            }
                         }
 
                         const durationFormatted = formatTime(sessionDurationSec);
-                        sessionDurationEl.textContent = durationFormatted;
-                        statsDurationEl.textContent = durationFormatted;
-                        totalDeductedEl.textContent = totalDeducted;
+                        if (sessionDurationEl) sessionDurationEl.textContent = durationFormatted;
+                        if (statsDurationEl) statsDurationEl.textContent = durationFormatted;
+                        if (totalDeductedEl) totalDeductedEl.textContent = totalDeducted;
                         elapsedSeconds = sessionDurationSec;
 
                         renderEventLog(sessionEvents);
