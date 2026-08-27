@@ -4069,25 +4069,21 @@
 
                 // ====== SYSTEM DIAGNOSTICS LOGIC ======
         const sysDiagBtn = document.getElementById('sysDiagBtn');
-        const systemDiagModal = document.getElementById('systemDiagModal');
-        const sysDiagCloseBtn = document.getElementById('sysDiagCloseBtn');
         const runSysDiagBtn = document.getElementById('runSysDiagBtn');
 
         if (sysDiagBtn) {
             sysDiagBtn.addEventListener('click', () => {
+                const systemDiagModal = document.getElementById('systemDiagModal');
                 if (systemDiagModal) systemDiagModal.classList.add('is-open');
             });
         }
-        if (sysDiagCloseBtn) {
-            sysDiagCloseBtn.addEventListener('click', () => {
-                if (systemDiagModal) systemDiagModal.classList.remove('is-open');
-            });
-        }
-        if (systemDiagModal) {
-            systemDiagModal.addEventListener('click', (e) => {
-                if (e.target === systemDiagModal) systemDiagModal.classList.remove('is-open');
-            });
-        }
+        document.body.addEventListener('click', (e) => {
+            const systemDiagModal = document.getElementById('systemDiagModal');
+            if (!systemDiagModal) return;
+            if (e.target.closest('#sysDiagCloseBtn') || e.target === systemDiagModal) {
+                systemDiagModal.classList.remove('is-open');
+            }
+        });
 
         const setDiagItemState = (id, state, message) => {
             const li = document.getElementById(id);
