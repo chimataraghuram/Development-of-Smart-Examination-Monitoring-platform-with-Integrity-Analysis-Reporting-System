@@ -11,12 +11,31 @@
         /* ---------- RESET & BASE ---------- */
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
+            position: relative;
+            z-index: 0;
             font-family: 'Inter', sans-serif;
             background: #020a29;
             color: #f0f0ff;
             min-height: 100vh;
             padding: 20px 30px;
         }
+        
+        
+        #tsparticles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        .header, .exam-controls, .integrity-score, .dashboard-layout, .profile-modal, .settings-modal, .network-modal {
+            position: relative;
+            z-index: 10;
+        }
+
         /* ---------- HEADER (unchanged) ---------- */
         .header {
             display: flex;
@@ -64,7 +83,7 @@
             font-weight: 600;
         }
         .dropdown {
-            position: relative;
+            position: relative; z-index: 0;
             display: inline-block;
         }
         .dropdown-btn {
@@ -201,7 +220,7 @@
             border: 1px solid rgba(255,255,255,0.04);
         }
         .camera-preview .camera-container {
-            position: relative;
+            position: relative; z-index: 0;
             width: 100%;
             max-width: 480px;
             margin: 0 auto;
@@ -260,7 +279,7 @@
             overflow-y: auto;
             border: 1px solid rgba(255,255,255,0.06);
             box-shadow: 0 30px 80px rgba(0,0,0,0.6);
-            position: relative;
+            position: relative; z-index: 0;
         }
         .wizard-card .step-indicator {
             display: flex;
@@ -330,7 +349,7 @@
             max-width: 480px;
         }
         .checks-camera .camera-container {
-            position: relative;
+            position: relative; z-index: 0;
             width: 100%;
             border-radius: 12px;
             overflow: hidden;
@@ -536,7 +555,7 @@
 }
 
 .timeline {
-    position: relative;
+    position: relative; z-index: 0;
     padding: 30px 0 10px 0;
     min-height: 100px;
     display: flex;
@@ -560,7 +579,7 @@
 }
 
 .timeline-item {
-    position: relative;
+    position: relative; z-index: 0;
     flex: 0 0 100px;  /* fixed width, adjust as needed */
     display: flex;
     flex-direction: column;
@@ -1166,6 +1185,8 @@
 </head>
 
 <body>
+    <!-- tsParticles container -->
+    <div id="tsparticles"></div>
         <div id="profileModal" class="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle">
         <div class="profile-card">
             <div class="profile-card-header">
@@ -3130,17 +3151,32 @@
             });
 
             // Dropdown listeners removed because UI changed
-            window.switchDashboardTab = function(panelName) {
+                        window.switchDashboardTab = function(panelName) {
                 document.querySelectorAll('.nav-pill').forEach(btn => btn.classList.remove('active'));
                 const activeBtn = Array.from(document.querySelectorAll('.nav-pill')).find(btn => btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(panelName));
                 if (activeBtn) activeBtn.classList.add('active');
                 document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
                 const targetPanel = document.getElementById('panel' + panelName.charAt(0).toUpperCase() + panelName.slice(1));
                 if (targetPanel) targetPanel.classList.add('active');
+                
+                // Ensure particles are visible on all tabs
+                const particles = document.getElementById('tsparticles');
+                if (particles) {
+                    particles.style.display = 'block';
+                }
+
+                const examControls = document.querySelector('.exam-controls');
+                const integrityScore = document.querySelector('.integrity-score');
+                if (examControls) {
+                    examControls.style.display = (panelName === 'candidate') ? 'flex' : 'none';
+                }
+                if (integrityScore) {
+                    integrityScore.style.display = (panelName === 'candidate') ? 'flex' : 'none';
+                }
+
                 if (panelName === 'session') { renderEventLog(sessionEvents); renderTimeline(sessionEvents); }
                 else if (panelName === 'stats') { drawPieChart(sessionEvents); }
-                                else if (panelName === 'report') { loadInlineReport(); }
-
+                else if (panelName === 'report') { loadInlineReport(); }
             };
 
                         document.getElementById('reportRefreshBtn')?.addEventListener('click', loadInlineReport);
@@ -3189,5 +3225,22 @@
         });
     </script>
 
+    <!-- tsParticles library -->
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles-slim@2.0.6/tsparticles.slim.bundle.min.js"></script>
+    <script>
+        tsParticles.load("tsparticles", {
+          fpsLimit: 60,
+          particles: {
+            color: { value: "#4da8da" },
+            links: { color: "#4da8da", distance: 150, enable: true, opacity: 0.15, width: 1 },
+            move: { enable: true, speed: 0.3, direction: "none", random: false, straight: false, outModes: { default: "bounce" } },
+            number: { density: { enable: true, area: 800 }, value: 30 },
+            opacity: { value: 0.3 },
+            shape: { type: "circle" },
+            size: { value: { min: 1, max: 2 } },
+          },
+          detectRetina: true,
+        });
+    </script>
 </body>
 </html>

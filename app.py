@@ -355,6 +355,16 @@ def serve_profile_avatar(user_id):
         return redirect(url_for('static', filename='student-profile-default.png'))
     return send_from_directory(app.config['UPLOAD_FOLDER'], image_path)
 
+@app.route('/api/network/speed-test', methods=['GET'])
+@login_required
+def network_speed_test():
+    payload = b'0' * (128 * 1024)
+    response = make_response(payload)
+    response.headers['Content-Type'] = 'application/octet-stream'
+    response.headers['Content-Length'] = str(len(payload))
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+    return response
+
 @app.route('/api/network/health', methods=['GET'])
 @login_required
 def network_health():
