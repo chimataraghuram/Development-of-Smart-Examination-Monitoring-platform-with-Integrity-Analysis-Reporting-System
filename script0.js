@@ -1671,9 +1671,10 @@
                     } else {
                         reportBody.innerHTML = events.map(event => {
                             const screenshot = event.screenshot_path
-                                ? `<span class="report-screenshot" data-screenshot="${escapeReportHtml(event.screenshot_path)}">View</span>`
+                                ? `<span class="report-screenshot" style="color: #4dabf7; cursor: pointer; text-decoration: underline;" data-screenshot="${escapeReportHtml(event.screenshot_path)}">View</span>`
                                 : '<span style="color:rgba(255,255,255,0.25);">No</span>';
-                            return `<tr><td>${escapeReportHtml(event.type || 'Event')}</td><td>${escapeReportHtml(event.timestamp || 'N/A')}</td><td>${escapeReportHtml(event.deducted || 0)}</td><td>${screenshot}</td></tr>`;
+                            const deductedHtml = event.deducted > 0 ? `<span style="color: #ff6b6b;">${escapeReportHtml(event.deducted)}</span>` : '0';
+                            return `<tr><td>${escapeReportHtml(event.type || 'Event')}</td><td>${escapeReportHtml(event.timestamp || 'N/A')}</td><td>${deductedHtml}</td><td>${screenshot}</td></tr>`;
                         }).join('');
                         reportBody.querySelectorAll('[data-screenshot]').forEach(link => {
                             link.addEventListener('click', () => window.open(`/evidence/${encodeURIComponent(link.dataset.screenshot)}`, '_blank', 'noopener'));
