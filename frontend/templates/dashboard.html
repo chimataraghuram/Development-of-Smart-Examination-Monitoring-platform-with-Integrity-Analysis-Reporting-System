@@ -1972,7 +1972,7 @@
                 </div>
                 <div class="workspace-reference-status">
                     <button type="button" id="connectionStatusButtonTop" class="reference-status-card reference-connection-card network-status-button" aria-label="Check live network connection"><span class="reference-status-icon connection-icon"><i class="fas fa-wifi"></i></span><span class="reference-status-copy"><small>Connection</small><strong id="connectionState">Check connection</strong><em id="connectionDetail">Click to check</em></span><span class="reference-status-badge" id="connectionCheckBadge"><i class="fas fa-check"></i></span></button>
-                    <button type="button" id="sysDiagBtn" class="reference-status-card" aria-label="Run System Readiness Diagnostics"><span class="reference-status-icon readiness-icon"><i class="fas fa-clipboard-check"></i></span><span class="reference-status-copy"><small>Readiness</small><strong id="readinessState">Ready</strong><em id="readinessDetail">All systems operational</em></span><span class="reference-status-badge"><i class="fas fa-arrow-right" style="font-size:12px;"></i></span></button>
+                    <button type="button" id="sysDiagBtn" class="reference-status-card" aria-label="Run System Readiness Diagnostics"><span class="reference-status-icon readiness-icon"><i class="fas fa-clipboard-check"></i></span><span class="reference-status-copy"><small>Readiness</small><strong id="readinessState">Diagnose system</strong><em id="readinessDetail">Run system check</em></span><span class="reference-status-badge"><i class="fas fa-arrow-right" style="font-size:12px;"></i></span></button>
                     <div class="reference-status-card"><span class="reference-status-icon notifications-icon"><i class="fas fa-bell"></i></span><span class="reference-status-copy"><small>Notifications</small><strong id="notificationState">0 new</strong><em id="notificationDetail">You're all caught up!</em></span><span class="reference-status-badge"><i class="fas fa-check"></i></span></div>
                 </div>
             </div>
@@ -3060,8 +3060,8 @@
                         const readinessDetailEl = document.getElementById('readinessDetail');
                         const notificationStateEl = document.getElementById('notificationState');
                         const notificationDetailEl = document.getElementById('notificationDetail');
-                        if (readinessStateEl) readinessStateEl.textContent = examRunning ? 'In progress' : 'Ready';
-                        if (readinessDetailEl) readinessDetailEl.textContent = examRunning ? 'Monitoring active' : 'All systems operational';
+                        if (readinessStateEl) readinessStateEl.textContent = examRunning ? 'In progress' : 'Diagnose system';
+                        if (readinessDetailEl) readinessDetailEl.textContent = examRunning ? 'Monitoring active' : 'Run system check';
                         if (notificationStateEl) notificationStateEl.textContent = totalSuspicious ? `${totalSuspicious} flagged` : '0 new';
                         if (notificationDetailEl) notificationDetailEl.textContent = totalSuspicious ? 'Review integrity events' : 'You\'re all caught up!';
 

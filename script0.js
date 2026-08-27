@@ -781,8 +781,8 @@
                         const readinessDetailEl = document.getElementById('readinessDetail');
                         const notificationStateEl = document.getElementById('notificationState');
                         const notificationDetailEl = document.getElementById('notificationDetail');
-                        if (readinessStateEl) readinessStateEl.textContent = examRunning ? 'In progress' : 'Ready';
-                        if (readinessDetailEl) readinessDetailEl.textContent = examRunning ? 'Monitoring active' : 'All systems operational';
+                        if (readinessStateEl) readinessStateEl.textContent = examRunning ? 'In progress' : 'Diagnose system';
+                        if (readinessDetailEl) readinessDetailEl.textContent = examRunning ? 'Monitoring active' : 'Run system check';
                         if (notificationStateEl) notificationStateEl.textContent = totalSuspicious ? `${totalSuspicious} flagged` : '0 new';
                         if (notificationDetailEl) notificationDetailEl.textContent = totalSuspicious ? 'Review integrity events' : 'You\'re all caught up!';
 
