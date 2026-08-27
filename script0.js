@@ -727,9 +727,10 @@
                         });
 
                                                 const renderBadge = (score) => {
-                            if (score >= 90) return ' <i class="fas fa-shield-check" style="color: #51cf66;" title="High Trust"></i>';
-                            if (score >= 70) return ' <i class="fas fa-shield-alt" style="color: #fcc419;" title="Verified"></i>';
-                            return ' <i class="fas fa-shield-virus" style="color: #ff6b6b;" title="Unverified"></i>';
+                            const baseStyle = "display:inline-flex; align-items:center; gap:5px; padding:2px 8px; border-radius:12px; font-size:10px; font-weight:700; vertical-align:middle; margin-left:10px; letter-spacing:0.5px; text-transform:uppercase;";
+                            if (score >= 90) return ` <span style="${baseStyle} background:rgba(46, 204, 113, 0.15); border:1px solid rgba(46, 204, 113, 0.3); color:#2ecc71; box-shadow:0 0 8px rgba(46, 204, 113, 0.2);"><i class="fas fa-shield-check"></i> High Trust</span>`;
+                            if (score >= 70) return ` <span style="${baseStyle} background:rgba(241, 196, 15, 0.15); border:1px solid rgba(241, 196, 15, 0.3); color:#f1c40f; box-shadow:0 0 8px rgba(241, 196, 15, 0.2);"><i class="fas fa-shield-alt"></i> Verified</span>`;
+                            return ` <span style="${baseStyle} background:rgba(231, 76, 60, 0.15); border:1px solid rgba(231, 76, 60, 0.3); color:#e74c3c; box-shadow:0 0 8px rgba(231, 76, 60, 0.2);"><i class="fas fa-shield-virus"></i> Unverified</span>`;
                         };
 
                         const badgeHtml = renderBadge(integrityScore);
@@ -1783,7 +1784,7 @@
             `;
             document.body.appendChild(cameraSection);
 
-        ﻿        // ====== SYSTEM DIAGNOSTICS LOGIC ======
+                // ====== SYSTEM DIAGNOSTICS LOGIC ======
         const sysDiagBtn = document.getElementById('sysDiagBtn');
         const systemDiagModal = document.getElementById('systemDiagModal');
         const sysDiagCloseBtn = document.getElementById('sysDiagCloseBtn');
