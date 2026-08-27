@@ -298,19 +298,32 @@
                 if (profileAvatarImage) profileAvatarImage.src = avatarUrl;
                 if (profileTriggerAvatar) profileTriggerAvatar.src = avatarUrl;
                 if (settingsAvatarPreview) settingsAvatarPreview.src = avatarUrl;
-                document.getElementById('profileName').textContent = user.name || 'Candidate';
-                document.getElementById('profileRoleLabel').textContent = user.role === 'admin' ? 'Administrator account' : 'Candidate account';
-                document.getElementById('profileRole').textContent = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Candidate';
-                document.getElementById('profileStudentId').textContent = user.student_id || 'Not provided';
-                document.getElementById('profileAge').textContent = age !== null && age !== undefined ? `${age} years` : 'Not provided';
-                document.getElementById('profileEmail').textContent = user.email || 'Not provided';
-                document.getElementById('profileSessionId').textContent = user.session_id || 'Not provided';
-                document.getElementById('profileAccountId').textContent = user.id ?? 'Not provided';
-                document.getElementById('profileCreatedAt').textContent = formatProfileDate(user.created_at);
+
+                const safeSetText = (id, text) => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = text;
+                };
+
+                safeSetText('profileName', user.name || 'Candidate');
+                safeSetText('profileRoleLabel', user.role === 'admin' ? 'Administrator account' : 'Candidate account');
+                safeSetText('profileRole', user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Candidate');
+                safeSetText('profileStudentId', user.student_id || 'Not provided');
+                safeSetText('profileAge', age !== null && age !== undefined ? `${age} years` : 'Not provided');
+                safeSetText('profileEmail', user.email || 'Not provided');
+                safeSetText('profileSessionId', user.session_id || 'Not provided');
+                safeSetText('profileAccountId', user.id ?? 'Not provided');
+                safeSetText('profileCreatedAt', formatProfileDate(user.created_at));
+                
                 const score = dashboardData && dashboardData.integrity_score !== undefined ? dashboardData.integrity_score : 100;
-                document.getElementById('profileIntegrityScore').textContent = `${score} / 100`;
-                document.getElementById('profileStatus').textContent = 'Account active';
-                document.getElementById('profileNoteText').textContent = age !== null && age !== undefined ? 'Profile information is loaded from your authenticated account and current examination session.' : 'Age is not stored for this account. Other available account and examination details are shown above.';
+                safeSetText('profileIntegrityScore', `${score} / 100`);
+                safeSetText('profileStatus', 'Account active');
+                safeSetText('profileNoteText', age !== null && age !== undefined ? 'Profile information is loaded from your authenticated account and current examination session.' : 'Age is not stored for this account. Other available account and examination details are shown above.');
+
+                // Fallback for new redesign classes if needed
+                document.querySelectorAll('.profileNameDisplay').forEach(el => el.textContent = user.name || 'Candidate');
+                safeSetText('profileIntegrityScoreNum', score);
+                const fillEl = document.getElementById('profileIntegrityFill');
+                if (fillEl) fillEl.style.width = score + '%';
             }
 
             function closeProfileModal() {
@@ -649,15 +662,17 @@
 
             function setupNetworkStatus() {
                 networkStatusButtons.forEach(button => button.addEventListener('click', () => {
-                    networkModal.classList.add('is-open');
+                    if (networkModal) networkModal.classList.add('is-open');
                     runNetworkDiagnosis();
                 }));
                 if (networkRefreshButton) networkRefreshButton.addEventListener('click', runNetworkDiagnosis);
-                networkCloseButton.addEventListener('click', closeNetworkModal);
-                networkCloseButtonSecondary.addEventListener('click', closeNetworkModal);
-                networkModal.addEventListener('click', event => {
-                    if (event.target === networkModal) closeNetworkModal();
-                });
+                if (networkCloseButton) networkCloseButton.addEventListener('click', closeNetworkModal);
+                if (networkCloseButtonSecondary) networkCloseButtonSecondary.addEventListener('click', closeNetworkModal);
+                if (networkModal) {
+                    networkModal.addEventListener('click', event => {
+                        if (event.target === networkModal) closeNetworkModal();
+                    });
+                }
                 if (networkHeaderClock) {
                     const updateClock = () => { networkHeaderClock.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
                     updateClock();
