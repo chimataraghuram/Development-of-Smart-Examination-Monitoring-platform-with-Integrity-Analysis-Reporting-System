@@ -1757,6 +1757,87 @@
             .cp-grid { grid-template-columns: 1fr; }
         }
 </style>
+    <!-- ===== BEAUTIFUL UI ANIMATIONS ===== -->
+    <style>
+        /* Smooth entrance for panels */
+        @keyframes slideUpFade {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .panel.active {
+            animation: slideUpFade 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+
+        /* Hover lift effects for cards */
+        .stats-card, .report-card, .session-card, .info-card {
+            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+        }
+        .stats-card:hover, .report-card:hover, .session-card:hover, .info-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4) !important;
+            z-index: 10;
+        }
+
+        /* Table row hover effects */
+        .report-event-table tbody tr, .event-table tbody tr {
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+        .report-event-table tbody tr:hover, .event-table tbody tr:hover {
+            background-color: rgba(124, 77, 255, 0.1);
+            transform: scale(1.01);
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border-radius: 8px;
+        }
+        .report-event-table tbody tr:hover td:first-child, .event-table tbody tr:hover td:first-child {
+            border-top-left-radius: 8px; border-bottom-left-radius: 8px;
+        }
+        .report-event-table tbody tr:hover td:last-child, .event-table tbody tr:hover td:last-child {
+            border-top-right-radius: 8px; border-bottom-right-radius: 8px;
+        }
+
+        /* Timeline node hover */
+        .timeline-item {
+            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .timeline-item:hover {
+            transform: translateY(-10px) scale(1.1);
+        }
+
+        /* Button hover & active effects */
+        .nav-pill {
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .nav-pill:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(124,77,255,0.2);
+        }
+        .btn-download, .report-refresh-btn, .btn-outline {
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .btn-download:hover, .report-refresh-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(124,77,255,0.5);
+        }
+        
+        /* Interactive icon hover */
+        .card-icon, .rc-icon, .stats-header-icon, .report-header-icon {
+            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s ease;
+        }
+        .stats-card:hover .card-icon, .report-card:hover .rc-icon {
+            transform: scale(1.15) rotate(5deg);
+        }
+
+        /* Chart Canvas Hover */
+        #pieChart {
+            transition: transform 0.4s ease, filter 0.4s ease;
+        }
+        #pieChart:hover {
+            transform: scale(1.05);
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+        }
+    </style>
 </head>
 
 <body>
