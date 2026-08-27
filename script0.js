@@ -216,12 +216,12 @@
     // Add Start marker (if we have started_at)
     if (startedAt) {
         const startTs = new Date(startedAt).getTime();
-        const pos = ((startTs - startTime) / duration) * 100;
         html += `
-            <div class="timeline-item start" style="flex-basis:auto; min-width:80px;">
+            <div class="timeline-item start">
                 <div class="event-time time-start">${formatTimeDisplay(startTs)}</div>
                 <div class="timeline-dot"></div>
                 <div class="event-type type-start">Start</div>
+                <div class="event-deduction" style="color: rgba(255,255,255,0.4);">Session started</div>
             </div>
         `;
     }
@@ -229,9 +229,6 @@
     // Add event dots
     sorted.forEach((ev) => {
         const evTs = new Date(ev.timestamp).getTime();
-        // clamp to [start, end]
-        const clamped = Math.min(Math.max(evTs, startTime), endTime);
-        const pos = ((clamped - startTime) / duration) * 100;
         const isSuspicious = ev.deducted > 0;
         const cls = isSuspicious ? 'timeline-item suspicious' : 'timeline-item';
         // map event type to short label
@@ -244,11 +241,11 @@
         else label = ev.type;
 
         html += `
-            <div class="${cls}" style="flex-basis:auto; min-width:80px;">
+            <div class="${cls}">
                 <div class="event-time">${formatTimeDisplay(evTs)}</div>
                 <div class="timeline-dot"></div>
                 <div class="event-type">${label}</div>
-                ${ev.deducted ? `<div class="event-deduction">-${ev.deducted}</div>` : ''}
+                ${ev.deducted ? `<div class="event-deduction">-${ev.deducted} points</div>` : ''}
             </div>
         `;
     });
@@ -257,10 +254,11 @@
     if (endedAt) {
         const endTs = new Date(endedAt).getTime();
         html += `
-            <div class="timeline-item end" style="flex-basis:auto; min-width:80px;">
+            <div class="timeline-item end">
                 <div class="event-time time-end">${formatTimeDisplay(endTs)}</div>
                 <div class="timeline-dot"></div>
                 <div class="event-type type-end">End</div>
+                <div class="event-deduction" style="color: rgba(255,255,255,0.4);">Session ended</div>
             </div>
         `;
     }
@@ -826,10 +824,18 @@
                 }
                 let html = '';
                 eventsArray.slice().reverse().forEach(ev => {
+                    let iconHtml = '<div class="event-icon" style="background: rgba(255,255,255,0.1); color: #fff;"><i class="fas fa-info-circle"></i></div>';
+                    let evType = (ev.type || '').toLowerCase();
+                    if (evType.includes('browser') || evType.includes('focus')) {
+                        iconHtml = '<div class="event-icon" style="background: rgba(255,107,107,0.1); color: #ff6b6b;"><i class="fas fa-desktop"></i></div>';
+                    } else if (evType.includes('multiple') || evType.includes('face')) {
+                        iconHtml = '<div class="event-icon" style="background: rgba(124,77,255,0.1); color: #b8aaff;"><i class="fas fa-users"></i></div>';
+                    }
+                    let deductedHtml = ev.deducted ? `<span style="color: #ff6b6b;">${ev.deducted}</span>` : '0';
                     html += `<tr>
-                        <td>${ev.type}</td>
+                        <td><div class="event-type-cell">${iconHtml}<span>${ev.type}</span></div></td>
                         <td>${ev.timestamp}</td>
-                        <td>${ev.deducted || 0}</td>
+                        <td>${deductedHtml}</td>
                     </tr>`;
                 });
                 eventLogBody.innerHTML = html;

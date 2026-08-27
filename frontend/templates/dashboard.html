@@ -538,13 +538,8 @@
         td { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03); color: rgba(255,255,255,0.8); }
         tr:last-child td { border-bottom: none; }
 
-       /* ---------- EVENT TIMELINE (horizontal with dots) ---------- */
+/* ---------- EVENT TIMELINE (horizontal with dots) ---------- */
 .timeline-container {
-    margin-top: 24px;
-    background: rgba(255,255,255,0.02);
-    border-radius: 16px;
-    padding: 24px 20px;
-    border: 1px solid rgba(255,255,255,0.04);
     overflow-x: auto;
 }
 .timeline-container h3 {
@@ -556,13 +551,13 @@
 
 .timeline {
     position: relative; z-index: 0;
-    padding: 30px 0 10px 0;
-    min-height: 100px;
+    padding: 20px 40px;
+    min-height: 120px;
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
     flex-wrap: nowrap;
-    gap: 0;
+    gap: 40px;
     overflow-x: auto;
 }
 
@@ -570,73 +565,75 @@
 .timeline::before {
     content: '';
     position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: rgba(255,255,255,0.1);
-    transform: translateY(-50%);
+    top: 40px; /* center relative to dots */
+    left: 40px;
+    right: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, #51cf66 0%, #ff6b6b 50%, #fcc419 100%);
+    z-index: 0;
 }
 
 .timeline-item {
-    position: relative; z-index: 0;
-    flex: 0 0 100px;  /* fixed width, adjust as needed */
+    position: relative; z-index: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding: 0 6px;
+    min-width: 100px;
 }
 
 /* The dot */
 .timeline-item .timeline-dot {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
-    background: #7c4dff;
-    border: 2px solid #0b0e1a;
-    box-shadow: 0 0 0 2px rgba(124,77,255,0.3);
-    margin-bottom: 8px;
+    background: #120e34; /* dark bg to look hollow */
+    border: 3px solid #7c4dff;
+    box-shadow: 0 0 10px rgba(124,77,255,0.5);
+    margin: 8px 0;
     z-index: 1;
     flex-shrink: 0;
 }
 .timeline-item.suspicious .timeline-dot {
-    background: #ff6b6b;
-    box-shadow: 0 0 0 2px rgba(255,107,107,0.3);
+    border-color: #ff6b6b;
+    box-shadow: 0 0 10px rgba(255,107,107,0.5);
 }
-.timeline-item.start .timeline-dot,
-.timeline-item.end .timeline-dot {
-    background: #51cf66;
-    box-shadow: 0 0 0 2px rgba(81,207,102,0.3);
+.timeline-item.start .timeline-dot {
+    border-color: #51cf66;
+    box-shadow: 0 0 10px rgba(81,207,102,0.5);
 }
 .timeline-item.end .timeline-dot {
-    background: #fcc419;
-    box-shadow: 0 0 0 2px rgba(252,196,25,0.3);
+    border-color: #fcc419;
+    box-shadow: 0 0 10px rgba(252,196,25,0.5);
 }
 
 .timeline-item .event-time {
-    font-size: 11px;
-    color: rgba(255,255,255,0.5);
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.6);
     margin-bottom: 4px;
     white-space: nowrap;
 }
+.timeline-item.start .event-time { color: #51cf66; }
+.timeline-item.suspicious .event-time { color: #ff6b6b; }
+.timeline-item.end .event-time { color: #51cf66; /* Or yellow, based on design image yellow node has green text? Let's check: the text is 13:02:31 in green. */ color: #51cf66; }
+
 .timeline-item .event-type {
-    font-size: 12px;
-    font-weight: 500;
+    font-size: 13px;
+    font-weight: 600;
     color: #f0f0ff;
     word-break: break-word;
-    max-width: 80px;
+    max-width: 100px;
 }
 .timeline-item .event-deduction {
-    font-size: 10px;
+    font-size: 12px;
     color: #ff6b6b;
-    margin-top: 2px;
+    margin-top: 4px;
 }
 
 .timeline-item .event-time.time-start,
 .timeline-item .event-time.time-end {
     font-weight: 600;
-    color: #51cf66;
 }
 .timeline-item .event-type.type-start,
 .timeline-item .event-type.type-end {
@@ -1181,6 +1178,165 @@
         @media (max-width:1100px) { .reference-workspace-card { min-height:0; padding:30px 28px; gap:28px; } .workspace-reference-status { gap:12px; } .workspace-reference-status .reference-status-card { min-height:96px; padding:12px; } .workspace-reference-status .reference-status-icon { width:46px; height:46px; flex-basis:46px; font-size:22px; } .workspace-reference-status .reference-status-copy strong { font-size:16px; } }
         @media (max-width:640px) { .reference-workspace-card { padding:22px 18px; gap:24px; } .workspace-reference-left { gap:18px; } .workspace-reference-name { font-size:24px; } .workspace-reference-exam { font-size:14px; } .workspace-reference-copy p { font-size:11px; } }
 
+        /* ===== REDESIGNED ACTIVITY PAGE ===== */
+        #panelSession h2 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #f0f0ff;
+        }
+        .session-sub {
+            color: rgba(255,255,255,0.5);
+            font-size: 14px;
+            margin-bottom: 28px;
+        }
+        .session-cards {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .session-card {
+            flex: 1;
+            min-width: 250px;
+            background: linear-gradient(135deg, rgba(20,12,50,0.8), rgba(12,8,30,0.9));
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border: 1px solid rgba(255,255,255,0.06);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .session-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0; right: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at bottom right, rgba(124,77,255,0.1), transparent 60%);
+            pointer-events: none;
+        }
+        .card-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: #fff;
+            flex-shrink: 0;
+            z-index: 1;
+        }
+        .duration-card .card-icon {
+            background: rgba(124,77,255,0.2);
+            box-shadow: inset 0 0 20px rgba(124,77,255,0.5);
+        }
+        .deducted-card .card-icon {
+            background: rgba(68,138,255,0.2);
+            box-shadow: inset 0 0 20px rgba(68,138,255,0.5);
+        }
+        .card-content {
+            z-index: 1;
+        }
+        .card-content .label {
+            font-size: 11px;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .card-content .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.2;
+            margin-bottom: 4px;
+        }
+        .card-content .sub-label {
+            font-size: 13px;
+            color: rgba(255,255,255,0.4);
+        }
+        .session-section {
+            background: rgba(255,255,255,0.02);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(255,255,255,0.04);
+            margin-bottom: 24px;
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .section-icon {
+            width: 32px;
+            height: 32px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #b8aaff;
+            font-size: 14px;
+        }
+        .section-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #f0f0ff;
+            margin: 0;
+        }
+        .section-header .section-sub {
+            font-size: 13px;
+            color: rgba(255,255,255,0.4);
+            margin-top: 4px;
+        }
+        
+        .session-section .table-wrap table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .session-section .table-wrap th {
+            text-align: left;
+            padding: 12px 16px;
+            color: rgba(255,255,255,0.4);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .session-section .table-wrap td {
+            padding: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.02);
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+            vertical-align: middle;
+        }
+        .event-type-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .event-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        /* Event timeline overrides */
+        .timeline-section .timeline-container {
+            margin-top: 0;
+            border: none;
+            padding: 0;
+            background: transparent;
+        }
     </style>
 </head>
 
@@ -1383,23 +1539,54 @@
         <!-- Session Panel -->
         <div class="panel" id="panelSession">
             <h2>Session Information</h2>
-            <div class="info-grid">
-                <div class="info-card"><div class="label">Session Duration</div><div class="value" id="sessionDuration">00:00</div></div>
-                <div class="info-card"><div class="label">Total Deducted Points</div><div class="value" id="totalDeducted">0</div></div>
+            <div class="session-sub">Overview of your exam session activity</div>
+            
+            <div class="session-cards">
+                <div class="session-card duration-card">
+                    <div class="card-icon"><i class="fas fa-clock"></i></div>
+                    <div class="card-content">
+                        <div class="label">SESSION DURATION</div>
+                        <div class="value" id="sessionDuration">00:00</div>
+                        <div class="sub-label">mm : ss</div>
+                    </div>
+                </div>
+                <div class="session-card deducted-card">
+                    <div class="card-icon"><i class="fas fa-shield-alt"></i></div>
+                    <div class="card-content">
+                        <div class="label">TOTAL DEDUCTED POINTS</div>
+                        <div class="value" id="totalDeducted">0</div>
+                        <div class="sub-label">points deducted</div>
+                    </div>
+                </div>
             </div>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr><th>Event Type</th><th>Timestamp</th><th>Score Deducted</th></tr></thead>
-                    <tbody id="eventLogBody">
-                        <tr><td colspan="3" style="text-align:center;color:rgba(255,255,255,0.3);">No events yet</td></tr>
-                    </tbody>
-                </table>
+
+            <div class="session-section">
+                <div class="section-header">
+                    <div class="section-icon"><i class="fas fa-file-alt"></i></div>
+                    <h3>Event Log</h3>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>EVENT TYPE</th><th>TIMESTAMP</th><th>SCORE DEDUCTED</th></tr></thead>
+                        <tbody id="eventLogBody">
+                            <tr><td colspan="3" style="text-align:center;color:rgba(255,255,255,0.3);">No events yet</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <!-- Timeline (horizontal) -->
-            <div class="timeline-container">
-                <h3><i class="fas fa-clock" style="margin-right:8px;"></i>Event Timeline</h3>
-                <div class="timeline" id="timeline">
-                    <p style="color:rgba(255,255,255,0.3);padding:20px;width:100%;text-align:center;">No events to display</p>
+
+            <div class="session-section timeline-section">
+                <div class="section-header">
+                    <div class="section-icon"><i class="fas fa-clock"></i></div>
+                    <div>
+                        <h3>Event Timeline</h3>
+                        <div class="section-sub">A chronological view of all events in this session</div>
+                    </div>
+                </div>
+                <div class="timeline-container">
+                    <div class="timeline" id="timeline">
+                        <p style="color:rgba(255,255,255,0.3);padding:20px;width:100%;text-align:center;">No events to display</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1781,12 +1968,12 @@
     // Add Start marker (if we have started_at)
     if (startedAt) {
         const startTs = new Date(startedAt).getTime();
-        const pos = ((startTs - startTime) / duration) * 100;
         html += `
-            <div class="timeline-item start" style="flex-basis:auto; min-width:80px;">
+            <div class="timeline-item start">
                 <div class="event-time time-start">${formatTimeDisplay(startTs)}</div>
                 <div class="timeline-dot"></div>
                 <div class="event-type type-start">Start</div>
+                <div class="event-deduction" style="color: rgba(255,255,255,0.4);">Session started</div>
             </div>
         `;
     }
@@ -1794,9 +1981,6 @@
     // Add event dots
     sorted.forEach((ev) => {
         const evTs = new Date(ev.timestamp).getTime();
-        // clamp to [start, end]
-        const clamped = Math.min(Math.max(evTs, startTime), endTime);
-        const pos = ((clamped - startTime) / duration) * 100;
         const isSuspicious = ev.deducted > 0;
         const cls = isSuspicious ? 'timeline-item suspicious' : 'timeline-item';
         // map event type to short label
@@ -1809,11 +1993,11 @@
         else label = ev.type;
 
         html += `
-            <div class="${cls}" style="flex-basis:auto; min-width:80px;">
+            <div class="${cls}">
                 <div class="event-time">${formatTimeDisplay(evTs)}</div>
                 <div class="timeline-dot"></div>
                 <div class="event-type">${label}</div>
-                ${ev.deducted ? `<div class="event-deduction">-${ev.deducted}</div>` : ''}
+                ${ev.deducted ? `<div class="event-deduction">-${ev.deducted} points</div>` : ''}
             </div>
         `;
     });
@@ -1822,10 +2006,11 @@
     if (endedAt) {
         const endTs = new Date(endedAt).getTime();
         html += `
-            <div class="timeline-item end" style="flex-basis:auto; min-width:80px;">
+            <div class="timeline-item end">
                 <div class="event-time time-end">${formatTimeDisplay(endTs)}</div>
                 <div class="timeline-dot"></div>
                 <div class="event-type type-end">End</div>
+                <div class="event-deduction" style="color: rgba(255,255,255,0.4);">Session ended</div>
             </div>
         `;
     }
@@ -2283,10 +2468,18 @@
                 }
                 let html = '';
                 eventsArray.slice().reverse().forEach(ev => {
+                    let iconHtml = '<div class="event-icon" style="background: rgba(255,255,255,0.1); color: #fff;"><i class="fas fa-info-circle"></i></div>';
+                    let evType = (ev.type || '').toLowerCase();
+                    if (evType.includes('browser') || evType.includes('focus')) {
+                        iconHtml = '<div class="event-icon" style="background: rgba(255,107,107,0.1); color: #ff6b6b;"><i class="fas fa-desktop"></i></div>';
+                    } else if (evType.includes('multiple') || evType.includes('face')) {
+                        iconHtml = '<div class="event-icon" style="background: rgba(124,77,255,0.1); color: #b8aaff;"><i class="fas fa-users"></i></div>';
+                    }
+                    let deductedHtml = ev.deducted ? `<span style="color: #ff6b6b;">${ev.deducted}</span>` : '0';
                     html += `<tr>
-                        <td>${ev.type}</td>
+                        <td><div class="event-type-cell">${iconHtml}<span>${ev.type}</span></div></td>
                         <td>${ev.timestamp}</td>
-                        <td>${ev.deducted || 0}</td>
+                        <td>${deductedHtml}</td>
                     </tr>`;
                 });
                 eventLogBody.innerHTML = html;
