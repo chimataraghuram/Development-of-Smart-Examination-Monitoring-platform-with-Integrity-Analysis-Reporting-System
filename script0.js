@@ -1677,7 +1677,15 @@
                             return `<tr><td>${escapeReportHtml(event.type || 'Event')}</td><td>${escapeReportHtml(event.timestamp || 'N/A')}</td><td>${deductedHtml}</td><td>${screenshot}</td></tr>`;
                         }).join('');
                         reportBody.querySelectorAll('[data-screenshot]').forEach(link => {
-                            link.addEventListener('click', () => window.open(`/evidence/${encodeURIComponent(link.dataset.screenshot)}`, '_blank', 'noopener'));
+                            link.addEventListener('click', () => {
+                                const url = `/evidence/${encodeURIComponent(link.dataset.screenshot)}`;
+                                if (document.getElementById('screenshotModalImg') && document.getElementById('screenshotModal')) {
+                                    document.getElementById('screenshotModalImg').src = url;
+                                    document.getElementById('screenshotModal').classList.add('is-open');
+                                } else {
+                                    window.open(url, '_blank', 'noopener');
+                                }
+                            });
                         });
                     }
                 } catch (error) {

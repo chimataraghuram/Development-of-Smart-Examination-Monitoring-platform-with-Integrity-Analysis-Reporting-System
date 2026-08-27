@@ -1577,6 +1577,47 @@
         .val-green { color: #51cf66 !important; }
         .val-orange { color: #ff922b !important; }
         .val-red { color: #ff6b6b !important; }
+        /* ---------- SCREENSHOT MODAL ---------- */
+        .screenshot-modal {
+            position: fixed; inset: 0; z-index: 10005; display: none;
+            align-items: center; justify-content: center; padding: 20px;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
+        }
+        .screenshot-modal.is-open {
+            display: flex; animation: fadeIn 0.2s ease;
+        }
+        .screenshot-modal-content {
+            position: relative;
+            max-width: 90vw; max-height: 90vh;
+            background: #000;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+        .screenshot-modal-content img {
+            max-width: 100%; max-height: 90vh;
+            display: block;
+            object-fit: contain;
+        }
+        .screenshot-close-btn {
+            position: absolute;
+            top: 15px; right: 15px;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .screenshot-close-btn:hover {
+            background: #ff6b6b;
+            border-color: #ff6b6b;
+        }
     </style>
 </head>
 
@@ -1651,6 +1692,14 @@
                 <button type="button" class="network-cancel-button" id="networkCloseButtonSecondary">Cancel</button>
                 <div class="network-last-checked" id="networkLastChecked">Not checked yet</div>
             </div>
+        </div>
+    </div>
+
+    <!-- Screenshot Modal -->
+    <div id="screenshotModal" class="screenshot-modal">
+        <div class="screenshot-modal-content">
+            <button class="screenshot-close-btn" id="screenshotCloseBtn" aria-label="Close screenshot"><i class="fas fa-times"></i></button>
+            <img id="screenshotModalImg" src="" alt="Event Screenshot">
         </div>
     </div>
 
@@ -2143,6 +2192,20 @@
             const networkModalTitle = document.getElementById('networkModalTitle');
             const networkHeaderClock = document.getElementById('networkHeaderClock');
             const networkModalDescription = document.getElementById('networkModalDescription');
+
+            // Screenshot Modal Elements
+            const screenshotModal = document.getElementById('screenshotModal');
+            const screenshotModalImg = document.getElementById('screenshotModalImg');
+            const screenshotCloseBtn = document.getElementById('screenshotCloseBtn');
+
+            if (screenshotCloseBtn) {
+                screenshotCloseBtn.addEventListener('click', () => screenshotModal.classList.remove('is-open'));
+            }
+            if (screenshotModal) {
+                screenshotModal.addEventListener('click', (e) => {
+                    if (e.target === screenshotModal) screenshotModal.classList.remove('is-open');
+                });
+            }
             const networkRefreshButton = document.getElementById('networkRefreshButton');
             const networkCloseButton = document.getElementById('networkCloseButton');
             const networkCloseButtonSecondary = document.getElementById('networkCloseButtonSecondary');
@@ -3662,7 +3725,15 @@
                             return `<tr><td>${escapeReportHtml(event.type || 'Event')}</td><td>${escapeReportHtml(event.timestamp || 'N/A')}</td><td>${deductedHtml}</td><td>${screenshot}</td></tr>`;
                         }).join('');
                         reportBody.querySelectorAll('[data-screenshot]').forEach(link => {
-                            link.addEventListener('click', () => window.open(`/evidence/${encodeURIComponent(link.dataset.screenshot)}`, '_blank', 'noopener'));
+                            link.addEventListener('click', () => {
+                                const url = `/evidence/${encodeURIComponent(link.dataset.screenshot)}`;
+                                if (document.getElementById('screenshotModalImg') && document.getElementById('screenshotModal')) {
+                                    document.getElementById('screenshotModalImg').src = url;
+                                    document.getElementById('screenshotModal').classList.add('is-open');
+                                } else {
+                                    window.open(url, '_blank', 'noopener');
+                                }
+                            });
                         });
                     }
                 } catch (error) {
