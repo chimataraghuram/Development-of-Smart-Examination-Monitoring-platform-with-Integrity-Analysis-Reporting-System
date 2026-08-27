@@ -1802,82 +1802,100 @@
             }
         });
 
-        const setDiagItemState = (id, state, message) => {
-            const li = document.getElementById(id);
-            if (!li) return;
-            const icon = li.querySelector('i');
-            const span = li.querySelector('span');
-            if (state === 'loading') {
-                icon.className = 'fas fa-spinner fa-spin';
-                icon.style.color = '#fff';
-            } else if (state === 'success') {
-                icon.className = 'fas fa-check-circle';
-                icon.style.color = '#51cf66';
-            } else if (state === 'error') {
-                icon.className = 'fas fa-times-circle';
-                icon.style.color = '#ff6b6b';
+        const setDiagItemState = (id, state, message, badgeText) => {
+    const li = document.getElementById(id);
+    if (!li) return;
+    const msgSpan = li.querySelector('.diag-msg');
+    const badge = li.querySelector('.diag-badge-el');
+    
+    if (msgSpan && message) msgSpan.textContent = message;
+    if (!badge) return;
+    
+    if (state === 'loading') {
+        badge.className = 'diag-badge pending diag-badge-el';
+        badge.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Checking';
+    } else if (state === 'success') {
+        badge.className = 'diag-badge success diag-badge-el';
+        badge.innerHTML = '<i class="fas fa-check-circle"></i> ' + (badgeText || 'Ready');
+    } else if (state === 'error') {
+        badge.className = 'diag-badge error diag-badge-el';
+        badge.innerHTML = '<i class="fas fa-times-circle"></i> Failed';
+    }
+};
+
+if (runSysDiagBtn) {
+    runSysDiagBtn.addEventListener('click', async () => {
+        runSysDiagBtn.disabled = true;
+        runSysDiagBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running...';
+        
+        const ids = ['chkBrowser', 'chkCamera', 'chkMic', 'chkNetwork'];
+        ids.forEach(id => setDiagItemState(id, 'loading', 'Checking...'));
+        
+        const summary = document.getElementById('chkSummary');
+        if (summary) summary.classList.remove('visible');
+        let allGood = true;
+
+        // 1. Browser
+        await new Promise(r => setTimeout(r, 600));
+        const isSupported = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+        setDiagItemState('chkBrowser', isSupported ? 'success' : 'error', isSupported ? 'Browser is compatible' : 'Incompatible browser', 'Compatible');
+        if (!isSupported) allGood = false;
+
+        // 2. Camera
+        if (isSupported) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                stream.getTracks().forEach(t => t.stop());
+                setDiagItemState('chkCamera', 'success', 'Camera access granted', 'Ready');
+            } catch (err) {
+                setDiagItemState('chkCamera', 'error', 'Camera access denied or unavailable');
+                allGood = false;
             }
-            if (message) span.textContent = message;
-        };
-
-        if (runSysDiagBtn) {
-            runSysDiagBtn.addEventListener('click', async () => {
-                runSysDiagBtn.disabled = true;
-                runSysDiagBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running...';
-                
-                const ids = ['chkBrowser', 'chkCamera', 'chkMic', 'chkNetwork'];
-                ids.forEach(id => setDiagItemState(id, 'loading', 'Checking...'));
-
-                // 1. Browser
-                await new Promise(r => setTimeout(r, 600));
-                const isSupported = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
-                setDiagItemState('chkBrowser', isSupported ? 'success' : 'error', isSupported ? 'Browser is compatible' : 'Incompatible browser');
-
-                // 2. Camera
-                if (isSupported) {
-                    try {
-                        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                        stream.getTracks().forEach(t => t.stop());
-                        setDiagItemState('chkCamera', 'success', 'Camera access granted');
-                    } catch (err) {
-                        setDiagItemState('chkCamera', 'error', 'Camera access denied or unavailable');
-                    }
-                } else {
-                    setDiagItemState('chkCamera', 'error', 'Cannot test camera');
-                }
-
-                // 3. Mic
-                if (isSupported) {
-                    try {
-                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                        stream.getTracks().forEach(t => t.stop());
-                        setDiagItemState('chkMic', 'success', 'Microphone access granted');
-                    } catch (err) {
-                        setDiagItemState('chkMic', 'error', 'Microphone access denied or unavailable');
-                    }
-                } else {
-                    setDiagItemState('chkMic', 'error', 'Cannot test microphone');
-                }
-
-                // 4. Network
-                await new Promise(r => setTimeout(r, 500));
-                if (navigator.onLine) {
-                    try {
-                        const start = performance.now();
-                        await fetch('/api/network/health?ts=' + Date.now());
-                        const ping = Math.round(performance.now() - start);
-                        setDiagItemState('chkNetwork', 'success', 'Connected (' + ping + 'ms latency)');
-                    } catch (err) {
-                        setDiagItemState('chkNetwork', 'error', 'Network unstable');
-                    }
-                } else {
-                    setDiagItemState('chkNetwork', 'error', 'Offline');
-                }
-
-                runSysDiagBtn.disabled = false;
-                runSysDiagBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Run Diagnostics Again';
-            });
+        } else {
+            setDiagItemState('chkCamera', 'error', 'Cannot test camera');
+            allGood = false;
         }
+
+        // 3. Mic
+        if (isSupported) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                stream.getTracks().forEach(t => t.stop());
+                setDiagItemState('chkMic', 'success', 'Microphone access granted', 'Ready');
+            } catch (err) {
+                setDiagItemState('chkMic', 'error', 'Microphone access denied or unavailable');
+                allGood = false;
+            }
+        } else {
+            setDiagItemState('chkMic', 'error', 'Cannot test microphone');
+            allGood = false;
+        }
+
+        // 4. Network
+        await new Promise(r => setTimeout(r, 500));
+        if (navigator.onLine) {
+            try {
+                const start = performance.now();
+                await fetch('/api/network/health?ts=' + Date.now());
+                const ping = Math.round(performance.now() - start);
+                setDiagItemState('chkNetwork', 'success', 'Connected (' + ping + 'ms latency)', 'Good');
+            } catch (err) {
+                setDiagItemState('chkNetwork', 'error', 'Network unstable');
+                allGood = false;
+            }
+        } else {
+            setDiagItemState('chkNetwork', 'error', 'Offline');
+            allGood = false;
+        }
+        
+        if (allGood && summary) {
+            summary.classList.add('visible');
+        }
+
+        runSysDiagBtn.disabled = false;
+        runSysDiagBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Run Diagnostics Again';
+    });
+}
 
 })();
     
