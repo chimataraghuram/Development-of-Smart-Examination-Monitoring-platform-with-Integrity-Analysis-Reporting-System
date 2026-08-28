@@ -496,10 +496,17 @@
         .review-box textarea { resize:vertical; }
         .review-history { margin-top:12px; color:rgba(255,255,255,.55); font-size:12px; line-height:1.55; }
         .review-history-item { padding:7px 0; border-bottom:1px solid rgba(255,255,255,.06); }
+        #tsparticles {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
     </style>
 </head>
 
 <body>
+    <div id="tsparticles"></div>
  <div class="user-info">
             {% include '_ai_assistant.html' %}
 </div>
@@ -1799,5 +1806,26 @@
     document.addEventListener('DOMContentLoaded', loadExamManagement);
 })();
 </script>
+    <!-- tsParticles library for admin (distinct data flow effect) -->
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles-slim@2.0.6/tsparticles.slim.bundle.min.js"></script>
+    <script>
+        tsParticles.load("tsparticles", {
+          fpsLimit: 60,
+          particles: {
+            color: { value: ["#4dabf7", "#3bc9db", "#38d9a9", "#448aff"] },
+            links: { color: "#3bc9db", distance: 150, enable: true, opacity: 0.15, width: 1 },
+            move: { enable: true, speed: 0.8, direction: "none", random: false, straight: false, outModes: { default: "out" } },
+            number: { density: { enable: true, area: 800 }, value: 100 },
+            opacity: { value: { min: 0.1, max: 0.5 } },
+            shape: { type: "circle" },
+            size: { value: { min: 1, max: 3 } },
+          },
+          interactivity: {
+            events: { onHover: { enable: true, mode: "grab" }, onClick: { enable: true, mode: "push" } },
+            modes: { grab: { distance: 200, links: { opacity: 0.3 } }, push: { quantity: 4 } }
+          },
+          detectRetina: true,
+        });
+    </script>
 </body>
 </html>
