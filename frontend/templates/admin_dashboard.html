@@ -409,14 +409,14 @@
         }
 
         /* ===== ALERT CARDS ===== */
-        .alert-cards { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); }
+        .alert-cards { display: grid; gap: 12px; grid-template-columns: 1fr; }
         .alert-card {
             background: linear-gradient(145deg, rgba(26, 21, 69, 0.6) 0%, rgba(13, 11, 46, 0.4) 100%);
             border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 16px; padding: 18px; display: flex; gap: 16px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            animation: fadeSlideUp 0.5s ease forwards; opacity: 0;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            animation: fadeSlideUp 0.4s ease forwards; opacity: 0;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
             position: relative; overflow: hidden;
         }
         .alert-card::before {
@@ -427,17 +427,17 @@
         .alert-card.low::before { background: #51cf66; }
         
         .alert-cards .alert-card:nth-child(1) { animation-delay: 0.1s; }
-        .alert-cards .alert-card:nth-child(2) { animation-delay: 0.2s; }
-        .alert-cards .alert-card:nth-child(3) { animation-delay: 0.3s; }
-        .alert-cards .alert-card:nth-child(4) { animation-delay: 0.4s; }
-        .alert-cards .alert-card:nth-child(5) { animation-delay: 0.5s; }
-        .alert-cards .alert-card:nth-child(n+6) { animation-delay: 0.6s; }
-        .alert-card:hover { transform: translateY(-4px) scale(1.01); box-shadow: 0 12px 40px rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.15); }
+        .alert-cards .alert-card:nth-child(2) { animation-delay: 0.15s; }
+        .alert-cards .alert-card:nth-child(3) { animation-delay: 0.2s; }
+        .alert-cards .alert-card:nth-child(4) { animation-delay: 0.25s; }
+        .alert-cards .alert-card:nth-child(5) { animation-delay: 0.3s; }
+        .alert-cards .alert-card:nth-child(n+6) { animation-delay: 0.35s; }
+        .alert-card:hover { transform: translateX(4px); box-shadow: 0 8px 30px rgba(0,0,0,0.25); border-color: rgba(124,77,255,0.2); }
         
         .alert-card .alert-icon { font-size: 24px; padding-top: 2px; }
-        .alert-card .alert-content { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
-        .alert-card .alert-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
-        .alert-card .candidate-name { font-weight: 700; font-size: 15px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; letter-spacing: 0.02em; }
+        .alert-card .alert-content { flex: 1; min-width: 0; display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 20px; }
+        .alert-card .alert-header { display: flex; align-items: center; gap: 12px; min-width: 250px; }
+        .alert-card .candidate-name { font-weight: 700; font-size: 15px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; letter-spacing: 0.02em; }
         .alert-card .candidate-id { font-size: 11px; color: rgba(255,255,255,0.4); font-family: monospace; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; }
         .alert-card .sev-badge { padding: 3px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; margin-left: auto; }
         .alert-card .sev-badge.high { background: rgba(255,107,107,0.15); color: #ff6b6b; border: 1px solid rgba(255,107,107,0.3); }
@@ -716,16 +716,21 @@
                 <div class="stat-card"><div class="label">Total Suspicious Events</div><div class="value red" id="totalSuspiciousEvents">0</div></div>
             </div>
             <div class="analytics-row">
-                <div class="card" style="background:rgba(255,255,255,0.04);border-radius:16px;padding:20px 22px;border:1px solid rgba(255,255,255,0.04);">
-                    <div class="card-title" style="font-size:18px;font-weight:600;margin-bottom:16px;color:rgba(255,255,255,0.7);display:flex;align-items:center;gap:10px;">
-                        <i class="fas fa-chart-line"></i> Integrity Analytics
+                <div class="card" style="background:rgba(255,255,255,0.04);border-radius:16px;padding:20px 22px;border:1px solid rgba(255,255,255,0.04); display:flex; flex-direction:column;">
+                    <div class="card-title" style="font-size:18px;font-weight:600;margin-bottom:16px;color:rgba(255,255,255,0.7);display:flex;align-items:center;justify-content:space-between;">
+                        <div style="display:flex;align-items:center;gap:10px;"><i class="fas fa-chart-line"></i> Integrity Trend</div>
+                        <div style="font-size:11px;background:rgba(124,77,255,0.2);color:#b8aaff;padding:4px 8px;border-radius:6px;font-weight:700;display:flex;align-items:center;gap:4px;">LIVE <i class="fas fa-circle" style="font-size:6px;color:#ff6b6b;animation:pulse 1.5s infinite;"></i></div>
                     </div>
-                    <ul class="analytics-list" id="analyticsList">
-                        <li><span class="label">Total Face Absence Events</span><span class="value" id="totalFaceAbsence">0</span></li>
-                        <li><span class="label">Total Browser Focus Loss</span><span class="value" id="totalFocusLoss">0</span></li>
-                        <li><span class="label">Highest Integrity Score</span><span class="value" id="highestIntegrity">0</span></li>
-                        <li><span class="label">Lowest Integrity Score</span><span class="value" id="lowestIntegrity">0</span></li>
-                        <li><span class="label">Average Integrity Score</span><span class="value" id="averageIntegrity">0</span></li>
+                    
+                    <div style="flex:1; display:flex; align-items:center; justify-content:center; margin-bottom:20px; position:relative;">
+                        <canvas id="integrityLineChart" width="500" height="180" style="width:100%; height:180px;"></canvas>
+                    </div>
+
+                    <ul class="analytics-list" id="analyticsList" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <li style="background:rgba(0,0,0,0.2); padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.05); margin:0;"><span class="label" style="font-size:11px;">Face Absence</span><span class="value" id="totalFaceAbsence" style="font-size:16px;font-weight:700;">0</span></li>
+                        <li style="background:rgba(0,0,0,0.2); padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.05); margin:0;"><span class="label" style="font-size:11px;">Browser Loss</span><span class="value" id="totalFocusLoss" style="font-size:16px;font-weight:700;">0</span></li>
+                        <li style="background:rgba(0,0,0,0.2); padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.05); margin:0;"><span class="label" style="font-size:11px;">Highest Score</span><span class="value" id="highestIntegrity" style="font-size:16px;font-weight:700;color:#51cf66;">0</span></li>
+                        <li style="background:rgba(0,0,0,0.2); padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.05); margin:0;"><span class="label" style="font-size:11px;">Average Score</span><span class="value" id="averageIntegrity" style="font-size:16px;font-weight:700;color:#74c0fc;">0</span></li>
                     </ul>
                 </div>
                 <div class="card" style="background:rgba(255,255,255,0.04);border-radius:16px;padding:20px 22px;border:1px solid rgba(255,255,255,0.04);">
@@ -1749,24 +1754,84 @@
                 };
 
                 let html = `
+                    <style>
+                        .health-node-map { position:relative; width:100%; height:260px; display:flex; align-items:center; justify-content:center; margin-bottom:20px; background:rgba(0,0,0,0.2); border-radius:16px; border:1px solid rgba(255,255,255,0.05); overflow:hidden; }
+                        .h-node { position:absolute; display:flex; flex-direction:column; align-items:center; gap:8px; z-index:2; transition:0.3s; }
+                        .h-icon { width:54px; height:54px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; color:#fff; position:relative; box-shadow:0 0 20px rgba(0,0,0,0.5); }
+                        .h-icon::after { content:''; position:absolute; width:100%; height:100%; border-radius:50%; border:2px solid; animation:radarPing 2s infinite; }
+                        .h-node.healthy .h-icon { background:linear-gradient(135deg, #2b8a3e, #51cf66); }
+                        .h-node.healthy .h-icon::after { border-color: #51cf66; }
+                        .h-node.degraded .h-icon { background:linear-gradient(135deg, #b08d00, #fcc419); }
+                        .h-node.degraded .h-icon::after { border-color: #fcc419; animation-duration:1s; }
+                        .h-label { font-size:12px; font-weight:700; color:rgba(255,255,255,0.7); text-transform:uppercase; background:rgba(0,0,0,0.5); padding:4px 8px; border-radius:6px; backdrop-filter:blur(4px); }
+                        
+                        /* Node positions */
+                        .node-api { top:50%; left:50%; transform:translate(-50%, -50%); z-index:3; }
+                        .node-db { top:15%; left:50%; transform:translateX(-50%); }
+                        .node-ai { top:85%; left:50%; transform:translateX(-50%); }
+                        .node-clients { top:50%; left:15%; transform:translateY(-50%); }
+                        .node-video { top:50%; right:15%; transform:translateY(-50%); }
+                        
+                        /* Data Streams (lines) */
+                        .h-stream { position:absolute; background:rgba(255,255,255,0.1); z-index:1; }
+                        .h-stream::before { content:''; position:absolute; background:#51cf66; box-shadow:0 0 10px #51cf66; }
+                        
+                        .stream-v { width:2px; height:35%; left:50%; transform:translateX(-50%); }
+                        .stream-v.top { top:15%; }
+                        .stream-v.bottom { bottom:15%; }
+                        .stream-v.top::before { width:100%; height:20%; animation:streamDown 1.5s linear infinite; }
+                        .stream-v.bottom::before { width:100%; height:20%; animation:streamUp 1.5s linear infinite; }
+                        
+                        .stream-h { height:2px; width:35%; top:50%; transform:translateY(-50%); }
+                        .stream-h.left { left:15%; }
+                        .stream-h.right { right:15%; }
+                        .stream-h.left::before { height:100%; width:20%; animation:streamRight 1.5s linear infinite; }
+                        .stream-h.right::before { height:100%; width:20%; animation:streamLeft 1.5s linear infinite; }
+
+                        @keyframes streamDown { 0% { top:0; opacity:0; } 10% { opacity:1; } 90% { opacity:1; } 100% { top:100%; opacity:0; } }
+                        @keyframes streamUp { 0% { bottom:0; opacity:0; } 10% { opacity:1; } 90% { opacity:1; } 100% { bottom:100%; opacity:0; } }
+                        @keyframes streamRight { 0% { left:0; opacity:0; } 10% { opacity:1; } 90% { opacity:1; } 100% { left:100%; opacity:0; } }
+                        @keyframes streamLeft { 0% { right:0; opacity:0; } 10% { opacity:1; } 90% { opacity:1; } 100% { right:100%; opacity:0; } }
+                    </style>
+
                     <div style="text-align:center;margin-bottom:12px;">
-                        <span style="font-size:18px;font-weight:600;">System Health</span>
-                        <span style="margin-left:12px;font-size:16px;color:#51cf66;">🟢 ${Object.values(status).every(v => v !== 'degraded' && v !== 'unhealthy') ? 'All Systems Operational' : 'Some Issues Detected'}</span>
+                        <span style="font-size:20px;font-weight:700;letter-spacing:0.5px;">Live System Topology</span>
+                        <div style="margin-top:6px;font-size:14px;color:#51cf66;"><i class="fas fa-shield-check"></i> ${Object.values(status).every(v => v !== 'degraded' && v !== 'unhealthy') ? 'All Core Systems Operational' : 'Some Nodes Degraded'}</div>
                     </div>
-                    <div class="health-grid">
-                        <div class="health-item"><span class="label"><i class="fas fa-video"></i> Camera Monitoring</span><span class="status ${colorMap[status.camera] || 'healthy'}">${statusMap[status.camera] || 'Unknown'}</span></div>
-                        <div class="health-item"><span class="label"><i class="fas fa-user"></i> Face Detection</span><span class="status ${colorMap[status.face_detection] || 'healthy'}">${statusMap[status.face_detection] || 'Unknown'}</span></div>
-                        <div class="health-item"><span class="label"><i class="fas fa-globe"></i> Server Connection</span><span class="status ${colorMap[status.server_connection] || 'healthy'}">${statusMap[status.server_connection] || 'Unknown'}</span></div>
-                        <div class="health-item"><span class="label"><i class="fas fa-desktop"></i> Browser Monitoring</span><span class="status ${colorMap[status.browser_monitoring] || 'healthy'}">${statusMap[status.browser_monitoring] || 'Unknown'}</span></div>
-                        <div class="health-item"><span class="label"><i class="fas fa-users"></i> Student Sessions</span><span class="status healthy">🟢 ${status.active_sessions || 0} Online</span></div>
-                        <div class="health-item"><span class="label"><i class="fas fa-database"></i> Database</span><span class="status ${colorMap[status.database] || 'healthy'}">${statusMap[status.database] || 'Unknown'}</span></div>
-                        <div class="health-item"><span class="label"><i class="fas fa-bolt"></i> Event Processing</span><span class="status ${colorMap[status.event_processing] || 'healthy'}">${statusMap[status.event_processing] || 'Unknown'}</span></div>
+                    
+                    <div class="health-node-map">
+                        <!-- Data Streams -->
+                        <div class="h-stream stream-v top"></div>
+                        <div class="h-stream stream-v bottom"></div>
+                        <div class="h-stream stream-h left"></div>
+                        <div class="h-stream stream-h right"></div>
+
+                        <!-- Nodes -->
+                        <div class="h-node node-api healthy">
+                            <div class="h-icon"><i class="fas fa-server"></i></div>
+                            <div class="h-label">Core API</div>
+                        </div>
+                        <div class="h-node node-db ${colorMap[status.database] || 'healthy'}">
+                            <div class="h-icon"><i class="fas fa-database"></i></div>
+                            <div class="h-label">Cluster DB</div>
+                        </div>
+                        <div class="h-node node-ai ${colorMap[status.face_detection] || 'healthy'}">
+                            <div class="h-icon" style="background:linear-gradient(135deg, #7c4dff, #b8aaff);"><i class="fas fa-brain"></i></div>
+                            <div class="h-label">AI Engine</div>
+                        </div>
+                        <div class="h-node node-clients healthy">
+                            <div class="h-icon"><i class="fas fa-users"></i></div>
+                            <div class="h-label">${status.active_sessions || 0} Clients</div>
+                        </div>
+                        <div class="h-node node-video ${colorMap[status.camera] || 'healthy'}">
+                            <div class="h-icon"><i class="fas fa-video"></i></div>
+                            <div class="h-label">Video Relay</div>
+                        </div>
                     </div>
-                    <div style="text-align:center;font-size:14px;color:rgba(255,255,255,0.4);margin-top:8px;">
-                        Last system check: ${status.last_check || 'N/A'}
-                    </div>
-                    <div class="health-actions">
-                        <button class="btn btn-primary" id="runHealthCheck"><i class="fas fa-sync-alt"></i> Run System Check</button>
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 16px; background:rgba(255,255,255,0.03); border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
+                        <div style="font-size:13px;color:rgba(255,255,255,0.5);"><i class="fas fa-clock"></i> Last Ping: ${status.last_check || 'N/A'}</div>
+                        <button class="btn btn-primary" id="runHealthCheck" style="padding:8px 16px; font-size:13px; border-radius:8px;"><i class="fas fa-sync-alt"></i> Run Diagnostics</button>
                     </div>
                 `;
                 healthContent.innerHTML = html;
@@ -1875,27 +1940,29 @@
                     html += `
                         <div class="alert-card ${sev}">
                             <div class="alert-icon">${sevIcon}</div>
+                            
                             <div class="alert-content">
                                 <div class="alert-header">
                                     <span class="candidate-name">${name}</span>
-                                    <span class="candidate-id">ID: ${id}</span>
+                                    <span class="candidate-id">${id}</span>
                                     <span class="sev-badge ${sev}">${sevText}</span>
                                 </div>
-                                <div class="alert-body">
-                                    <div class="event-type"><i class="fas fa-exclamation-triangle"></i> ${what}</div>
-                                    <div class="event-meta">
+                                <div class="alert-body" style="display:flex; align-items:center; gap:20px; flex:1;">
+                                    <div class="event-type" style="margin:0; min-width:180px;"><i class="fas fa-exclamation-triangle"></i> ${what}</div>
+                                    <div class="event-meta" style="margin:0;">
                                         <span><i class="far fa-clock"></i> ${when}</span>
                                         <span style="opacity:0.6;">(${timeAgo})</span>
-                                        ${e.deducted ? `<span class="penalty">-${e.deducted} pts</span>` : ''}
+                                        ${e.deducted ? `<span class="penalty" style="margin-left:8px;">-${e.deducted} pts</span>` : ''}
                                     </div>
                                 </div>
                             </div>
-                            <div class="alert-snapshot" style="width: 80px; height: 60px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-direction: column; cursor: pointer; transition: 0.2s;" title="View evidence snapshot" onmouseover="this.style.transform='scale(1.1)'; this.style.borderColor='rgba(124,77,255,0.5)';" onmouseout="this.style.transform='scale(1)'; this.style.borderColor='rgba(255,255,255,0.1)';">
-                                <i class="fas fa-camera" style="color: rgba(255,255,255,0.3); font-size: 16px; margin-bottom: 4px;"></i>
-                                <span style="font-size: 9px; color: rgba(255,255,255,0.4); text-transform: uppercase; font-weight: 700;">Evidence</span>
+
+                            <div class="alert-snapshot" style="width: 60px; height: 44px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" title="View evidence snapshot" onmouseover="this.style.transform='scale(1.1)'; this.style.borderColor='rgba(124,77,255,0.5)';" onmouseout="this.style.transform='scale(1)'; this.style.borderColor='rgba(255,255,255,0.1)';">
+                                <i class="fas fa-camera" style="color: rgba(255,255,255,0.3); font-size: 16px;"></i>
                             </div>
-                            <div class="alert-actions">
-                                <button class="btn-action primary view-btn" data-id="${e.user_id}">Investigate</button>
+
+                            <div class="alert-actions" style="flex-direction:row; padding-left:20px; margin-left:0; border-left:1px solid rgba(255,255,255,0.1);">
+                                <button class="btn-action primary view-btn" data-id="${e.user_id}" style="padding: 6px 16px;">Investigate</button>
                                 <button class="btn-action dismiss-alert" style="background:transparent; border-color:rgba(255,255,255,0.1); color:rgba(255,255,255,0.4);" data-id="${e.user_id}"><i class="fas fa-times"></i></button>
                             </div>
                         </div>
