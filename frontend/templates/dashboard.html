@@ -3380,7 +3380,7 @@ max-width: 100% !important;
                             if (candScore) candScore.textContent = '0';
                             if (candRemark) candRemark.textContent = 'No session';
                         }
-                        if (riskLabel) riskLabel.textContent = data.risk_label || 'N/A';
+                        if (riskLabel) if(riskLabel) riskLabel.textContent = data.risk_label || 'N/A';
 
                         let faceAbsenceCount = 0, multipleFacesCount = 0, totalSuspicious = 0;
                         sessionEvents.forEach(ev => {
@@ -3401,16 +3401,16 @@ max-width: 100% !important;
                         if (notificationStateEl) notificationStateEl.textContent = totalSuspicious ? `${totalSuspicious} flagged` : '0 new';
                         if (notificationDetailEl) notificationDetailEl.textContent = totalSuspicious ? 'Review integrity events' : 'You\'re all caught up!';
 
-                        if (scoreValue) scoreValue.textContent = integrityScore;
+                        if (scoreValue) if(scoreValue) scoreValue.textContent = integrityScore;
 
                         if (scoreBar) {
-                            scoreBar.style.width = integrityScore + '%';
+                            if(scoreBar) scoreBar.style.width = integrityScore + '%';
                             if (integrityScore >= 70) {
-                                scoreBar.style.background = 'linear-gradient(90deg, #51cf66, #69db7c)';
+                                if(scoreBar) scoreBar.style.background = 'linear-gradient(90deg, #51cf66, #69db7c)';
                             } else if (integrityScore >= 40) {
-                                scoreBar.style.background = 'linear-gradient(90deg, #fcc419, #ffd43b)';
+                                if(scoreBar) scoreBar.style.background = 'linear-gradient(90deg, #fcc419, #ffd43b)';
                             } else {
-                                scoreBar.style.background = 'linear-gradient(90deg, #ff6b6b, #ff8787)';
+                                if(scoreBar) scoreBar.style.background = 'linear-gradient(90deg, #ff6b6b, #ff8787)';
                             }
                         }
 
