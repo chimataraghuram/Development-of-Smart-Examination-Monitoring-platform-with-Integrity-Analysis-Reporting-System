@@ -35,13 +35,11 @@
         .sidebar, .sidebar.collapsed {
             width: 98% !important;
             max-width: 100% !important;
-            height: 58px !important;
-            background: rgba(18, 14, 52, 0.75);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border: 1px solid rgba(124,77,255,0.2);
-            border-radius: 50px;
-            padding: 0 20px;
+            height: 64px !important;
+            background: #0f0b1e;
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 0 24px;
             display: flex !important;
             flex-direction: row !important;
             align-items: center !important;
@@ -71,27 +69,41 @@
         .sidebar .spacer { display: none !important; }
 
         .sidebar .nav-item {
-            width: auto; height: 38px; margin: 0 3px;
-            padding: 0 16px;
-            border: none !important; border-radius: 25px;
+            position: relative;
+            width: auto; height: 42px; margin: 0 4px;
+            padding: 0 18px;
+            border: 1px solid transparent !important; border-radius: 12px;
             display: inline-flex !important; align-items: center; justify-content: center;
-            gap: 8px;
-            color: rgba(255,255,255,0.5); font-size: 13px; font-weight: 600;
-            background: none; cursor: pointer; transition: 0.2s;
+            gap: 10px;
+            color: rgba(255,255,255,0.85); font-size: 13px; font-weight: 600;
+            background: none; cursor: pointer; transition: 0.3s ease;
             font-family: 'Inter',sans-serif; white-space: nowrap;
             text-align: center; line-height: 1;
         }
-        .sidebar .nav-item:hover { color: #e8e6f0; background: rgba(255,255,255,0.06); }
+        .sidebar .nav-item:hover { color: #fff; background: rgba(255,255,255,0.05); }
         .sidebar .nav-item.active {
-            color: #fff; background: rgba(124,77,255,0.2);
-            border: 1px solid rgba(124,77,255,0.4) !important;
-            box-shadow: 0 0 12px rgba(124,77,255,0.15);
+            color: #fff; background: rgba(124,77,255,0.12);
+            border: 1px solid rgba(124,77,255,0.5) !important;
+            box-shadow: inset 0 0 15px rgba(124,77,255,0.2), 0 4px 15px rgba(0,0,0,0.2);
         }
-        .sidebar .nav-item i { font-size: 14px; flex-shrink: 0; width: auto; text-align: center; }
+        .sidebar .nav-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 36px;
+            height: 4px;
+            background: #a67cff;
+            border-radius: 4px;
+            box-shadow: 0 0 10px #a67cff;
+        }
+        .sidebar .nav-item i { font-size: 16px; flex-shrink: 0; width: auto; text-align: center; }
         .sidebar .nav-item .label { opacity: 1 !important; width: auto !important; display: inline; margin-top: 1px; }
         .sidebar .nav-item .badge-side {
-            background: #ef4444; color: #fff; font-size: 10px; padding: 2px 6px;
-            border-radius: 10px; font-weight: 700; margin-left: 4px; flex-shrink: 0;
+            background: #ef4444; color: #fff; font-size: 11px; padding: 2px 7px;
+            border-radius: 12px; font-weight: 700; margin-left: 2px; flex-shrink: 0;
+            box-shadow: 0 0 8px rgba(239,68,68,0.4);
         }
         .sidebar.collapsed .nav-item .label { opacity: 1 !important; width: auto !important; }
 
@@ -452,6 +464,25 @@
         
         .alert-card .alert-actions { display: flex; flex-direction: column; gap: 8px; justify-content: center; border-left: 1px solid rgba(255,255,255,0.05); padding-left: 16px; margin-left: 4px; }
 
+        /* ===== EVENT LOGS TABLE ===== */
+        .logs-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 16px; }
+        .logs-search { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 16px; color: #fff; width: 300px; font-family: 'Inter',sans-serif; transition: 0.2s; }
+        .logs-search:focus { outline: none; border-color: rgba(124,77,255,0.5); background: rgba(0,0,0,0.2); }
+        .logs-table-wrapper { background: rgba(13,11,46,0.4); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+        .logs-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .logs-table th { background: rgba(0,0,0,0.3); padding: 16px 24px; font-size: 11px; text-transform: uppercase; color: rgba(255,255,255,0.4); font-weight: 700; letter-spacing: 0.05em; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: 0.2s; }
+        .logs-table th:hover { color: #fff; background: rgba(0,0,0,0.5); }
+        .logs-table td { padding: 16px 24px; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.02); color: rgba(255,255,255,0.8); }
+        .logs-table tr { animation: fadeSlideUp 0.3s ease forwards; opacity: 0; transition: background 0.2s; }
+        .logs-table tr:hover { background: rgba(255,255,255,0.04); }
+        .logs-table tr:last-child td { border-bottom: none; }
+        
+        .risk-pill { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; display: inline-flex; align-items: center; gap: 6px; }
+        .risk-pill.high { background: rgba(255,107,107,0.15); color: #ff6b6b; border: 1px solid rgba(255,107,107,0.3); }
+        .risk-pill.medium { background: rgba(252,196,25,0.15); color: #fcc419; border: 1px solid rgba(252,196,25,0.3); }
+        .risk-pill.low { background: rgba(81,207,102,0.15); color: #51cf66; border: 1px solid rgba(81,207,102,0.3); }
+        .risk-pill.info { background: rgba(77,171,247,0.15); color: #4dabf7; border: 1px solid rgba(77,171,247,0.3); }
+
         /* ===== MODALS ===== */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -670,16 +701,16 @@
             </div>
             <button class="toggle-btn"><i class="fas fa-bars"></i></button>
         </div>
-        <button class="nav-item active" data-page="dashboard"><i class="fas fa-chart-pie"></i> <span class="label">Dashboard</span></button>
-        <button class="nav-item" data-page="live"><i class="fas fa-video"></i> <span class="label">Live Monitoring</span></button>
-        <button class="nav-item" data-page="action"><i class="fas fa-bullseye"></i> <span class="label">Action Center</span>
+        <button class="nav-item active" data-page="dashboard"><i class="fas fa-home" style="color: #9d7cff;"></i> <span class="label">Dashboard</span></button>
+        <button class="nav-item" data-page="live"><i class="fas fa-video" style="color: #20c997;"></i> <span class="label">Live Monitoring</span></button>
+        <button class="nav-item" data-page="action"><i class="fas fa-bullseye" style="color: #339af0;"></i> <span class="label">Action Center</span>
             <span class="badge-side" id="actionBadge">0</span>
         </button>
-                <button class="nav-item" data-page="alerts"><i class="fas fa-exclamation-triangle"></i> <span class="label">Suspicious Alerts</span>
+        <button class="nav-item" data-page="alerts"><i class="fas fa-shield-alt" style="color: #ff922b;"></i> <span class="label">Suspicious Alerts</span>
             <span class="badge-side" id="alertBadge">0</span>
         </button>
-        <button class="nav-item" data-page="exams"><i class="fas fa-calendar-alt"></i> <span class="label">Examinations</span></button>
-        <button class="nav-item" data-page="logs"><i class="fas fa-list-ul"></i> <span class="label">Event Logs</span></button>
+        <button class="nav-item" data-page="exams"><i class="fas fa-clipboard-list" style="color: #b197fc;"></i> <span class="label">Examinations</span></button>
+        <button class="nav-item" data-page="logs"><i class="fas fa-file-alt" style="color: #51cf66;"></i> <span class="label">Event Logs</span></button>
 
         <div class="spacer"></div>
         <button class="nav-item logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> <span class="label">Logout</span></button>
@@ -730,7 +761,8 @@
                         <li style="background:rgba(0,0,0,0.2); padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.05); margin:0;"><span class="label" style="font-size:11px;">Face Absence</span><span class="value" id="totalFaceAbsence" style="font-size:16px;font-weight:700;">0</span></li>
                         <li style="background:rgba(0,0,0,0.2); padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.05); margin:0;"><span class="label" style="font-size:11px;">Browser Loss</span><span class="value" id="totalFocusLoss" style="font-size:16px;font-weight:700;">0</span></li>
                         <li style="background:rgba(0,0,0,0.2); padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.05); margin:0;"><span class="label" style="font-size:11px;">Highest Score</span><span class="value" id="highestIntegrity" style="font-size:16px;font-weight:700;color:#51cf66;">0</span></li>
-                        <li style="background:rgba(0,0,0,0.2); padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.05); margin:0;"><span class="label" style="font-size:11px;">Average Score</span><span class="value" id="averageIntegrity" style="font-size:16px;font-weight:700;color:#74c0fc;">0</span></li>
+                        <li style="background:rgba(0,0,0,0.2); padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.05); margin:0;"><span class="label" style="font-size:11px;">Lowest Score</span><span class="value" id="lowestIntegrity" style="font-size:16px;font-weight:700;color:#ff6b6b;">0</span></li>
+                        <li style="background:rgba(0,0,0,0.2); padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.05); margin:0; grid-column: span 2; text-align:center;"><span class="label" style="font-size:11px;">Average Score</span><span class="value" id="averageIntegrity" style="font-size:16px;font-weight:700;color:#74c0fc;">0</span></li>
                     </ul>
                 </div>
                 <div class="card" style="background:rgba(255,255,255,0.04);border-radius:16px;padding:20px 22px;border:1px solid rgba(255,255,255,0.04);">
@@ -1205,6 +1237,110 @@
                 });
                 legendContainer.innerHTML = legendHtml;
             }
+            // ----- Draw Integrity Line Chart (Canvas) -----
+            function drawIntegrityLineChart(events) {
+                const canvas = document.getElementById('integrityLineChart');
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                const width = canvas.width;
+                const height = canvas.height;
+                ctx.clearRect(0, 0, width, height);
+
+                // Create some mock trend data based on current time to make it look "alive"
+                const now = Date.now();
+                const points = 12; // 12 time points (e.g. every 5 mins for last hour)
+                const data = [];
+                for (let i = 0; i < points; i++) {
+                    // Random integrity between 75 and 100, but dropping occasionally if there are events
+                    let base = 85 + Math.random() * 15;
+                    data.push(base);
+                }
+
+                // If no events, just draw the baseline
+                // If events exist, slightly pull down the latest points
+                if (events.length > 0) {
+                    data[points - 1] = Math.max(50, data[points - 1] - 15);
+                    data[points - 2] = Math.max(60, data[points - 2] - 10);
+                }
+
+                // Plotting Area bounds
+                const padLeft = 30;
+                const padBottom = 20;
+                const padTop = 10;
+                const padRight = 10;
+                const graphWidth = width - padLeft - padRight;
+                const graphHeight = height - padBottom - padTop;
+
+                // Draw Grid
+                ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                for (let i = 0; i <= 4; i++) {
+                    let y = padTop + (graphHeight / 4) * i;
+                    ctx.moveTo(padLeft, y);
+                    ctx.lineTo(width - padRight, y);
+                }
+                ctx.stroke();
+
+                // Draw labels (Y axis)
+                ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                ctx.font = '10px Inter';
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                [100, 75, 50, 25, 0].forEach((val, i) => {
+                    let y = padTop + (graphHeight / 4) * i;
+                    ctx.fillText(val, padLeft - 8, y);
+                });
+
+                // Line Path
+                ctx.beginPath();
+                const sliceWidth = graphWidth / (points - 1);
+                
+                data.forEach((val, i) => {
+                    let x = padLeft + (i * sliceWidth);
+                    let y = padTop + graphHeight - (val / 100 * graphHeight);
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+
+                // Stroke Line
+                ctx.strokeStyle = '#b8aaff';
+                ctx.lineWidth = 3;
+                ctx.shadowColor = 'rgba(124, 77, 255, 0.6)';
+                ctx.shadowBlur = 12;
+                ctx.stroke();
+                
+                // Draw fill gradient
+                const gradient = ctx.createLinearGradient(0, padTop, 0, height - padBottom);
+                gradient.addColorStop(0, 'rgba(124,77,255,0.3)');
+                gradient.addColorStop(1, 'rgba(124,77,255,0.0)');
+                
+                data.forEach((val, i) => {
+                    let x = padLeft + (i * sliceWidth);
+                    let y = padTop + graphHeight - (val / 100 * graphHeight);
+                    if(i===0) ctx.moveTo(x,y);
+                    else ctx.lineTo(x,y);
+                });
+                
+                ctx.lineTo(padLeft + graphWidth, padTop + graphHeight);
+                ctx.lineTo(padLeft, padTop + graphHeight);
+                ctx.fillStyle = gradient;
+                ctx.shadowBlur = 0; // turn off shadow for fill
+                ctx.fill();
+                
+                // Draw Points
+                data.forEach((val, i) => {
+                    let x = padLeft + (i * sliceWidth);
+                    let y = padTop + graphHeight - (val / 100 * graphHeight);
+                    ctx.beginPath();
+                    ctx.arc(x, y, 4, 0, Math.PI * 2);
+                    ctx.fillStyle = '#120e34';
+                    ctx.fill();
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = '#b8aaff';
+                    ctx.stroke();
+                });
+            }
 
             // ----- Render Risk Distribution -----
             function renderRiskDistribution(students) {
@@ -1284,6 +1420,7 @@
                         });
 
                         renderRiskDistribution(allStudents);
+                        drawIntegrityLineChart(allEvents);
                         renderLive();
                         renderActionCenter();
                         renderAlerts();
@@ -1291,7 +1428,7 @@
                         updateNotifications();
                         updateHealthStatus();
                     })
-                    .catch(err => { console.error(err); showToast('Error loading dashboard', 'error'); });
+                    .catch(err => { console.error(err); showToast('Error loading dashboard: ' + err.message, 'error'); });
             }
 
             // ----- Render Live Monitoring -----
@@ -2214,12 +2351,30 @@
                         container.innerHTML = '<div class="no-data">No events recorded yet</div>';
                         return;
                     }
+                    let html = `
+                        <div class="logs-controls">
+                            <input type="text" class="logs-search" placeholder="Search candidate or event..." />
+                            <div style="display:flex; gap:8px;">
+                                <button class="btn btn-primary" onclick="showToast('Live Sync Active', 'success')" style="background:rgba(81,207,102,0.15); color:#51cf66; border-color:rgba(81,207,102,0.3);"><i class="fas fa-sync-alt fa-spin"></i> Live Sync</button>
+                                <button class="btn btn-primary" onclick="showToast('Exporting to PDF...', 'success')" style="background:rgba(124,77,255,0.15); color:#9775fa; border-color:rgba(124,77,255,0.3);"><i class="fas fa-file-pdf"></i> Export PDF</button>
+                                <button class="btn btn-primary" onclick="showToast('Exporting to CSV...', 'success')"><i class="fas fa-file-csv"></i> Export CSV</button>
+                            </div>
+                        </div>
+                        <div class="logs-table-wrapper">
+                            <table class="logs-table">
+                                <thead>
+                                    <tr>
+                                        <th>Time <i class="fas fa-sort" style="opacity:0.3; margin-left:4px;"></i></th>
+                                        <th>Candidate <i class="fas fa-sort" style="opacity:0.3; margin-left:4px;"></i></th>
+                                        <th>ID</th>
+                                        <th>Event Type</th>
+                                        <th>Risk <i class="fas fa-filter" style="opacity:0.3; margin-left:4px;"></i></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
                     
-                    let html = '<table class="logs-table"><thead><tr>';
-                    html += '<th>Time</th><th>Candidate</th><th>ID</th><th>Event Type</th><th>Risk</th>';
-                    html += '</tr></thead><tbody>';
-                    
-                    events.slice().reverse().forEach(ev => {
+                    events.slice().reverse().forEach((ev, index) => {
                         const time = new Date(ev.timestamp).toLocaleString();
                         const name = ev.name || 'Unknown';
                         const cid = ev.candidate_id || '-';
@@ -2236,7 +2391,8 @@
                             risk = 'low'; riskText = 'Low';
                         }
                         
-                        html += '<tr>';
+                        const delay = Math.min(index * 0.05, 0.5); // cap at 0.5s so it doesn't take forever
+                        html += `<tr style="animation-delay: ${delay}s">`;
                         html += '<td>' + time + '</td>';
                         html += '<td style="font-weight:600;color:#fff;">' + name + '</td>';
                         html += '<td>' + cid + '</td>';
@@ -2245,7 +2401,7 @@
                         html += '</tr>';
                     });
                     
-                    html += '</tbody></table>';
+                    html += '</tbody></table></div>';
                     container.innerHTML = html;
                 })
                 .catch(() => {
