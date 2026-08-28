@@ -409,42 +409,48 @@
         }
 
         /* ===== ALERT CARDS ===== */
-        .alert-cards { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+        .alert-cards { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); }
         .alert-card {
-            background: rgba(26, 21, 69, 0.4); border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 14px; padding: 16px; display: flex; gap: 16px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            animation: fadeSlideUp 0.4s ease forwards; opacity: 0;
-            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            background: linear-gradient(145deg, rgba(26, 21, 69, 0.6) 0%, rgba(13, 11, 46, 0.4) 100%);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px; padding: 18px; display: flex; gap: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            animation: fadeSlideUp 0.5s ease forwards; opacity: 0;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative; overflow: hidden;
         }
+        .alert-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+        }
+        .alert-card.high::before { background: #ff6b6b; box-shadow: 0 0 12px #ff6b6b; }
+        .alert-card.medium::before { background: #fcc419; }
+        .alert-card.low::before { background: #51cf66; }
+        
         .alert-cards .alert-card:nth-child(1) { animation-delay: 0.1s; }
         .alert-cards .alert-card:nth-child(2) { animation-delay: 0.2s; }
         .alert-cards .alert-card:nth-child(3) { animation-delay: 0.3s; }
         .alert-cards .alert-card:nth-child(4) { animation-delay: 0.4s; }
         .alert-cards .alert-card:nth-child(5) { animation-delay: 0.5s; }
         .alert-cards .alert-card:nth-child(n+6) { animation-delay: 0.6s; }
-        .alert-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.25); border-color: rgba(124,77,255,0.3); }
-        .alert-card.high { border-left: 4px solid #ff6b6b; }
-        .alert-card.medium { border-left: 4px solid #fcc419; }
-        .alert-card.low { border-left: 4px solid #51cf66; }
+        .alert-card:hover { transform: translateY(-4px) scale(1.01); box-shadow: 0 12px 40px rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.15); }
         
-        .alert-card .alert-icon { font-size: 20px; padding-top: 2px; }
-        .alert-card .alert-content { flex: 1; min-width: 0; }
-        .alert-card .alert-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
-        .alert-card .candidate-name { font-weight: 700; font-size: 14px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
-        .alert-card .candidate-id { font-size: 11px; color: rgba(255,255,255,0.5); font-family: monospace; }
-        .alert-card .sev-badge { padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
-        .alert-card .sev-badge.high { background: rgba(255,107,107,0.15); color: #ff6b6b; }
-        .alert-card .sev-badge.medium { background: rgba(252,196,25,0.15); color: #fcc419; }
-        .alert-card .sev-badge.low { background: rgba(81,207,102,0.15); color: #51cf66; }
+        .alert-card .alert-icon { font-size: 24px; padding-top: 2px; }
+        .alert-card .alert-content { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+        .alert-card .alert-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+        .alert-card .candidate-name { font-weight: 700; font-size: 15px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; letter-spacing: 0.02em; }
+        .alert-card .candidate-id { font-size: 11px; color: rgba(255,255,255,0.4); font-family: monospace; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; }
+        .alert-card .sev-badge { padding: 3px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; margin-left: auto; }
+        .alert-card .sev-badge.high { background: rgba(255,107,107,0.15); color: #ff6b6b; border: 1px solid rgba(255,107,107,0.3); }
+        .alert-card .sev-badge.medium { background: rgba(252,196,25,0.15); color: #fcc419; border: 1px solid rgba(252,196,25,0.3); }
+        .alert-card .sev-badge.low { background: rgba(81,207,102,0.15); color: #51cf66; border: 1px solid rgba(81,207,102,0.3); }
         
-        .alert-card .alert-body { font-size: 13px; color: rgba(255,255,255,0.8); }
-        .alert-card .event-type { font-weight: 600; margin-bottom: 4px; }
-        .alert-card .event-type i { font-size: 11px; opacity: 0.7; color: #ff6b6b; }
-        .alert-card .event-meta { font-size: 11px; color: rgba(255,255,255,0.4); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-        .alert-card .penalty { background: rgba(255,107,107,0.2); color: #ff6b6b; padding: 2px 6px; border-radius: 6px; font-weight: 700; }
+        .alert-card .alert-body { font-size: 13px; color: rgba(255,255,255,0.7); }
+        .alert-card .event-type { font-weight: 600; margin-bottom: 6px; color: #e2e8f0; font-size: 14px; }
+        .alert-card .event-type i { font-size: 12px; opacity: 0.8; color: #ff6b6b; margin-right: 4px; }
+        .alert-card .event-meta { font-size: 11px; color: rgba(255,255,255,0.5); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .alert-card .penalty { background: rgba(255,107,107,0.2); color: #ff6b6b; padding: 2px 8px; border-radius: 6px; font-weight: 800; border: 1px solid rgba(255,107,107,0.3); }
         
-        .alert-card .alert-actions { display: flex; flex-direction: column; gap: 6px; justify-content: center; }
+        .alert-card .alert-actions { display: flex; flex-direction: column; gap: 8px; justify-content: center; border-left: 1px solid rgba(255,255,255,0.05); padding-left: 16px; margin-left: 4px; }
 
         /* ===== MODALS ===== */
         .modal-overlay {
@@ -835,28 +841,145 @@
         </div>
 
                 <!-- ===== PAGE: EXAMINATIONS ===== -->
+        <style>
+            .glass-form-card {
+                background: rgba(18, 14, 52, 0.6);
+                border: 1px solid rgba(255,255,255,0.08);
+                border-radius: 16px;
+                padding: 24px;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
+            }
+            .modern-input {
+                width: 100%; margin-top: 8px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); 
+                background: rgba(0,0,0,0.3); color: #fff; padding: 12px 16px; font-family: inherit; font-size:14px;
+                transition: all 0.3s ease;
+            }
+            .modern-input:focus {
+                border-color: rgba(124,77,255,0.6); box-shadow: 0 0 0 3px rgba(124,77,255,0.2); outline: none;
+            }
+            .template-chips {
+                display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px;
+            }
+            .chip {
+                background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
+                padding: 6px 14px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.7); cursor: pointer;
+                white-space: nowrap; transition: 0.2s;
+            }
+            .chip:hover { background: rgba(124,77,255,0.2); color: #b8aaff; border-color: rgba(124,77,255,0.4); }
+            .empty-exam-state {
+                display:flex; flex-direction:column; align-items:center; justify-content:center;
+                padding:60px 20px; text-align:center; height:100%; border:1px dashed rgba(255,255,255,0.1);
+                border-radius:12px; background:linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.1) 100%);
+            }
+            .empty-exam-state i { font-size: 48px; color: rgba(124,77,255,0.4); margin-bottom: 16px; animation: floatIcon 3s ease-in-out infinite; }
+            @keyframes floatIcon { 0% { transform:translateY(0); } 50% { transform:translateY(-10px); } 100% { transform:translateY(0); } }
+            .btn-save-exam {
+                width: 100%; padding: 14px; background: linear-gradient(135deg, #7c4dff, #b8aaff); border: none;
+                border-radius: 12px; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer;
+                transition: transform 0.2s, box-shadow 0.2s; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 8px;
+            }
+            .btn-save-exam:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,77,255,0.4); }
+        </style>
         <div class="page" id="page-exams">
-            <h2><i class="fas fa-calendar-alt" style="color:#4dabf7;margin-right:12px;"></i>Examination Management</h2>
-            <div class="sub">Create examinations, publish rules, and assign registered candidates.</div>
-            <div class="exam-management-grid">
-                <form class="exam-form-card" id="examCreateForm">
-                    <div class="form-card-title"><i class="fas fa-plus-circle"></i> Create Examination</div>
-                    <label>Exam title<input id="examTitleInput" maxlength="120" required placeholder="e.g. Database Systems Final"></label>
-                    <label>Date and time<input id="examDateInput" type="datetime-local" required></label>
-                    <div class="form-row">
-                        <label>Duration (minutes)<input id="examDurationInput" type="number" min="15" max="480" value="60" required></label>
-                        <label>Break (minutes)<input id="examBreakInput" type="number" min="0" max="60" value="5" required></label>
+            <h2 style="animation: fadeSlide 0.4s ease;"><i class="fas fa-calendar-alt" style="color:#4dabf7;margin-right:12px;"></i>Examination Management</h2>
+            <div class="sub" style="animation: fadeSlide 0.5s ease;">Create examinations, publish rules, and assign registered candidates.</div>
+            
+            <div class="exam-management-grid" style="animation: fadeSlideUp 0.6s ease forwards;">
+                <form class="glass-form-card" id="examCreateForm">
+                    <div class="form-card-title"><i class="fas fa-magic" style="color:#b8aaff;"></i> Quick Templates</div>
+                    <div class="template-chips">
+                        <div class="chip" onclick="applyTemplate('midterm')">Midterm</div>
+                        <div class="chip" onclick="applyTemplate('final')">Final Exam</div>
+                        <div class="chip" onclick="applyTemplate('quiz')">Short Quiz</div>
+                        <div class="chip" onclick="applyTemplate('mock')">Mock Test</div>
                     </div>
-                    <label>Exam rules<textarea id="examRulesInput" maxlength="5000" rows="5" placeholder="Enter rules shown to students before the exam..."></textarea></label>
-                    <button class="btn btn-primary" type="submit"><i class="fas fa-save"></i> Save Draft</button>
-                    <div id="examFormStatus" class="form-status"></div>
+
+                    <div class="form-card-title"><i class="fas fa-plus-circle"></i> Create Examination</div>
+                    <label style="display:block; font-size:12px; color:rgba(255,255,255,0.65); margin-bottom:14px; font-weight:600;">Exam Title
+                        <input id="examTitleInput" class="modern-input" maxlength="120" required placeholder="e.g. Database Systems Final">
+                    </label>
+                    
+                    <div class="form-row">
+                        <label style="display:block; font-size:12px; color:rgba(255,255,255,0.65); margin-bottom:14px; font-weight:600;">Date and Time
+                            <input id="examDateInput" class="modern-input" type="datetime-local" required>
+                        </label>
+                        <label style="display:block; font-size:12px; color:rgba(255,255,255,0.65); margin-bottom:14px; font-weight:600;">Monitoring Strictness
+                            <select id="examStrictnessInput" class="modern-input" style="appearance:none;">
+                                <option value="strict">Strict (High Sensitivity)</option>
+                                <option value="medium" selected>Medium (Standard)</option>
+                                <option value="relaxed">Relaxed (Low Sensitivity)</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="form-row">
+                        <label style="display:block; font-size:12px; color:rgba(255,255,255,0.65); margin-bottom:14px; font-weight:600;">Duration (minutes)
+                            <input id="examDurationInput" class="modern-input" type="number" min="15" max="480" value="60" required>
+                        </label>
+                        <label style="display:block; font-size:12px; color:rgba(255,255,255,0.65); margin-bottom:14px; font-weight:600;">Break (minutes)
+                            <input id="examBreakInput" class="modern-input" type="number" min="0" max="60" value="5" required>
+                        </label>
+                    </div>
+                    
+                    <label style="display:block; font-size:12px; color:rgba(255,255,255,0.65); margin-bottom:14px; font-weight:600;">Exam Rules & Instructions
+                        <textarea id="examRulesInput" class="modern-input" maxlength="5000" rows="4" placeholder="Enter rules shown to students before the exam..."></textarea>
+                    </label>
+                    
+                    <button class="btn-save-exam" type="submit"><i class="fas fa-paper-plane"></i> Publish Examination</button>
+                    <div id="examFormStatus" class="form-status" style="text-align:center; margin-top:12px;"></div>
                 </form>
-                <div class="exam-list-card">
-                    <div class="form-card-title"><i class="fas fa-layer-group"></i> Examinations</div>
-                    <div id="examManagementList"><div class="no-data">Loading examinations...</div></div>
+
+                <div class="glass-form-card" style="display:flex; flex-direction:column; min-height:500px;">
+                    <div class="form-card-title"><i class="fas fa-layer-group"></i> Existing Examinations</div>
+                    <div id="examManagementList" style="flex:1;">
+                        <div class="empty-exam-state">
+                            <i class="fas fa-folder-open"></i>
+                            <div style="font-weight:700; color:#fff; font-size:16px; margin-bottom:8px;">No Examinations Created</div>
+                            <div style="color:rgba(255,255,255,0.5); font-size:14px;">Save your first draft to see it appear here.</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <script>
+            // Utility for quick templates
+            function applyTemplate(type) {
+                const title = document.getElementById('examTitleInput');
+                const dur = document.getElementById('examDurationInput');
+                const rules = document.getElementById('examRulesInput');
+                const strict = document.getElementById('examStrictnessInput');
+                
+                if (type === 'midterm') {
+                    title.value = 'Midterm Examination'; dur.value = 90; strict.value = 'medium';
+                    rules.value = '1. No external materials allowed.\\n2. Ensure your face is visible at all times.\\n3. Stay within the browser window.';
+                } else if (type === 'final') {
+                    title.value = 'Final Examination'; dur.value = 120; strict.value = 'strict';
+                    rules.value = '1. STRICT MONITORING ACTIVE.\\n2. No mobile phones or secondary devices.\\n3. Room must be completely quiet.';
+                } else if (type === 'quiz') {
+                    title.value = 'Short Quiz'; dur.value = 30; strict.value = 'relaxed';
+                    rules.value = '1. Open book allowed.\\n2. Complete within 30 minutes.';
+                } else if (type === 'mock') {
+                    title.value = 'Mock Practice Test'; dur.value = 60; strict.value = 'medium';
+                    rules.value = '1. This is a practice test to check your system.\\n2. Do your best!';
+                }
+                
+                // Add a little highlight animation to show it worked
+                [title, dur, rules, strict].forEach(el => {
+                    if(!el) return;
+                    const oldBorder = el.style.borderColor;
+                    const oldShadow = el.style.boxShadow;
+                    el.style.borderColor = '#51cf66';
+                    el.style.boxShadow = '0 0 0 3px rgba(81,207,102,0.2)';
+                    setTimeout(() => {
+                        el.style.borderColor = oldBorder;
+                        el.style.boxShadow = oldShadow;
+                    }, 500);
+                });
+            }
+        </script>
 
         <!-- ===== PAGE: EVENT LOGS (redirect) ===== -->
 
@@ -2101,22 +2224,36 @@
 
     function renderExams(exams) {
         if (!exams.length) {
-            examList.innerHTML = '<div class="no-data">No examinations created yet. Save your first draft.</div>';
+            examList.innerHTML = `
+                <div class="empty-exam-state">
+                    <i class="fas fa-folder-open"></i>
+                    <div style="font-weight:700; color:#fff; font-size:16px; margin-bottom:8px;">No Examinations Created</div>
+                    <div style="color:rgba(255,255,255,0.5); font-size:14px;">Save your first draft to see it appear here.</div>
+                </div>`;
             return;
         }
-        examList.innerHTML = exams.map(exam => {
+        examList.innerHTML = exams.map((exam, idx) => {
             const statusClass = String(exam.status || '').toLowerCase();
-            const publishButton = exam.status === 'Draft' ? `<button data-exam-status="Published" data-exam-id="${exam.id}">Publish</button>` : '';
-            const closeButton = exam.status === 'Published' ? `<button data-exam-status="Closed" data-exam-id="${exam.id}">Close</button>` : '';
-            return `<article class="exam-card">
-                <div class="exam-card-head">
-                    <div><h3>${esc(exam.title)}</h3><div class="exam-meta">${formatExamDate(exam.exam_date)} · ${exam.duration_minutes} minutes · Break ${exam.break_minutes} minutes</div></div>
-                    <span class="exam-status ${statusClass}">${esc(exam.status)}</span>
+            const publishButton = exam.status === 'Draft' ? `<button data-exam-status="Published" data-exam-id="${exam.id}" style="background:rgba(81,207,102,0.15); color:#51cf66; border:1px solid rgba(81,207,102,0.3); border-radius:8px; padding:6px 12px; cursor:pointer; font-weight:600; font-size:12px; transition:0.2s;"><i class="fas fa-globe"></i> Publish</button>` : '';
+            const closeButton = exam.status === 'Published' ? `<button data-exam-status="Closed" data-exam-id="${exam.id}" style="background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3); border-radius:8px; padding:6px 12px; cursor:pointer; font-weight:600; font-size:12px; transition:0.2s;"><i class="fas fa-lock"></i> Close</button>` : '';
+            
+            const animDelay = (idx * 0.08) + 's';
+            
+            return `<article class="exam-card" style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:18px; margin-bottom:16px; animation:fadeSlideUp 0.5s ease forwards; opacity:0; animation-delay:${animDelay}; transition:transform 0.2s, border-color 0.2s;">
+                <div class="exam-card-head" style="display:flex; justify-content:space-between; align-items:start; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:12px; margin-bottom:12px;">
+                    <div>
+                        <h3 style="font-size:17px; color:#fff; font-weight:700; margin-bottom:6px;">${esc(exam.title)}</h3>
+                        <div class="exam-meta" style="font-size:12px; color:rgba(255,255,255,0.4);"><i class="fas fa-clock" style="margin-right:4px;"></i>${formatExamDate(exam.exam_date)} &nbsp;|&nbsp; ${exam.duration_minutes} min &nbsp;|&nbsp; ${exam.break_minutes} min break</div>
+                    </div>
+                    <span class="exam-status ${statusClass}" style="padding:4px 10px; border-radius:12px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">${esc(exam.status)}</span>
                 </div>
-                <div class="exam-meta" style="margin-top:8px;">${esc(exam.rules || 'No custom rules configured.')}<br>Assigned candidates: ${exam.candidate_count || 0}</div>
-                <div class="exam-card-actions">
+                <div class="exam-meta" style="font-size:13px; color:rgba(255,255,255,0.6); line-height:1.5; margin-bottom:16px;">
+                    <i class="fas fa-info-circle" style="color:rgba(255,255,255,0.3); margin-right:6px;"></i>${esc(exam.rules || 'No rules configured.')}
+                    <div style="margin-top:8px; display:inline-block; background:rgba(124,77,255,0.15); color:#b8aaff; padding:4px 10px; border-radius:8px; font-size:11px; font-weight:600;"><i class="fas fa-users"></i> ${exam.candidate_count || 0} Assigned Candidates</div>
+                </div>
+                <div class="exam-card-actions" style="display:flex; gap:10px;">
                     ${publishButton}${closeButton}
-                    <button data-assign-all="${exam.id}">Assign all students</button>
+                    <button data-assign-all="${exam.id}" style="background:rgba(255,255,255,0.05); color:#fff; border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:6px 12px; cursor:pointer; font-weight:600; font-size:12px; transition:0.2s;"><i class="fas fa-user-plus"></i> Assign Students</button>
                 </div>
             </article>`;
         }).join('');
