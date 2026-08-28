@@ -747,7 +747,7 @@
                 <div class="stat-card"><div class="label">Total Suspicious Events</div><div class="value red" id="totalSuspiciousEvents">0</div></div>
             </div>
             <div class="analytics-row">
-                <div class="card" style="background:rgba(255,255,255,0.04);border-radius:16px;padding:20px 22px;border:1px solid rgba(255,255,255,0.04); display:flex; flex-direction:column;">
+                <div class="card" style="background:rgba(255,255,255,0.04);border-radius:16px;padding:20px 22px;border:1px solid rgba(255,255,255,0.04); display:flex; flex-direction:column; animation:fadeSlideUp 0.6s ease forwards; opacity:0;">
                     <div class="card-title" style="font-size:18px;font-weight:600;margin-bottom:16px;color:rgba(255,255,255,0.7);display:flex;align-items:center;justify-content:space-between;">
                         <div style="display:flex;align-items:center;gap:10px;"><i class="fas fa-chart-line"></i> Integrity Trend</div>
                         <div style="font-size:11px;background:rgba(124,77,255,0.2);color:#b8aaff;padding:4px 8px;border-radius:6px;font-weight:700;display:flex;align-items:center;gap:4px;">LIVE <i class="fas fa-circle" style="font-size:6px;color:#ff6b6b;animation:pulse 1.5s infinite;"></i></div>
@@ -765,7 +765,7 @@
                         <li style="background:rgba(0,0,0,0.2); padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.05); margin:0; grid-column: span 2; text-align:center;"><span class="label" style="font-size:11px;">Average Score</span><span class="value" id="averageIntegrity" style="font-size:16px;font-weight:700;color:#74c0fc;">0</span></li>
                     </ul>
                 </div>
-                <div class="card" style="background:rgba(255,255,255,0.04);border-radius:16px;padding:20px 22px;border:1px solid rgba(255,255,255,0.04);">
+                <div class="card" style="background:rgba(255,255,255,0.04);border-radius:16px;padding:20px 22px;border:1px solid rgba(255,255,255,0.04); animation:fadeSlideUp 0.6s ease forwards; opacity:0; animation-delay:0.15s;">
                     <div class="card-title" style="font-size:18px;font-weight:600;margin-bottom:16px;color:rgba(255,255,255,0.7);display:flex;align-items:center;gap:10px;">
                         <i class="fas fa-chart-pie"></i> Risk Distribution
                     </div>
@@ -1196,14 +1196,15 @@
             });
 
             // ----- Draw Pie Chart -----
+            let pieAnimFrame = null;
             function drawPieChart(low, medium, high, total) {
                 const width = riskPieChart.width;
                 const height = riskPieChart.height;
                 const radius = Math.min(width, height) / 2 - 10;
                 const cx = width / 2;
                 const cy = height / 2;
-                ctx.clearRect(0, 0, width, height);
                 if (total === 0) {
+                    ctx.clearRect(0, 0, width, height);
                     ctx.fillStyle = 'rgba(255,255,255,0.2)';
                     ctx.font = '14px Inter';
                     ctx.textAlign = 'center';
@@ -1216,20 +1217,34 @@
                     { label: 'Medium', value: medium, color: '#fcc419' },
                     { label: 'High', value: high, color: '#ff6b6b' }
                 ].filter(s => s.value > 0);
-                let startAngle = -Math.PI / 2;
-                slices.forEach(slice => {
-                    const sliceAngle = (slice.value / total) * 2 * Math.PI;
-                    ctx.beginPath();
-                    ctx.moveTo(cx, cy);
-                    ctx.arc(cx, cy, radius, startAngle, startAngle + sliceAngle);
-                    ctx.closePath();
-                    ctx.fillStyle = slice.color;
-                    ctx.fill();
-                    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
-                    startAngle += sliceAngle;
-                });
+                
+                let progress = 0;
+                if(pieAnimFrame) cancelAnimationFrame(pieAnimFrame);
+                
+                function animatePie() {
+                    progress += 0.04;
+                    if(progress > 1) progress = 1;
+                    const easeProgress = 1 - Math.pow(1 - progress, 3);
+                    
+                    ctx.clearRect(0, 0, width, height);
+                    let startAngle = -Math.PI / 2;
+                    slices.forEach(slice => {
+                        const sliceAngle = (slice.value / total) * 2 * Math.PI * easeProgress;
+                        ctx.beginPath();
+                        ctx.moveTo(cx, cy);
+                        ctx.arc(cx, cy, radius, startAngle, startAngle + sliceAngle);
+                        ctx.closePath();
+                        ctx.fillStyle = slice.color;
+                        ctx.fill();
+                        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                        startAngle += sliceAngle;
+                    });
+                    if(progress < 1) pieAnimFrame = requestAnimationFrame(animatePie);
+                }
+                animatePie();
+                
                 const legendContainer = document.getElementById('riskLegend');
                 let legendHtml = '';
                 slices.forEach(slice => {
@@ -2281,29 +2296,22 @@
             const recentList = document.getElementById('recentEventsList');
             const timelineList = document.getElementById('timelineList');
 
-            if (alertsContainer && recentList) {
-                const cards = alertsContainer.querySelectorAll('.action-card, .live-card, [style], .alert-item');
-                let html = '';
-                if (cards.length > 0) {
-                    let count = 0;
-                    cards.forEach(card => {
-                        if (count >= 4) return;
-                        const name = card.querySelector('.card-name, .name, .candidate');
-                        const sub = card.querySelector('.card-sub, .status, .what');
-                        if (name) {
-                            const text = name.textContent || '';
-                            const subText = sub ? sub.textContent : '';
-                            const isHigh = subText.toLowerCase().includes('face') || subText.toLowerCase().includes('multiple');
-                            const level = isHigh ? 'high' : 'medium';
-                            const now = new Date();
-                            const timeStr = now.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
-                            html += '<div class="event-mini"><div class="event-dot ' + level + '"></div><div class="time-col">' + timeStr + '</div><div class="desc-col"><div class="desc-text">' + text + ' - ' + subText + '</div><div class="risk-label ' + level + '">' + (isHigh ? 'High Risk' : 'Medium Risk') + '</div></div></div>';
-                            count++;
-                        }
-                    });
-                }
+            if (recentList && typeof allEvents !== 'undefined') {
+                const suspicious = allEvents
+                    .filter(e => isToday(e.timestamp) && (e.deducted > 3 || e.type === 'Multiple Faces' || e.type === 'Face Absence'))
+                    .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp))
+                    .slice(0, 4);
                 
-                if (html) {
+                let html = '';
+                if (suspicious.length > 0) {
+                    suspicious.forEach(e => {
+                        const name = e.student_name || e.student_id || 'Unknown';
+                        const type = e.type || 'Event';
+                        const isHigh = e.deducted > 7 || type === 'Multiple Faces';
+                        const level = isHigh ? 'high' : 'medium';
+                        const timeStr = new Date(e.timestamp).toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
+                        html += '<div class="event-mini"><div class="event-dot ' + level + '"></div><div class="time-col">' + timeStr + '</div><div class="desc-col"><div class="desc-text">' + name + ' - ' + type + '</div><div class="risk-label ' + level + '">' + (isHigh ? 'High Risk' : 'Medium Risk') + '</div></div></div>';
+                    });
                     recentList.innerHTML = html;
                 } else {
                     recentList.innerHTML = '<div class="no-data" style="padding:20px;font-size:13px;color:rgba(255,255,255,0.4);">No recent suspicious activity</div>';
