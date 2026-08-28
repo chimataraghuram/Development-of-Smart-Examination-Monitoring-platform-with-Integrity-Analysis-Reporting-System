@@ -2554,7 +2554,7 @@ max-width: 100% !important;
 
     <!-- ====== EXAM CONTROLS ====== -->
     <div class="exam-controls">
-        <button class="btn btn-start" id="startExamBtn"><i class="fas fa-play"></i> Start Exam</button>
+        <button class="btn btn-start" id="startExamBtn" style="display:none;"><i class="fas fa-play"></i> Start Exam</button>
         <button class="btn btn-toggle-pause" id="togglePauseBtn" disabled><i class="fas fa-pause"></i> Pause</button>
         <button class="btn btn-end" id="endExamBtn" disabled><i class="fas fa-stop"></i> End Exam</button>
     </div>
@@ -4431,10 +4431,17 @@ max-width: 100% !important;
             }
 
             // ----- Start Exam button on dashboard (opens wizard) -----
-            startBtn.addEventListener('click', function() {
-                if (examRunning) return;
-                openWizard();
-            });
+            if (startBtn) {
+                startBtn.addEventListener('click', function() {
+                    if (examRunning) return;
+                    openWizard();
+                });
+            }
+
+            // Automatically open wizard on load to avoid extra clicks
+            setTimeout(() => {
+                if (!examRunning) openWizard();
+            }, 500);
 
             // Dropdown listeners removed because UI changed
                         window.switchDashboardTab = function(panelName) {
