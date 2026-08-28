@@ -107,8 +107,14 @@
         }
         .sidebar.collapsed .nav-item .label { opacity: 1 !important; width: auto !important; }
 
-        .sidebar .nav-item.logout {
+        .sidebar-actions {
             position: absolute; right: 20px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .sidebar-actions .notif-wrapper { padding: 6px; }
+        .sidebar-actions .notif-wrapper .bell { font-size: 18px; }
+        .sidebar .nav-item.logout {
+            position: static;
             margin: 0; border-top: none; padding-top: 0;
             color: rgba(255,255,255,0.5);
         }
@@ -540,8 +546,10 @@
         @media (max-width: 768px) {
             .sidebar, .sidebar.collapsed { height: auto !important; flex-wrap: wrap; padding: 12px 16px; border-radius: 20px; }
             .sidebar .brand { position: static; }
+                        .sidebar-actions { position: static; }
             .sidebar .nav-item.logout { position: static; }
             .main { padding: 20px 16px !important; }
+
             .stats-grid { grid-template-columns: 1fr 1fr; }
             .analytics-row { grid-template-columns: 1fr; }
             .bottom-panels { grid-template-columns: 1fr; }
@@ -710,8 +718,18 @@
         <button class="nav-item" data-page="exams"><i class="fas fa-clipboard-list" style="color: #b197fc;"></i> <span class="label">Examinations</span></button>
         <button class="nav-item" data-page="logs"><i class="fas fa-file-alt" style="color: #51cf66;"></i> <span class="label">Event Logs</span></button>
 
-        <div class="spacer"></div>
-        <button class="nav-item logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> <span class="label">Logout</span></button>
+                <div class="spacer"></div>
+        <div class="sidebar-actions">
+            <div class="notif-wrapper" id="notifWrapper">
+                <i class="fas fa-bell bell" id="notificationBell"></i>
+                <span class="badge" id="notificationBadge">0</span>
+                <div class="notif-dropdown" id="notificationDropdown">
+                    <div class="empty">No notifications</div>
+                </div>
+            </div>
+            <button class="nav-item logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> <span class="label">Logout</span></button>
+        </div>
+
     </nav>
 
     <!-- ====== MAIN CONTENT ====== -->
@@ -722,14 +740,8 @@
             <div></div>
             <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
                 <button class="btn-health" id="systemHealthBtn"><i class="fas fa-heartbeat"></i> System Health</button>
-                <button class="btn-export" id="exportAllCsv"><i class="fas fa-file-csv"></i> Export Reports</button>
-                <div class="notif-wrapper" id="notifWrapper">
-                    <i class="fas fa-bell bell" id="notificationBell"></i>
-                    <span class="badge" id="notificationBadge">0</span>
-                    <div class="notif-dropdown" id="notificationDropdown">
-                        <div class="empty">No notifications</div>
-                    </div>
-                </div>
+                                <button class="btn-export" id="exportAllCsv"><i class="fas fa-file-csv"></i> Export Reports</button>
+
             </div>
         </div>
 

@@ -88,7 +88,7 @@ Set up environment variables:
 2. Set a long random `FLASK_SECRET_KEY`.
 3. Add `OPENROUTER_API_KEY` only if you want the AI assistant.
 
-The seeded local administrator is `admin@gmail.com`. The password comes from `ADMIN_DEFAULT_PASSWORD` (default: `admin@123`). Change it before any shared deployment.
+The local administrator account uses the email `admin@gmail.com`. Set `ADMIN_DEFAULT_PASSWORD` in `.env` to a strong private value before first use; never commit that value or the resulting `.env` file.
 
 ---
 
@@ -103,6 +103,16 @@ python app.py
 The application listens on `http://127.0.0.1:5000/`.
 
 On Windows, `run_local.ps1` stops a stale local server and starts the app with the project virtual environment.
+
+## Database setup
+
+The application uses SQLite. On startup, it creates or migrates `Backend/exam_monitor.db` and seeds the local administrator account from `ADMIN_DEFAULT_PASSWORD`. The database file is intentionally ignored by Git because it contains local runtime data.
+
+## How to use the system
+
+Candidates register or sign in, review assigned examinations, complete the readiness checks, start an exam, and keep the monitoring workspace active until submission. During an active session, browser and face-monitoring events are recorded and reflected in the activity, statistics, and report views.
+
+Administrators sign in through the same authentication flow and use the dashboard to review active sessions, alerts, event logs, examinations, integrity reports, review decisions, exports, and the optional AI assistant. The AI assistant requires `OPENROUTER_API_KEY`; without it, the application remains usable and reports that the assistant is unavailable.
 
 ---
 
