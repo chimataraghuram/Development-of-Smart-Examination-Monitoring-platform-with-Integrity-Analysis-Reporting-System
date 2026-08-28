@@ -257,7 +257,7 @@
 
         /* ===== BOTTOM PANELS (Quick Actions etc.) ===== */
         .bottom-panels {
-            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 24px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 24px;
         }
         .bottom-panel {
             background: rgba(26, 21, 69, 0.4); border: 1px solid rgba(124,77,255,0.15);
@@ -689,35 +689,7 @@
                 </div>
             </div>
 
-            <div class="bottom-panel">
-                <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
-                <div class="quick-actions-grid">
-                    <div class="qa-btn" onclick="document.querySelector('[data-page=live]').click()">
-                        <div class="qa-icon purple"><i class="fas fa-video"></i></div>
-                        <div class="qa-label">View Live Monitoring</div>
-                    </div>
-                    <div class="qa-btn" onclick="document.querySelector('[data-page=action]').click()">
-                        <div class="qa-icon blue"><i class="fas fa-bullseye"></i></div>
-                        <div class="qa-label">Open Action Center</div>
-                    </div>
-                    <div class="qa-btn" onclick="document.querySelector('[data-page=alerts]').click()">
-                        <div class="qa-icon red"><i class="fas fa-exclamation-triangle"></i></div>
-                        <div class="qa-label">View Suspicious Alerts</div>
-                    </div>
-                    <div class="qa-btn" onclick="document.querySelector('[data-page=logs]').click()">
-                        <div class="qa-icon green"><i class="fas fa-list-ul"></i></div>
-                        <div class="qa-label">Check Event Logs</div>
-                    </div>
-                    <div class="qa-btn" onclick="document.getElementById('exportAllCsv').click()">
-                        <div class="qa-icon green"><i class="fas fa-file-csv"></i></div>
-                        <div class="qa-label">Export Reports</div>
-                    </div>
-                    <div class="qa-btn" onclick="document.getElementById('systemHealthBtn').click()">
-                        <div class="qa-icon teal"><i class="fas fa-heartbeat"></i></div>
-                        <div class="qa-label">System Health</div>
-                    </div>
-                </div>
-            </div>
+
         </div>
 
         </div>
@@ -1545,6 +1517,9 @@
                 });
                 html += `</div>`;
                 alertsContainer.innerHTML = html;
+                if (typeof window.populateBottomPanels === 'function') {
+                    window.populateBottomPanels();
+                }
 
                 const alertCount = suspicious.length;
                 alertBadge.textContent = alertCount;
@@ -1652,62 +1627,68 @@
     <script>
         // Populate bottom panels with live data from allStudents/allEvents
         // (safe additive script — does NOT modify any existing variables or logic)
-        (function() {
-            function populateBottomPanels() {
-                // Only run on dashboard page
-                const bp = document.getElementById('bottomPanels');
-                if (!bp) return;
+        window.populateBottomPanels = function() {
+            // Only run on dashboard page
+            const bp = document.getElementById('bottomPanels');
+            if (!bp) return;
 
-                // Get recent events from alertsContainer if available
-                const alertsContainer = document.getElementById('alertsContainer');
-                const recentList = document.getElementById('recentEventsList');
-                const timelineList = document.getElementById('timelineList');
+            // Get recent events from alertsContainer if available
+            const alertsContainer = document.getElementById('alertsContainer');
+            const recentList = document.getElementById('recentEventsList');
+            const timelineList = document.getElementById('timelineList');
 
-                if (alertsContainer && recentList) {
-                    const cards = alertsContainer.querySelectorAll('.action-card, .live-card, [style]');
-                    if (cards.length > 0) {
-                        let html = '';
-                        let count = 0;
-                        cards.forEach(card => {
-                            if (count >= 4) return;
-                            const name = card.querySelector('.card-name, .name');
-                            const sub = card.querySelector('.card-sub, .status');
-                            if (name) {
-                                const text = name.textContent || '';
-                                const subText = sub ? sub.textContent : '';
-                                const isHigh = subText.toLowerCase().includes('face') || subText.toLowerCase().includes('multiple');
-                                const level = isHigh ? 'high' : 'medium';
-                                const now = new Date();
-                                const timeStr = now.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
-                                html += '<div class="event-mini"><div class="event-dot ' + level + '"></div><div class="time-col">' + timeStr + '</div><div class="desc-col"><div class="desc-text">' + text + '</div><div class="risk-label ' + level + '">' + (isHigh ? 'High Risk' : 'Medium Risk') + '</div></div></div>';
-                                count++;
-                            }
-                        });
-                        if (html) recentList.innerHTML = html;
-                    }
-                }
-
-                if (timelineList) {
-                    const now = new Date();
-                    const entries = [
-                        {min: 0, text: 'Dashboard refreshed', level: 'info'},
-                        {min: 5, text: 'System health checked', level: 'low'},
-                        {min: 12, text: 'Monitoring session active', level: 'info'},
-                        {min: 20, text: 'Data export available', level: 'low'},
-                    ];
-                    let html = '';
-                    entries.forEach(e => {
-                        const t = new Date(now - e.min * 60000);
-                        const ts = t.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
-                        html += '<div class="event-mini"><div class="event-dot ' + e.level + '"></div><div class="time-col">' + ts + '</div><div class="desc-col"><div class="desc-text">' + e.text + '</div><div class="risk-label ' + e.level + '">' + e.level.charAt(0).toUpperCase() + e.level.slice(1) + '</div></div></div>';
+            if (alertsContainer && recentList) {
+                const cards = alertsContainer.querySelectorAll('.action-card, .live-card, [style], .alert-item');
+                let html = '';
+                if (cards.length > 0) {
+                    let count = 0;
+                    cards.forEach(card => {
+                        if (count >= 4) return;
+                        const name = card.querySelector('.card-name, .name, .candidate');
+                        const sub = card.querySelector('.card-sub, .status, .what');
+                        if (name) {
+                            const text = name.textContent || '';
+                            const subText = sub ? sub.textContent : '';
+                            const isHigh = subText.toLowerCase().includes('face') || subText.toLowerCase().includes('multiple');
+                            const level = isHigh ? 'high' : 'medium';
+                            const now = new Date();
+                            const timeStr = now.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
+                            html += '<div class="event-mini"><div class="event-dot ' + level + '"></div><div class="time-col">' + timeStr + '</div><div class="desc-col"><div class="desc-text">' + text + ' - ' + subText + '</div><div class="risk-label ' + level + '">' + (isHigh ? 'High Risk' : 'Medium Risk') + '</div></div></div>';
+                            count++;
+                        }
                     });
-                    timelineList.innerHTML = html;
+                }
+                
+                if (html) {
+                    recentList.innerHTML = html;
+                } else {
+                    recentList.innerHTML = '<div class="no-data" style="padding:20px;font-size:13px;color:rgba(255,255,255,0.4);">No recent suspicious activity</div>';
                 }
             }
 
-            // Run after initial data loads (delayed)
-            setTimeout(populateBottomPanels, 3000);
-            setInterval(populateBottomPanels, 10000);
+            if (timelineList) {
+                const now = new Date();
+                const entries = [
+                    {min: 0, text: 'Dashboard refreshed', level: 'info'},
+                    {min: 5, text: 'System health checked', level: 'low'},
+                    {min: 12, text: 'Monitoring session active', level: 'info'},
+                    {min: 20, text: 'Data export available', level: 'low'},
+                ];
+                let html = '';
+                entries.forEach(e => {
+                    const t = new Date(now - e.min * 60000);
+                    const ts = t.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
+                    html += '<div class="event-mini"><div class="event-dot ' + e.level + '"></div><div class="time-col">' + ts + '</div><div class="desc-col"><div class="desc-text">' + e.text + '</div><div class="risk-label ' + e.level + '">' + e.level.charAt(0).toUpperCase() + e.level.slice(1) + '</div></div></div>';
+                });
+                timelineList.innerHTML = html;
+            }
+        };
+
+        (function() {
+            // Call immediately so timeline loads instantly
+            window.populateBottomPanels();
+            // Then update periodically
+            setInterval(window.populateBottomPanels, 10000);
         })();
     </script>
 
