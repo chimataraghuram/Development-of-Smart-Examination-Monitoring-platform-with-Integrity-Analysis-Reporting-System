@@ -2131,91 +2131,78 @@ max-width: 100% !important;
         <!-- Candidate Panel -->
         <div class="panel active" id="panelCandidate">
             <!-- Reference-matched candidate workspace card -->
-            <div class="exam-workspace reference-workspace-card" id="examWorkspace">
-                <div class="workspace-reference-left">
-                    <div class="workspace-avatar-orbit"><div class="workspace-initial" id="workspaceInitial">S</div><span class="workspace-orbit-dot orbit-dot-one"></span><span class="workspace-orbit-dot orbit-dot-two"></span></div>
-                    <div class="workspace-reference-copy">
-                        <div class="workspace-reference-name" id="workspaceUserName">Student</div>
-                        <div class="workspace-reference-kicker"><i class="fas fa-briefcase"></i> Candidate Workspace</div>
-                        <div class="workspace-reference-divider"></div>
-                        <div class="workspace-reference-exam"><i class="fas fa-file-alt"></i><span id="assignedExamTitle">Exams</span></div>
-                        <p id="assignedExamMeta">Your identity, examination result,<br class="workspace-desktop-break" /> and monitoring readiness in one place.</p>
-                    </div>
-                </div>
-                <div class="workspace-reference-status">
-                    <button type="button" id="connectionStatusButtonTop" class="reference-status-card reference-connection-card network-status-button" aria-label="Check live network connection"><span class="reference-status-icon connection-icon"><i class="fas fa-wifi"></i></span><span class="reference-status-copy"><small>Connection</small><strong id="connectionState">Check connection</strong><em id="connectionDetail">Click to check</em></span><span class="reference-status-badge" id="connectionCheckBadge"><i class="fas fa-check"></i></span></button>
-                    <button type="button" id="sysDiagBtn" class="reference-status-card" aria-label="Run System Readiness Diagnostics"><span class="reference-status-icon readiness-icon"><i class="fas fa-clipboard-check"></i></span><span class="reference-status-copy"><small>Readiness</small><strong id="readinessState">Diagnose system</strong><em id="readinessDetail">Run system check</em></span><span class="reference-status-badge"><i class="fas fa-arrow-right" style="font-size:12px;"></i></span></button>
-                    <div class="reference-status-card"><span class="reference-status-icon notifications-icon"><i class="fas fa-bell"></i></span><span class="reference-status-copy"><small>Notifications</small><strong id="notificationState">0 new</strong><em id="notificationDetail">You're all caught up!</em></span><span class="reference-status-badge"><i class="fas fa-check"></i></span></div>
-                </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-                <div class="info-card" style="display:flex; flex-direction:column; gap:15px; background:rgba(255,255,255,0.04); border-radius:16px; padding:18px 20px; border:1px solid rgba(255,255,255,0.05);">
+            <!-- Top Dashboard Split Layout -->
+            <div id="examWorkspace" style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 25px;">
+                
+                <!-- LEFT SIDE: Candidate Details -->
+                <div class="info-card" style="flex: 1 1 500px; display:flex; flex-direction:column; gap:15px; background:rgba(255,255,255,0.04); border-radius:20px; padding:24px; border:1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
                     <div style="font-size:12px; color:rgba(255,255,255,0.5); text-transform:uppercase; font-weight:bold; letter-spacing:1px; display:flex; justify-content:space-between;">
                         <span>Candidate Details</span>
                         <i class="fas fa-fingerprint"></i>
                     </div>
                     <div style="display:flex; align-items:center; gap:15px;">
-                        <div style="width:50px; height:50px; border-radius:12px; background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; font-size:24px;">
-                            <i class="fas fa-user"></i>
+                        <div style="width:60px; height:60px; border-radius:16px; background:linear-gradient(135deg, #7c4dff, #448aff); display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:700; color:#fff; box-shadow: 0 4px 15px rgba(124,77,255,0.4);">
+                            <span id="workspaceInitial">S</span>
                         </div>
                         <div>
                             <div style="font-size:12px; color:rgba(255,255,255,0.5);">Full name</div>
-                            <strong id="candName" style="font-size:18px;">-</strong>
+                            <strong id="candName" style="font-size:22px; color:#fff; letter-spacing:0.5px;">-</strong>
                             <div style="font-size:12px; color:rgba(255,255,255,0.5); margin-top:2px;">ID: <strong id="candId" style="color:#fff;">-</strong> <span style="margin:0 5px; opacity: 0.5;">|</span> Roll No: <strong id="candRoll" style="color:#fff;">-</strong></div>
                         </div>
+                        <div style="margin-left:auto; background:rgba(81,207,102,0.1); color:#51cf66; padding:6px 12px; border-radius:20px; font-size:11px; font-weight:700; border:1px solid rgba(81,207,102,0.2);">HIGH TRUST</div>
                     </div>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
-                        <div style="background:rgba(255,255,255,0.02); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px;">
+                        <div style="background:rgba(255,255,255,0.02); padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03);">
                             <div style="font-size:10px; color:rgba(255,255,255,0.4); margin-bottom: 4px; text-transform:uppercase; letter-spacing:0.5px;"><i class="fas fa-graduation-cap"></i> Course</div>
-                            <div id="candCourse" style="font-size:13px; color:#fff; font-weight:500;">B.Tech Computer Science</div>
+                            <div id="candCourse" style="font-size:14px; color:#fff; font-weight:500;">B.Tech Computer Science</div>
                         </div>
-                        <div style="background:rgba(255,255,255,0.02); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03); overflow:hidden;">
+                        <div style="background:rgba(255,255,255,0.02); padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03); overflow:hidden;">
                             <div style="font-size:10px; color:rgba(255,255,255,0.4); margin-bottom: 4px; text-transform:uppercase; letter-spacing:0.5px;"><i class="fas fa-envelope"></i> Email</div>
-                            <div id="candEmail" style="font-size:13px; color:#fff; font-weight:500; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">-</div>
+                            <div id="candEmail" style="font-size:14px; color:#fff; font-weight:500; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">-</div>
                         </div>
-                        <div style="background:rgba(255,255,255,0.02); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+                        <div style="background:rgba(255,255,255,0.02); padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03);">
                             <div style="font-size:10px; color:rgba(255,255,255,0.4); margin-bottom: 4px; text-transform:uppercase; letter-spacing:0.5px;"><i class="fas fa-map-marker-alt"></i> Center</div>
-                            <div id="candCenter" style="font-size:13px; color:#fff; font-weight:500;">Remote (Online)</div>
+                            <div id="candCenter" style="font-size:14px; color:#fff; font-weight:500;">Remote (Online)</div>
                         </div>
-                        <div style="background:rgba(255,255,255,0.02); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+                        <div style="background:rgba(255,255,255,0.02); padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03);">
                             <div style="font-size:10px; color:rgba(255,255,255,0.4); margin-bottom: 4px; text-transform:uppercase; letter-spacing:0.5px;"><i class="fas fa-laptop"></i> Device</div>
-                            <div id="candDevice" style="font-size:13px; color:#fff; font-weight:500; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">-</div>
+                            <div id="candDevice" style="font-size:14px; color:#fff; font-weight:500; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">-</div>
                         </div>
                     </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.1); padding-top:15px; margin-top:15px; font-size:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.1); padding-top:15px; margin-top:5px; font-size:12px;">
                         <span><i class="fas fa-lock"></i> Account verified</span>
                         <span style="color:#69db7c;"><i class="fas fa-circle" style="font-size:8px;"></i> Active</span>
                     </div>
                 </div>
 
-                <div class="info-card" style="display:flex; flex-direction:column; gap:15px; background:rgba(255,255,255,0.04); border-radius:16px; padding:18px 20px; border:1px solid rgba(255,255,255,0.05);">
-                    <div style="font-size:12px; color:rgba(255,255,255,0.5); text-transform:uppercase; font-weight:bold; letter-spacing:1px; display:flex; justify-content:space-between;">
-                        <span>Latest Result</span>
-                        <i class="fas fa-medal"></i>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <div style="font-size:12px; color:rgba(255,255,255,0.5);">Final score</div>
-                            <div style="display:flex; align-items:baseline; gap:5px;">
-                                <strong id="candScore" style="font-size:36px; line-height:1;">0</strong>
-                                <span style="font-size:14px; color:rgba(255,255,255,0.5);">/ 100</span>
-                            </div>
+                <!-- RIGHT SIDE: Status & Actions -->
+                <div style="flex: 1 1 300px; display: flex; flex-direction: column; gap: 15px;">
+                    <!-- Connection Card -->
+                    <button type="button" id="connectionStatusButtonTop" class="info-card network-status-button action-btn-card" style="text-align:left; background: rgba(81,207,102,0.15); border-radius: 20px; padding: 22px; border: 1px solid rgba(81,207,102,0.4); display: flex; align-items: center; gap: 16px; cursor: pointer; flex:1; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(81,207,102,0.1);">
+                        <div style="width:48px; height:48px; border-radius:14px; background: rgba(81,207,102,0.2); color:#51cf66; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;">
+                            <i class="fas fa-wifi"></i>
                         </div>
-                        <div style="border:1px solid rgba(105,219,124,0.3); padding:5px 12px; border-radius:20px; font-size:12px; color:#69db7c;">
-                            <i class="fas fa-chart-line"></i> Integrity result
+                        <div style="flex:1;">
+                            <div style="font-size:12px; color:rgba(255,255,255,0.7); margin-bottom:4px; font-weight: 500;">Network Status</div>
+                            <strong style="font-size:16px; color:#fff; display:block;" id="connectionState">Check connection</strong>
                         </div>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:10px; border-top:1px solid rgba(255,255,255,0.1); padding-top:15px; margin-top:5px;">
-                        <i class="fas fa-comment-dots" style="color:#ffd43b;"></i>
-                        <div>
-                            <div style="font-size:10px; color:rgba(255,255,255,0.5);">Performance remark</div>
-                            <strong id="candRemark" style="font-size:14px;">Not yet started</strong>
+                        <div style="color:rgba(255,255,255,0.5); font-size:16px;"><i class="fas fa-chevron-right"></i></div>
+                    </button>
+
+                    <!-- Readiness Card -->
+                    <button type="button" id="sysDiagBtn" class="info-card action-btn-card" style="text-align:left; background: rgba(68,138,255,0.15); border-radius: 20px; padding: 22px; border: 1px solid rgba(68,138,255,0.4); display: flex; align-items: center; gap: 16px; cursor: pointer; flex:1; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(68,138,255,0.1);">
+                        <div style="width:48px; height:48px; border-radius:14px; background: rgba(68,138,255,0.2); color:#448aff; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;">
+                            <i class="fas fa-clipboard-check"></i>
                         </div>
-                    </div>
+                        <div style="flex:1;">
+                            <div style="font-size:12px; color:rgba(255,255,255,0.7); margin-bottom:4px; font-weight: 500;">System Diagnostics</div>
+                            <strong style="font-size:16px; color:#fff; display:block;" id="readinessState">Diagnose system</strong>
+                        </div>
+                        <div style="color:rgba(255,255,255,0.5); font-size:16px;"><i class="fas fa-chevron-right"></i></div>
+                    </button>
+
                 </div>
             </div>
-            
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top:20px;">
                 <div class="info-card" style="display:flex; align-items:center; gap:15px; background:rgba(255,255,255,0.04); border-radius:16px; padding:18px 20px; border:1px solid rgba(255,255,255,0.05);">
                     <div style="width:40px; height:40px; border-radius:10px; background:rgba(77,171,247,0.1); color:#74c0fc; display:flex; align-items:center; justify-content:center; font-size:18px;">
@@ -2265,6 +2252,14 @@ max-width: 100% !important;
                 <div style="text-align:right; margin-top:8px;">
                     <span style="color:rgba(255,255,255,0.5); font-size:11px;"><i class="fas fa-tag" style="margin-right:4px;"></i>Risk Level: <strong id="candRiskLabel" style="color:#fff;">Low Risk</strong></span>
                 </div>
+            </div>
+            
+            <!-- Massive Start Exam Button -->
+            <div style="margin-top: 40px; margin-bottom: 20px; display: flex; justify-content: center;">
+                <a href="/exam" id="startMockExamBtn" class="btn btn-start" style="display:inline-flex; align-items:center; justify-content:center; gap:15px; font-size: 22px; padding: 20px 60px; font-weight: 800; text-decoration: none; border-radius: 100px; background: linear-gradient(135deg, #51cf66, #2fac4a); color: #fff; box-shadow: 0 15px 40px rgba(81,207,102,0.4); text-transform: uppercase; letter-spacing: 1.5px; transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);">
+                    <i class="fas fa-play-circle" style="font-size: 26px;"></i> 
+                    Start Exam
+                </a>
             </div>
         </div>
 
@@ -2549,10 +2544,7 @@ max-width: 100% !important;
         </div>
     </div>
 
-    <!-- ====== EXAM CONTROLS ====== -->
-    <div class="exam-controls" style="justify-content: center; padding: 30px;">
-        <a href="/exam" class="btn btn-start" style="font-size: 20px; padding: 15px 40px; text-decoration: none;"><i class="fas fa-play"></i> Start Exam</a>
-    </div>
+
 
     <!-- ====== WIZARD OVERLAY ====== -->
     <div class="wizard-overlay" id="wizardOverlay">
