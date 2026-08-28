@@ -24,12 +24,22 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #a7afcc );
+            background: linear-gradient(135deg, #020a29, #0d0b2e);
             background-size: 400% 400%;
             animation: gradientShift 18s ease infinite;
             padding: 20px;
             position: relative;
             overflow-x: hidden;
+        }
+
+        #tsparticles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
         }
 
         @keyframes gradientShift {
@@ -195,6 +205,12 @@
             color: #ff6b6b;
         }
 
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 0 0 rgba(124,77,255,0.6); }
+            70% { box-shadow: 0 0 0 12px rgba(124,77,255,0); }
+            100% { box-shadow: 0 0 0 0 rgba(124,77,255,0); }
+        }
+
         .btn-login {
             width: 100%;
             padding: 16px;
@@ -214,18 +230,20 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
+            animation: pulseGlow 2.5s infinite;
         }
         .btn-login:hover {
-            transform: translateY(-2px) scale(1.01);
+            transform: translateY(-2px) scale(1.02);
             box-shadow: 0 14px 44px rgba(124,77,255,0.45);
         }
         .btn-login:active {
-            transform: translateY(0) scale(0.98);
+            transform: translateY(0) scale(0.96);
         }
         .btn-login:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none !important;
+            animation: none;
         }
 
         .btn-outline {
@@ -333,6 +351,7 @@
 </head>
 <body>
 
+    <div id="tsparticles"></div>
     <div class="orb orb--1"></div>
     <div class="orb orb--2"></div>
     <div class="orb orb--3"></div>
@@ -518,6 +537,24 @@
             emailHint.textContent = 'Must be @gmail.com';
             passHint.textContent = 'Enter your password';
         })();
+    </script>
+
+    <!-- tsParticles library -->
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles-slim@2.0.6/tsparticles.slim.bundle.min.js"></script>
+    <script>
+        tsParticles.load("tsparticles", {
+          fpsLimit: 60,
+          particles: {
+            color: { value: "#4da8da" },
+            links: { color: "#4da8da", distance: 150, enable: true, opacity: 0.15, width: 1 },
+            move: { enable: true, speed: 0.3, direction: "none", random: false, straight: false, outModes: { default: "bounce" } },
+            number: { density: { enable: true, area: 800 }, value: 30 },
+            opacity: { value: 0.3 },
+            shape: { type: "circle" },
+            size: { value: { min: 1, max: 2 } },
+          },
+          detectRetina: true,
+        });
     </script>
 
 </body>

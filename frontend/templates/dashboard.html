@@ -36,6 +36,102 @@
             z-index: 10;
         }
 
+        /* ---------- GLOBAL ANIMATIONS ---------- */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.92); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        @keyframes pulseGlowBtn {
+            0% { box-shadow: 0 0 0 0 rgba(124,77,255,0.5); }
+            70% { box-shadow: 0 0 0 10px rgba(124,77,255,0); }
+            100% { box-shadow: 0 0 0 0 rgba(124,77,255,0); }
+        }
+
+        /* Buttons - hover glow & lift */
+        .btn, .nav-pill, button, .btn-outline, .btn-download, .btn-start, .btn-end, .btn-toggle-pause {
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        }
+        
+        .btn-start, #runSysDiagBtn, #startMockExamBtn {
+            animation: pulseGlowBtn 2s infinite !important;
+        }
+
+        .btn:hover, .btn-start:hover, .btn-end:hover, .btn-toggle-pause:hover, button:hover {
+            transform: translateY(-3px) scale(1.02) !important;
+            box-shadow: 0 10px 30px rgba(124,77,255,0.4) !important;
+        }
+        .btn:active, button:active {
+            transform: translateY(0) scale(0.95) !important;
+        }
+        .nav-pill {
+            transition: all 0.3s ease !important;
+        }
+        .nav-pill:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 15px rgba(124,77,255,0.2) !important;
+        }
+        .btn-outline:hover, .btn-download:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(124,77,255,0.25) !important;
+        }
+
+        /* Cards - hover lift */
+        .info-card, .session-card, .stats-card, .report-card, .session-section, .exam-workspace {
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        .info-card:hover, .session-card:hover, .stats-card:hover, .report-card:hover {
+            transform: translateY(-3px) !important;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.25) !important;
+            border-color: rgba(124,77,255,0.2) !important;
+        }
+
+        /* Panels - entrance animation */
+        .panel.active {
+            animation: fadeInUp 0.4s ease-out !important;
+        }
+
+        /* Staggered card entrance */
+        .panel.active .info-card:nth-child(1),
+        .panel.active .report-card:nth-child(1),
+        .panel.active .stats-card:nth-child(1) { animation: fadeInUp 0.35s ease-out 0.05s both; }
+        .panel.active .info-card:nth-child(2),
+        .panel.active .report-card:nth-child(2),
+        .panel.active .stats-card:nth-child(2) { animation: fadeInUp 0.35s ease-out 0.1s both; }
+        .panel.active .info-card:nth-child(3),
+        .panel.active .report-card:nth-child(3),
+        .panel.active .stats-card:nth-child(3) { animation: fadeInUp 0.35s ease-out 0.15s both; }
+        .panel.active .info-card:nth-child(4),
+        .panel.active .report-card:nth-child(4),
+        .panel.active .stats-card:nth-child(4) { animation: fadeInUp 0.35s ease-out 0.2s both; }
+        .panel.active .report-card:nth-child(5) { animation: fadeInUp 0.35s ease-out 0.25s both; }
+        .panel.active .report-card:nth-child(6) { animation: fadeInUp 0.35s ease-out 0.3s both; }
+
+        /* Section entrance */
+        .panel.active .session-section { animation: fadeInUp 0.4s ease-out 0.2s both; }
+
+        /* Score number pulse */
+        @keyframes scorePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
         /* ---------- HEADER (unchanged) ---------- */
         .header {
             display: flex;
@@ -332,73 +428,102 @@
         }
         .wizard-step .btn-secondary:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.25); color:#fff; }
 
-        /* Checks layout: two columns for checks and live camera */
-        .checks-layout {
+        /* Custom Diagnostics Redesign */
+        .diag-container {
             display: flex;
-            gap: 30px;
+            gap: 40px;
             align-items: flex-start;
-            flex-wrap: wrap;
+            padding: 10px;
         }
-        .checks-list {
+        .diag-left {
             flex: 1;
-            min-width: 300px;
-        }
-        .checks-camera {
-            flex: 1;
-            min-width: 300px;
-            max-width: 480px;
-        }
-        .checks-camera .camera-container {
-            position: relative; z-index: 0;
-            width: 100%;
-            border-radius: 12px;
-            overflow: hidden;
-            background: #000;
-        }
-        .checks-camera .camera-container video {
-            width: 100%;
-            display: block;
-        }
-        .checks-camera .camera-container canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
-        .checks-camera .camera-label {
-            text-align: center;
-            font-size: 13px;
-            color: rgba(255,255,255,0.3);
-            margin-top: 8px;
-        }
-
-        .check-list {
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            margin: 0;
+            align-items: center;
+            text-align: center;
         }
-        .check-item {
+        .diag-radar {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            margin-bottom: 24px;
             display: flex;
             align-items: center;
-            gap: 14px;
-            padding: 12px 16px;
-            background: rgba(255,255,255,0.03);
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.05);
+            justify-content: center;
+        }
+        .radar-circle {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(124, 77, 255, 0.2);
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .radar-circle.circle-1 { width: 100%; height: 100%; }
+        .radar-circle.circle-2 { width: 70%; height: 70%; }
+        .radar-core {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(124,77,255,0.6) 0%, rgba(68,138,255,0.2) 100%);
+            box-shadow: 0 0 30px rgba(124,77,255,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(124, 77, 255, 0.8);
+            position: relative;
+            z-index: 2;
+        }
+        .radar-core i { font-size: 32px; color: #51cf66; }
+        .diag-title { font-size: 28px; font-weight: 700; color: #fff; margin-bottom: 12px; line-height: 1.2; }
+        .diag-highlight { color: #4dabf7; background: linear-gradient(90deg, #7c4dff, #4dabf7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .diag-subtitle { font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 24px; max-width: 280px; line-height: 1.5; }
+        .diag-info-box {
+            display: flex; gap: 12px; align-items: center;
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+            padding: 16px; border-radius: 12px; margin-bottom: 24px;
+            text-align: left;
+        }
+        .diag-info-box i { color: #7c4dff; font-size: 20px; }
+        .diag-info-box span { font-size: 13px; color: rgba(255,255,255,0.7); }
+        .diag-run-btn {
+            width: 100%; padding: 14px; border-radius: 12px;
+            background: linear-gradient(90deg, #7c4dff, #4dabf7);
+            color: #fff; font-weight: 600; font-size: 15px; border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 16px;
             transition: 0.3s;
         }
-        .check-item .status-icon { width: 28px; text-align: center; font-size: 18px; }
-        .check-item .check-label { flex:1; font-weight:500; font-size:15px; }
-        .check-item .check-status { font-size:13px; color:rgba(255,255,255,0.4); }
-        .check-item.pass { border-color: rgba(81,207,102,0.3); }
-        .check-item.pass .status-icon { color: #51cf66; }
-        .check-item.fail { border-color: rgba(255,107,107,0.3); }
-        .check-item.fail .status-icon { color: #ff6b6b; }
-        .check-item.pending .status-icon { color: #fcc419; animation: spin 1s infinite linear; }
-        @keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+        .diag-run-btn:hover { box-shadow: 0 8px 24px rgba(124,77,255,0.3); transform: translateY(-2px); }
+        .diag-privacy { display: flex; align-items: center; gap: 8px; font-size: 12px; color: rgba(255,255,255,0.4); }
+
+        .diag-right { flex: 1.3; display: flex; flex-direction: column; gap: 12px; }
+        .diag-item {
+            display: flex; align-items: center; gap: 16px;
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+            padding: 16px 20px; border-radius: 16px;
+        }
+        .diag-icon-box {
+            width: 44px; height: 44px; border-radius: 12px;
+            background: rgba(124,77,255,0.1); display: flex; align-items: center; justify-content: center;
+            color: #7c4dff; font-size: 20px; flex-shrink: 0;
+        }
+        .diag-text { flex: 1; }
+        .diag-text h4 { margin: 0 0 4px; font-size: 15px; font-weight: 600; color: #fff; }
+        .diag-text p { margin: 0; font-size: 13px; color: rgba(255,255,255,0.5); }
+        .diag-status {
+            padding: 6px 14px; border-radius: 40px; font-size: 12px; font-weight: 600;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .diag-status.pending { background: rgba(252,196,25,0.1); color: #fcc419; border: 1px solid rgba(252,196,25,0.2); }
+        .diag-status.ready { background: rgba(81,207,102,0.1); color: #51cf66; border: 1px solid rgba(81,207,102,0.2); }
+        .diag-status.fail { background: rgba(255,107,107,0.1); color: #ff6b6b; border: 1px solid rgba(255,107,107,0.2); }
+
+        .diag-success-card {
+            display: flex; align-items: center; gap: 16px;
+            background: rgba(81,207,102,0.05); border: 1px solid rgba(81,207,102,0.2);
+            padding: 16px 20px; border-radius: 16px; margin-top: 8px;
+        }
+        .diag-success-icon { color: #51cf66; font-size: 24px; }
+        .diag-success-text h4 { margin: 0 0 4px; font-size: 15px; color: #51cf66; font-weight: 600; }
+        .diag-success-text p { margin: 0; font-size: 13px; color: rgba(255,255,255,0.6); }
 
         /* Verify button */
         .verify-area {
@@ -714,7 +839,7 @@
             border-radius: 50px !important;
             border-bottom: none !important;
             padding: 0 20px !important;
-            margin: 20px auto 0 !important;
+            margin: 20px auto 25px !important;
             display: flex !important;
             align-items: center !important;
             justify-content: space-between !important;
@@ -896,6 +1021,53 @@
         ::-webkit-scrollbar-track { background: #0d0b2e; }
         ::-webkit-scrollbar-thumb { background: rgba(124,77,255,0.3); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(124,77,255,0.5); }
+
+        /* ---------- EXAM INTERFACE ---------- */
+        .camera-section {
+            display: none;
+            padding: 40px;
+            gap: 40px;
+            align-items: flex-start;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .camera-section.active { display: flex; }
+
+        .exam-monitoring-left { flex: 1; position: sticky; top: 40px; }
+        .exam-monitoring-left .camera-container {
+            width: 100%; border-radius: 16px; overflow: hidden; position: relative;
+            background: #000; border: 2px solid rgba(124,77,255,0.4);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .exam-monitoring-left video { width: 100%; display: block; }
+        .exam-monitoring-left canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .exam-monitoring-left .camera-label { text-align: center; color: rgba(255,255,255,0.5); font-size: 13px; margin-top: 10px; }
+        
+        .exam-paper-right {
+            flex: 2;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 40px;
+        }
+        .exam-subject-title { font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 16px;}
+        .exam-question { margin-bottom: 30px; }
+        .exam-question h4 { font-size: 16px; color: #fff; margin-bottom: 12px; font-weight: 600; line-height: 1.5; }
+        .exam-options { display: flex; flex-direction: column; gap: 8px; }
+        .exam-option {
+            background: rgba(255,255,255,0.05); padding: 12px 16px; border-radius: 12px;
+            cursor: pointer; border: 1px solid rgba(255,255,255,0.05);
+            transition: 0.3s; display: flex; align-items: center; gap: 12px;
+            color: rgba(255,255,255,0.8);
+        }
+        .exam-option:hover { background: rgba(124,77,255,0.1); border-color: rgba(124,77,255,0.3); }
+        .exam-option input[type="radio"] { accent-color: #7c4dff; transform: scale(1.2); }
+        .submit-exam-btn {
+            background: linear-gradient(135deg,#7c4dff,#448aff);
+            color: #fff; border: none; padding: 14px 28px; border-radius: 60px;
+            font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s;
+            width: 100%; margin-top: 20px;
+        }
 
     
         /* ---------- LIVE NETWORK STATUS ---------- */
@@ -1990,10 +2162,28 @@
                         <div>
                             <div style="font-size:12px; color:rgba(255,255,255,0.5);">Full name</div>
                             <strong id="candName" style="font-size:18px;">-</strong>
-                            <div style="font-size:12px; color:rgba(255,255,255,0.5); margin-top:2px;">ID: <strong id="candId" style="color:#fff;">-</strong></div>
+                            <div style="font-size:12px; color:rgba(255,255,255,0.5); margin-top:2px;">ID: <strong id="candId" style="color:#fff;">-</strong> <span style="margin:0 5px; opacity: 0.5;">|</span> Roll No: <strong id="candRoll" style="color:#fff;">-</strong></div>
                         </div>
                     </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.1); padding-top:15px; margin-top:5px; font-size:12px;">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+                        <div style="background:rgba(255,255,255,0.02); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+                            <div style="font-size:10px; color:rgba(255,255,255,0.4); margin-bottom: 4px; text-transform:uppercase; letter-spacing:0.5px;"><i class="fas fa-graduation-cap"></i> Course</div>
+                            <div id="candCourse" style="font-size:13px; color:#fff; font-weight:500;">B.Tech Computer Science</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.02); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03); overflow:hidden;">
+                            <div style="font-size:10px; color:rgba(255,255,255,0.4); margin-bottom: 4px; text-transform:uppercase; letter-spacing:0.5px;"><i class="fas fa-envelope"></i> Email</div>
+                            <div id="candEmail" style="font-size:13px; color:#fff; font-weight:500; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">-</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.02); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+                            <div style="font-size:10px; color:rgba(255,255,255,0.4); margin-bottom: 4px; text-transform:uppercase; letter-spacing:0.5px;"><i class="fas fa-map-marker-alt"></i> Center</div>
+                            <div id="candCenter" style="font-size:13px; color:#fff; font-weight:500;">Remote (Online)</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.02); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+                            <div style="font-size:10px; color:rgba(255,255,255,0.4); margin-bottom: 4px; text-transform:uppercase; letter-spacing:0.5px;"><i class="fas fa-laptop"></i> Device</div>
+                            <div id="candDevice" style="font-size:13px; color:#fff; font-weight:500; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">-</div>
+                        </div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.1); padding-top:15px; margin-top:15px; font-size:12px;">
                         <span><i class="fas fa-lock"></i> Account verified</span>
                         <span style="color:#69db7c;"><i class="fas fa-circle" style="font-size:8px;"></i> Active</span>
                     </div>
@@ -2039,6 +2229,17 @@
                 </div>
                 
                 <div class="info-card" style="display:flex; align-items:center; gap:15px; background:rgba(255,255,255,0.04); border-radius:16px; padding:18px 20px; border:1px solid rgba(255,255,255,0.05);">
+                    <div style="width:40px; height:40px; border-radius:10px; background:rgba(255,146,43,0.1); color:#ff922b; display:flex; align-items:center; justify-content:center; font-size:18px;">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div>
+                        <div style="font-size:12px; color:rgba(255,255,255,0.5);">Next Exam</div>
+                        <strong id="candNextExam" style="font-size:16px;">TBD</strong>
+                        <div id="candNextExamDate" style="font-size:10px; color:rgba(255,255,255,0.3);">Check schedule</div>
+                    </div>
+                </div>
+                
+                <div class="info-card" style="display:flex; align-items:center; gap:15px; background:rgba(255,255,255,0.04); border-radius:16px; padding:18px 20px; border:1px solid rgba(255,255,255,0.05);">
                     <div style="width:40px; height:40px; border-radius:10px; background:rgba(177,151,252,0.1); color:#b197fc; display:flex; align-items:center; justify-content:center; font-size:18px;">
                         <i class="fas fa-user-check"></i>
                     </div>
@@ -2047,6 +2248,22 @@
                         <strong style="font-size:16px;"><span id="faceRatio">-</span>%</strong>
                         <div style="font-size:10px; color:rgba(255,255,255,0.3);">Camera coverage</div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Full-width Integrity Score Bar -->
+            <div style="margin-top:20px; background:rgba(255,255,255,0.04); border-radius:14px; padding:16px 22px; border:1px solid rgba(255,255,255,0.05);">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                    <span style="color:rgba(255,255,255,0.6); font-size:12px;"><i class="fas fa-shield-alt" style="color:#51cf66; margin-right:6px;"></i>Integrity Score</span>
+                    <div>
+                        <strong id="candIntegrityLive" style="font-size:36px; color:#51cf66;">100</strong><span style="font-size:16px; color:rgba(255,255,255,0.4);"> / 100</span>
+                    </div>
+                </div>
+                <div style="height:6px; border-radius:6px; background:rgba(255,255,255,0.08); overflow:hidden;">
+                    <div id="candIntegrityBar" style="height:100%; width:100%; border-radius:6px; background:linear-gradient(90deg,#51cf66,#69db7c); transition:width 0.5s ease;"></div>
+                </div>
+                <div style="text-align:right; margin-top:8px;">
+                    <span style="color:rgba(255,255,255,0.5); font-size:11px;"><i class="fas fa-tag" style="margin-right:4px;"></i>Risk Level: <strong id="candRiskLabel" style="color:#fff;">Low Risk</strong></span>
                 </div>
             </div>
         </div>
@@ -2143,6 +2360,47 @@
                     <div class="card-content">
                         <div class="label">SESSION DURATION</div>
                         <div class="value" id="statsDuration">00:00</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exam Results Section -->
+            <div class="session-section" style="margin-top: 30px;">
+                <div class="section-header">
+                    <div class="section-icon" style="background:rgba(124,77,255,0.15); color:#b8aaff;"><i class="fas fa-graduation-cap"></i></div>
+                    <div>
+                        <h3>Mock Exam Results</h3>
+                        <div class="section-sub">Performance from the latest mock exam session</div>
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:16px;">
+                    <div class="stats-card" style="background:rgba(124,77,255,0.06); border:1px solid rgba(124,77,255,0.12); border-radius:14px; padding:18px;">
+                        <div class="card-icon" style="background:rgba(124,77,255,0.15);"><i class="fas fa-book"></i></div>
+                        <div class="card-content">
+                            <div class="label">SUBJECT</div>
+                            <div class="value" id="statsExamSubject" style="font-size:18px;">-</div>
+                        </div>
+                    </div>
+                    <div class="stats-card" style="background:rgba(81,207,102,0.06); border:1px solid rgba(81,207,102,0.12); border-radius:14px; padding:18px;">
+                        <div class="card-icon" style="background:rgba(81,207,102,0.15); color:#51cf66;"><i class="fas fa-check-circle"></i></div>
+                        <div class="card-content">
+                            <div class="label">CORRECT</div>
+                            <div class="value" id="statsExamCorrect" style="color:#51cf66;">-</div>
+                        </div>
+                    </div>
+                    <div class="stats-card" style="background:rgba(255,107,107,0.06); border:1px solid rgba(255,107,107,0.12); border-radius:14px; padding:18px;">
+                        <div class="card-icon" style="background:rgba(255,107,107,0.15); color:#ff6b6b;"><i class="fas fa-times-circle"></i></div>
+                        <div class="card-content">
+                            <div class="label">WRONG / SKIPPED</div>
+                            <div class="value" id="statsExamWrong" style="color:#ff6b6b;">-</div>
+                        </div>
+                    </div>
+                    <div class="stats-card" style="background:rgba(68,138,255,0.06); border:1px solid rgba(68,138,255,0.12); border-radius:14px; padding:18px;">
+                        <div class="card-icon" style="background:rgba(68,138,255,0.15); color:#448aff;"><i class="fas fa-percentage"></i></div>
+                        <div class="card-content">
+                            <div class="label">SCORE</div>
+                            <div class="value" id="statsExamPercent" style="color:#448aff;">-</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2245,6 +2503,37 @@
                 </div>
             </div>
 
+            <!-- Exam Results in Report -->
+            <div class="session-section" style="margin-top:20px;">
+                <div class="section-header">
+                    <div class="section-icon" style="background:rgba(124,77,255,0.15); color:#b8aaff;"><i class="fas fa-graduation-cap"></i></div>
+                    <div>
+                        <h3>Mock Exam Performance</h3>
+                        <div class="section-sub">Exam subject and score from this session</div>
+                    </div>
+                </div>
+                <div class="report-grid">
+                    <div class="report-row cols-4">
+                        <div class="report-card">
+                            <div class="rc-icon" style="background: rgba(124,77,255,0.1); color: #b8aaff;"><i class="fas fa-book"></i></div>
+                            <div class="rc-content"><div class="label">Exam Subject</div><div class="value" id="reportExamSubject">-</div></div>
+                        </div>
+                        <div class="report-card">
+                            <div class="rc-icon" style="background: rgba(81,207,102,0.1); color: #51cf66;"><i class="fas fa-check-circle"></i></div>
+                            <div class="rc-content"><div class="label">Correct Answers</div><div class="value val-green" id="reportExamCorrect">-</div></div>
+                        </div>
+                        <div class="report-card">
+                            <div class="rc-icon" style="background: rgba(255,107,107,0.1); color: #ff6b6b;"><i class="fas fa-times-circle"></i></div>
+                            <div class="rc-content"><div class="label">Wrong / Skipped</div><div class="value" id="reportExamWrong" style="color:#ff6b6b;">-</div></div>
+                        </div>
+                        <div class="report-card">
+                            <div class="rc-icon" style="background: rgba(68,138,255,0.1); color: #448aff;"><i class="fas fa-percentage"></i></div>
+                            <div class="rc-content"><div class="label">Exam Score</div><div class="value" id="reportExamPercent" style="color:#448aff;">-</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="session-section">
                 <div class="section-header">
                     <div class="section-icon"><i class="fas fa-list-ul"></i></div>
@@ -2267,8 +2556,8 @@
         <button class="btn btn-end" id="endExamBtn" disabled><i class="fas fa-stop"></i> End Exam</button>
     </div>
 
-    <!-- ====== INTEGRITY SCORE ====== -->
-    <div class="integrity-score">
+    <!-- ====== INTEGRITY SCORE (hidden, synced in profile) ====== -->
+    <div class="integrity-score" style="display:none !important;">
         <div class="score-header"><i class="fas fa-shield-alt"></i> Integrity Score</div>
         <div class="score-display">
             <span id="scoreValue">100</span>
@@ -2284,7 +2573,9 @@
 
     <!-- ====== WIZARD OVERLAY ====== -->
     <div class="wizard-overlay" id="wizardOverlay">
-        <div class="wizard-card">
+        <div class="wizard-card" style="position:relative;">
+            <!-- Close Button -->
+            <button class="wizard-close-btn" id="wizardCloseBtn" style="position:absolute; top: 16px; right: 16px; background: transparent; border: none; color: rgba(255,255,255,0.5); font-size: 20px; cursor: pointer; transition: 0.3s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'"><i class="fas fa-times"></i></button>
             <!-- Step indicator -->
             <div class="step-indicator">
                 <div class="step-dot" id="dot1"><span class="circle">1</span> <span id="step1Label">Capture</span></div>
@@ -2316,29 +2607,62 @@
 
             <!-- Step 2: System Checks -->
             <div class="wizard-step" id="step2">
-                <h2><i class="fas fa-check-circle" style="color:#51cf66;margin-right:10px;"></i>System Checks</h2>
-                <div class="sub">We are verifying your environment and identity.</div>
-                <div class="checks-layout">
-                    <div class="checks-list">
-                        <div class="check-list" id="checkList">
-                            <!-- Generated by JS -->
+                <div class="diag-container">
+                    <!-- Left Side -->
+                    <div class="diag-left">
+                        <div class="diag-radar">
+                            <div class="radar-circle circle-1"></div>
+                            <div class="radar-circle circle-2"></div>
+                            <div class="radar-core">
+                                <i class="fas fa-check"></i>
+                            </div>
                         </div>
-                        <!-- Verify area (visible when reference exists) -->
-                        <div class="verify-area" id="verifyArea">
-                            <button class="btn-verify" id="verifyFaceBtn"><i class="fas fa-user-check"></i> Verify Face</button>
+                        <h2 class="diag-title">System Readiness<br><span class="diag-highlight">Diagnostics</span></h2>
+                        <p class="diag-subtitle">We need to ensure your environment is fully prepared before you begin the exam.</p>
+                        
+                        <div class="diag-info-box">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Running diagnostics will check your system settings and permissions.</span>
+                        </div>
+
+                        <button class="diag-run-btn" id="runDiagBtn">
+                            <i class="fas fa-sync-alt"></i> Run Diagnostics
+                        </button>
+                        <div class="diag-privacy">
+                            <i class="fas fa-shield-alt"></i> Your privacy and data are protected.
+                        </div>
+                    </div>
+
+                    <!-- Right Side -->
+                    <div class="diag-right">
+                        <div class="diag-list" id="checkList">
+                            <!-- Check items populated here -->
+                        </div>
+                        
+                        <div class="diag-success-card" id="diagSuccessCard" style="display:none;">
+                            <div class="diag-success-icon"><i class="fas fa-check-circle"></i></div>
+                            <div class="diag-success-text">
+                                <h4>All systems are ready!</h4>
+                                <p>You can start the exam with confidence.</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Verify Face area (hidden initially) -->
+                        <div class="verify-area" id="verifyArea" style="display:none; text-align:center;">
+                            <button class="btn-verify" id="verifyFaceBtn" style="width:100%;"><i class="fas fa-user-check"></i> Verify Face</button>
                             <div class="attempt-indicator" id="faceAttemptDisplay">Attempts: 0 / 3</div>
                             <div class="verify-status" id="verifyStatus"></div>
                         </div>
+                        
+                        <button class="btn-primary" id="nextStep2Btn" disabled style="width: 100%; margin-top: 15px;">Continue to Exam <i class="fas fa-arrow-right"></i></button>
                     </div>
-                    <div class="checks-camera">
-                        <div class="camera-container">
-                            <video id="checksVideo" autoplay playsinline></video>
-                            <canvas id="checksOverlayCanvas"></canvas>
-                        </div>
-                        <div class="camera-label">Live Camera</div>
+                    
+                    <!-- Hidden video element to maintain logic -->
+                    <div style="display: none;">
+                        <video id="checksVideo" autoplay playsinline></video>
+                        <canvas id="checksOverlayCanvas"></canvas>
                     </div>
                 </div>
-                <button class="btn-primary" id="nextStep2Btn" disabled>Next <i class="fas fa-arrow-right"></i></button>
             </div>
 
             <!-- Step 3: Instructions & Consent -->
@@ -2379,8 +2703,15 @@
             // ----- DOM refs (existing) -----
             const userNameDisplay = document.getElementById('userNameDisplay');
             const candId = document.getElementById('candId');
+            const candRoll = document.getElementById('candRoll');
             const candName = document.getElementById('candName');
             const candSession = document.getElementById('candSession');
+            const candCourse = document.getElementById('candCourse');
+            const candEmail = document.getElementById('candEmail');
+            const candCenter = document.getElementById('candCenter');
+            const candDevice = document.getElementById('candDevice');
+            const candNextExam = document.getElementById('candNextExam');
+            const candNextExamDate = document.getElementById('candNextExamDate');
             const candScore = document.getElementById('candScore');
             const candRemark = document.getElementById('candRemark');
             const faceRatioEl = document.getElementById('faceRatio');
@@ -2801,6 +3132,10 @@
                     if (workspaceInitial) workspaceInitial.textContent = shortName.charAt(0).toUpperCase() || 'S';
                     candName.textContent = currentUser.name || 'N/A';
                     candId.textContent = currentUser.student_id || 'N/A';
+                    if (candRoll) {
+                        const roll = currentUser.roll_no || (currentUser.student_id ? 'EXM-' + currentUser.student_id : 'N/A');
+                        candRoll.textContent = roll;
+                    }
                     candSession.textContent = currentUser.session_id || 'N/A';
                     showSettingsMessage('Profile updated successfully.', true);
                     await new Promise(resolve => setTimeout(resolve, 500));
@@ -3021,9 +3356,26 @@
                         if (workspaceInitial) workspaceInitial.textContent = shortDisplayName.charAt(0).toUpperCase() || 'S';
 
                         if (candId) candId.textContent = currentUser ? (currentUser.student_id || 'N/A') : 'N/A';
+                        if (candRoll) {
+                            const roll = (currentUser && currentUser.roll_no) ? currentUser.roll_no : (currentUser && currentUser.student_id ? 'EXM-' + currentUser.student_id : 'N/A');
+                            candRoll.textContent = roll;
+                        }
 
                         if (candName) candName.innerHTML = (currentUser ? currentUser.name : 'N/A') + badgeHtml;
                         if (candSession) candSession.textContent = currentUser ? (currentUser.session_id || 'N/A') : 'N/A';
+                        if (candCourse) candCourse.textContent = currentUser && currentUser.course ? currentUser.course : 'B.Tech Computer Science';
+                        if (candEmail) candEmail.textContent = currentUser && currentUser.email ? currentUser.email : 'N/A';
+                        if (candCenter) candCenter.textContent = 'Remote (Online)';
+                        if (candDevice) {
+                            const userAgent = navigator.userAgent;
+                            let browser = "Web Browser";
+                            if(userAgent.indexOf("Chrome") != -1 ) browser = "Chrome";
+                            else if(userAgent.indexOf("Firefox") != -1 ) browser = "Firefox";
+                            else if(userAgent.indexOf("Safari") != -1 ) browser = "Safari";
+                            candDevice.textContent = browser + " on " + navigator.platform;
+                        }
+                        if (candNextExam) candNextExam.textContent = 'In 2h 15m';
+                        if (candNextExamDate) candNextExamDate.textContent = 'Oct 24, 10:00 AM';
                         if (faceRatioEl) faceRatioEl.textContent = data.face_ratio !== undefined ? data.face_ratio : 'N/A';
 
                         const finalScore = data.final_score;
@@ -3076,6 +3428,43 @@
                                 scoreBar.style.background = 'linear-gradient(90deg, #fcc419, #ffd43b)';
                             } else {
                                 scoreBar.style.background = 'linear-gradient(90deg, #ff6b6b, #ff8787)';
+                            }
+                        }
+
+                        // Sync the candidate profile integrity card
+                        const candIntLive = document.getElementById('candIntegrityLive');
+                        const candIntBar = document.getElementById('candIntegrityBar');
+                        if (candIntLive) {
+                            candIntLive.textContent = integrityScore;
+                            if (integrityScore >= 70) {
+                                candIntLive.style.color = '#51cf66';
+                            } else if (integrityScore >= 40) {
+                                candIntLive.style.color = '#fcc419';
+                            } else {
+                                candIntLive.style.color = '#ff6b6b';
+                            }
+                        }
+                        if (candIntBar) {
+                            candIntBar.style.width = integrityScore + '%';
+                            if (integrityScore >= 70) {
+                                candIntBar.style.background = 'linear-gradient(90deg, #51cf66, #69db7c)';
+                            } else if (integrityScore >= 40) {
+                                candIntBar.style.background = 'linear-gradient(90deg, #fcc419, #ffd43b)';
+                            } else {
+                                candIntBar.style.background = 'linear-gradient(90deg, #ff6b6b, #ff8787)';
+                            }
+                        }
+                        const candRiskEl = document.getElementById('candRiskLabel');
+                        if (candRiskEl) {
+                            if (integrityScore >= 70) {
+                                candRiskEl.textContent = 'Low Risk';
+                                candRiskEl.style.color = '#51cf66';
+                            } else if (integrityScore >= 40) {
+                                candRiskEl.textContent = 'Medium Risk';
+                                candRiskEl.style.color = '#fcc419';
+                            } else {
+                                candRiskEl.textContent = 'High Risk';
+                                candRiskEl.style.color = '#ff6b6b';
                             }
                         }
 
@@ -3479,22 +3868,18 @@
                 autoChecksDone = false;
 
                 if (referenceExists) {
-                    // Skip capture step
-                    step1Label.textContent = 'Skipped';
-                    dot1.classList.add('done');
-                    goToStep(2);
-                    startChecksCamera().catch(err => {
-                        showToast('Camera access denied: ' + err.message, 'error');
-                    });
-                    verifyArea.style.display = 'block';
+                    nextStep1Btn.disabled = false;
+                    step1Label.textContent = 'Capture (Optional)';
                 } else {
+                    nextStep1Btn.disabled = true;
                     step1Label.textContent = 'Capture';
-                    dot1.classList.remove('done');
-                    goToStep(1);
-                    startWizardCamera().catch(err => {
-                        showToast('Camera access denied: ' + err.message, 'error');
-                    });
                 }
+                
+                dot1.classList.remove('done');
+                goToStep(1);
+                startWizardCamera().catch(err => {
+                    showToast('Camera access denied: ' + err.message, 'error');
+                });
             }
 
             function closeWizard() {
@@ -3502,6 +3887,8 @@
                 stopWizardCamera();
                 stopChecksCamera();
             }
+
+            document.getElementById('wizardCloseBtn')?.addEventListener('click', closeWizard);
 
             function goToStep(step) {
                 currentStep = step;
@@ -3605,15 +3992,29 @@
                 checkList.innerHTML = '';
                 checks.forEach((chk) => {
                     const div = document.createElement('div');
-                    div.className = 'check-item pending';
+                    div.className = 'diag-item';
                     div.id = `check-${chk.id}`;
+                    
+                    let iconClass = "fas fa-cog";
+                    let subText = "Checking...";
+                    if (chk.id === 'camera' || chk.id === 'face_match') { iconClass = "fas fa-camera"; subText = "Checking video input"; }
+                    if (chk.id === 'microphone') { iconClass = "fas fa-microphone"; subText = "Checking audio input"; }
+                    if (chk.id === 'browser') { iconClass = "fas fa-desktop"; subText = "Checking browser version"; }
+                    if (chk.id === 'internet') { iconClass = "fas fa-wifi"; subText = "Checking latency and stability"; }
+
                     div.innerHTML = `
-                        <span class="status-icon"><i class="fas fa-spinner"></i></span>
-                        <span class="check-label">${chk.label}</span>
-                        <span class="check-status">Checking...</span>
+                        <div class="diag-icon-box"><i class="${iconClass}"></i></div>
+                        <div class="diag-text">
+                            <h4>${chk.label}</h4>
+                            <p>${subText}</p>
+                        </div>
+                        <div class="diag-status pending"><i class="fas fa-spinner fa-spin"></i> Checking</div>
                     `;
                     checkList.appendChild(div);
                 });
+
+                const successCard = document.getElementById('diagSuccessCard');
+                if (successCard) successCard.style.display = 'none';
 
                 // Run auto checks
                 Promise.all([
@@ -3633,25 +4034,33 @@
                         // No reference needed – all checks pass
                         checksPassed = true;
                         nextStep2Btn.disabled = false;
+                        document.getElementById('diagSuccessCard').style.display = 'flex';
                         showToast('All system checks passed!', 'success');
                     }
                 })
                 .catch(err => {
                     showToast('System check failed: ' + err.message, 'error');
                     nextStep2Btn.disabled = true;
+                    document.getElementById('diagSuccessCard').style.display = 'none';
                 });
             }
+
+            document.getElementById('runDiagBtn')?.addEventListener('click', runSystemChecks);
 
             function updateCheckStatus(itemId, status, text) {
                 const item = document.getElementById('check-' + itemId);
                 if (!item) return;
-                item.className = `check-item ${status}`;
-                const icon = item.querySelector('.status-icon i');
-                const statusSpan = item.querySelector('.check-status');
-                if (status === 'pending') icon.className = 'fas fa-spinner';
-                else if (status === 'pass') icon.className = 'fas fa-check-circle';
-                else if (status === 'fail') icon.className = 'fas fa-times-circle';
-                statusSpan.textContent = text;
+                const statusDiv = item.querySelector('.diag-status');
+                if (status === 'pending') {
+                    statusDiv.className = 'diag-status pending';
+                    statusDiv.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${text}`;
+                } else if (status === 'pass') {
+                    statusDiv.className = 'diag-status ready';
+                    statusDiv.innerHTML = `<i class="fas fa-check-circle"></i> ${text}`;
+                } else if (status === 'fail') {
+                    statusDiv.className = 'diag-status fail';
+                    statusDiv.innerHTML = `<i class="fas fa-times-circle"></i> ${text}`;
+                }
             }
 
             function performCheckCamera() {
@@ -3660,11 +4069,11 @@
                     navigator.mediaDevices.getUserMedia({ video: true })
                         .then(stream => {
                             stream.getTracks().forEach(t => t.stop());
-                            updateCheckStatus('camera', 'pass', '✅ Available');
+                            updateCheckStatus('camera', 'pass', 'Available');
                             resolve();
                         })
                         .catch(err => {
-                            updateCheckStatus('camera', 'fail', '❌ Denied');
+                            updateCheckStatus('camera', 'fail', 'Denied');
                             reject(new Error('Camera access required'));
                         });
                 });
@@ -3676,11 +4085,11 @@
                     navigator.mediaDevices.getUserMedia({ audio: true })
                         .then(stream => {
                             stream.getTracks().forEach(t => t.stop());
-                            updateCheckStatus('microphone', 'pass', '✅ Available');
+                            updateCheckStatus('microphone', 'pass', 'Available');
                             resolve();
                         })
                         .catch(() => {
-                            updateCheckStatus('microphone', 'pass', '⚠️ Not required');
+                            updateCheckStatus('microphone', 'pass', 'Not required');
                             resolve();
                         });
                 });
@@ -3690,9 +4099,9 @@
                 return new Promise((resolve) => {
                     const compatible = 'MediaRecorder' in window && 'fetch' in window && 'Promise' in window;
                     if (compatible) {
-                        updateCheckStatus('browser', 'pass', '✅ Compatible');
+                        updateCheckStatus('browser', 'pass', 'Compatible');
                     } else {
-                        updateCheckStatus('browser', 'fail', '❌ Outdated');
+                        updateCheckStatus('browser', 'fail', 'Outdated');
                     }
                     resolve();
                 });
@@ -3702,16 +4111,16 @@
                 return new Promise((resolve, reject) => {
                     updateCheckStatus('internet', 'pending', 'Checking...');
                     if (!navigator.onLine) {
-                        updateCheckStatus('internet', 'fail', '❌ Offline');
+                        updateCheckStatus('internet', 'fail', 'Offline');
                         reject(new Error('No internet connection'));
                     } else {
                         fetch('/api/dashboard/student', { method: 'HEAD', credentials: 'include' })
                             .then(() => {
-                                updateCheckStatus('internet', 'pass', '✅ Connected');
+                                updateCheckStatus('internet', 'pass', 'Good');
                                 resolve();
                             })
                             .catch(() => {
-                                updateCheckStatus('internet', 'fail', '❌ Server unreachable');
+                                updateCheckStatus('internet', 'fail', 'Server unreachable');
                                 reject(new Error('Connectivity issue'));
                             });
                     }
@@ -3750,25 +4159,26 @@
                 .then(data => {
                     if (data.match) {
                         faceVerified = true;
-                        updateCheckStatus('face_match', 'pass', '✅ Match');
+                        updateCheckStatus('face_match', 'pass', 'Match');
                         showToast('Face verification successful!', 'success');
                         checksPassed = true;
                         nextStep2Btn.disabled = false;
+                        document.getElementById('diagSuccessCard').style.display = 'flex';
                         verifyFaceBtn.innerHTML = '<i class="fas fa-check"></i> Verified';
                         verifyFaceBtn.disabled = true;
                         verifyStatus.textContent = '✅ Face matched!';
                         verifyStatus.style.color = '#51cf66';
                     } else {
-                        updateCheckStatus('face_match', 'fail', '❌ Does not match reference');
+                        updateCheckStatus('face_match', 'fail', 'Does not match reference');
                         if (faceMatchAttempts >= MAX_ATTEMPTS) {
-                            verifyStatus.textContent = '❌ You have attempted 3 times and failed.';
+                            verifyStatus.textContent = 'You have attempted 3 times and failed.';
                             verifyStatus.style.color = '#ff6b6b';
                             showToast('Face verification failed after 3 attempts. Redirecting to dashboard.', 'error');
                             setTimeout(() => {
                                 closeWizard();
                             }, 2000);
                         } else {
-                            verifyStatus.textContent = '❌ Face does not match. Please try again.';
+                            verifyStatus.textContent = 'Face does not match. Please try again.';
                             verifyStatus.style.color = '#ff6b6b';
                             showToast('Face did not match. Please try again.', 'error');
                             verifyFaceBtn.disabled = false;
@@ -3823,6 +4233,16 @@
                             startTimer();
                             showToast('Exam started!', 'success');
                             loadDashboard();
+                            generateExam();
+                            
+                            // Scroll to camera section once it's active
+                            setTimeout(() => {
+                                const cameraSec = document.getElementById('cameraSection');
+                                if (cameraSec) {
+                                    const y = cameraSec.getBoundingClientRect().top + window.scrollY - 20;
+                                    window.scrollTo({ top: y, behavior: 'smooth' });
+                                }
+                            }, 100);
                         }).catch(err => {
                             showToast('Camera access denied: ' + err.message, 'error');
                         });
@@ -4060,12 +4480,307 @@
             cameraSection.id = 'cameraSection';
             cameraSection.className = 'camera-section';
             cameraSection.innerHTML = `
-                <div class="camera-container">
-                    <video id="video" autoplay playsinline></video>
-                    <canvas id="overlayCanvas"></canvas>
+                <div class="exam-monitoring-left">
+                    <div class="camera-container">
+                        <video id="video" autoplay playsinline></video>
+                        <canvas id="overlayCanvas"></canvas>
+                    </div>
+                    <div class="camera-label"><i class="fas fa-shield-alt"></i> Live Monitoring Active</div>
+                </div>
+                <div class="exam-paper-right">
+                    <div class="exam-subject-title" id="examSubjectTitle">Loading Exam...</div>
+                    <div id="examQuestionsContainer">
+                        <!-- Questions will be rendered here -->
+                    </div>
+                    <button class="submit-exam-btn" id="submitMockExamBtn" style="display:none;"><i class="fas fa-paper-plane"></i> Submit Exam</button>
                 </div>
             `;
             document.body.appendChild(cameraSection);
+
+            // ====== MOCK EXAM DATA & LOGIC ======
+            const examBanks = {
+                'Python': [
+                    { q: 'What is the output of print(2 ** 3)?', opts: ['6', '8', '9', '12'], ans: 1 },
+                    { q: 'Which keyword is used to define a function in Python?', opts: ['def', 'function', 'fun', 'define'], ans: 0 },
+                    { q: 'What data type is the object [1, 2, 3]?', opts: ['List', 'Tuple', 'Set', 'Dictionary'], ans: 0 },
+                    { q: 'How do you insert comments in Python code?', opts: ['// comment', '/* comment */', '# comment', '<!-- comment -->'], ans: 2 },
+                    { q: 'Which method can be used to return a string in upper case letters?', opts: ['upper()', 'toUpperCase()', 'uppercase()', 'toUpper()'], ans: 0 },
+                    { q: 'What is a correct syntax to output "Hello World" in Python?', opts: ['echo "Hello World"', 'p("Hello World")', 'print("Hello World")', 'printf("Hello World")'], ans: 2 },
+                    { q: 'How do you create a variable with the numeric value 5?', opts: ['x = 5', 'x = int(5)', 'Both are correct', 'None are correct'], ans: 2 },
+                    { q: 'What is the correct file extension for Python files?', opts: ['.pyt', '.pt', '.py', '.pyth'], ans: 2 },
+                    { q: 'Which operator is used to multiply numbers?', opts: ['%', '/', '*', '#'], ans: 2 },
+                    { q: 'Which built-in function can get information from the user?', opts: ['input()', 'get()', 'read()', 'scan()'], ans: 0 }
+                ],
+                'Git & GitHub': [
+                    { q: 'What command is used to initialize a new Git repository?', opts: ['git start', 'git init', 'git new', 'git create'], ans: 1 },
+                    { q: 'How do you clone a repository into a new directory?', opts: ['git copy', 'git clone', 'git download', 'git fetch'], ans: 1 },
+                    { q: 'Which command adds all modified files to the staging area?', opts: ['git add -a', 'git add .', 'git stage all', 'git commit all'], ans: 1 },
+                    { q: 'What is a commit in Git?', opts: ['A saved snapshot of changes', 'A new branch', 'A remote server', 'A deleted file'], ans: 0 },
+                    { q: 'How do you push changes to a remote repository?', opts: ['git push', 'git upload', 'git send', 'git sync'], ans: 0 },
+                    { q: 'What command shows the status of changes as untracked, modified, or staged?', opts: ['git check', 'git info', 'git status', 'git state'], ans: 2 },
+                    { q: 'How do you create a new branch in Git?', opts: ['git branch new_branch', 'git checkout -b new_branch', 'Both A and B', 'git make branch'], ans: 2 },
+                    { q: 'What is a Pull Request (PR) on GitHub?', opts: ['A request to delete a repo', 'A proposal to merge changes', 'A request to download files', 'A server timeout'], ans: 1 },
+                    { q: 'Which command is used to fetch and merge changes from a remote branch?', opts: ['git pull', 'git fetch', 'git merge', 'git sync'], ans: 0 },
+                    { q: 'What does git stash do?', opts: ['Deletes all files', 'Temporarily shelves changes', 'Commits changes', 'Pushes to remote'], ans: 1 }
+                ],
+                'AWS Cloud': [
+                    { q: 'Which AWS service is used as a highly available and scalable DNS web service?', opts: ['Amazon EC2', 'Amazon Route 53', 'Amazon S3', 'Amazon RDS'], ans: 1 },
+                    { q: 'What does S3 stand for?', opts: ['Simple Storage Service', 'Scalable Storage Service', 'Secure Server System', 'Standard Storage Server'], ans: 0 },
+                    { q: 'Which AWS service provides resizable compute capacity in the cloud?', opts: ['Amazon S3', 'AWS Lambda', 'Amazon EC2', 'Amazon DynamoDB'], ans: 2 },
+                    { q: 'What is AWS Lambda?', opts: ['A serverless compute service', 'A database service', 'A load balancer', 'A storage service'], ans: 0 },
+                    { q: 'Which service is used for relational databases?', opts: ['DynamoDB', 'Amazon RDS', 'Amazon Redshift', 'Amazon ElastiCache'], ans: 1 },
+                    { q: 'What does IAM stand for in AWS?', opts: ['Internet Access Management', 'Identity and Access Management', 'Internal Application Manager', 'Intranet Access Mode'], ans: 1 },
+                    { q: 'Which AWS service acts as a Content Delivery Network (CDN)?', opts: ['CloudFront', 'CloudWatch', 'CloudTrail', 'CloudFormation'], ans: 0 },
+                    { q: 'What is Amazon VPC?', opts: ['Virtual Private Cloud', 'Virtual Public Cloud', 'Visual Processing Cloud', 'Vast Private Cloud'], ans: 0 },
+                    { q: 'Which service provides object storage through a web service interface?', opts: ['EBS', 'EFS', 'S3', 'Glacier'], ans: 2 },
+                    { q: 'What is the purpose of Auto Scaling in AWS?', opts: ['To automatically increase storage', 'To automatically adjust compute capacity', 'To auto-renew billing', 'To automatically update OS'], ans: 1 }
+                ],
+                'HTML & CSS': [
+                    { q: 'What does HTML stand for?', opts: ['Hyper Text Markup Language', 'High Text Machine Language', 'Hyperlinks and Text Markup Language', 'Home Tool Markup Language'], ans: 0 },
+                    { q: 'Which HTML tag is used to define an internal style sheet?', opts: ['<script>', '<style>', '<css>', '<link>'], ans: 1 },
+                    { q: 'Which CSS property controls the text size?', opts: ['text-style', 'text-size', 'font-size', 'font-style'], ans: 2 },
+                    { q: 'How do you select an element with id "demo"?', opts: ['.demo', '#demo', '*demo', 'demo'], ans: 1 },
+                    { q: 'Which tag is used to create a hyperlink?', opts: ['<a>', '<link>', '<href>', '<hyper>'], ans: 0 },
+                    { q: 'What does CSS stand for?', opts: ['Colorful Style Sheets', 'Computer Style Sheets', 'Cascading Style Sheets', 'Creative Style Sheets'], ans: 2 },
+                    { q: 'How do you make text bold in CSS?', opts: ['font: bold;', 'font-weight: bold;', 'style: bold;', 'text: bold;'], ans: 1 },
+                    { q: 'Which property is used to change the background color?', opts: ['color', 'bgcolor', 'background-color', 'bg-color'], ans: 2 },
+                    { q: 'How do you display a border like this: The top border = 10px, the bottom border = 5px, the left border = 20px, and the right border = 1px?', opts: ['border-width: 10px 5px 20px 1px;', 'border-width: 10px 1px 5px 20px;', 'border-width: 10px 20px 5px 1px;', 'border-width: 5px 20px 10px 1px;'], ans: 1 },
+                    { q: 'Which HTML attribute is used to define inline styles?', opts: ['class', 'style', 'font', 'styles'], ans: 1 }
+                ],
+                'JavaScript': [
+                    { q: 'Inside which HTML element do we put the JavaScript?', opts: ['<javascript>', '<scripting>', '<js>', '<script>'], ans: 3 },
+                    { q: 'How do you write "Hello World" in an alert box?', opts: ['msgBox("Hello World");', 'alert("Hello World");', 'msg("Hello World");', 'alertBox("Hello World");'], ans: 1 },
+                    { q: 'How do you create a function in JavaScript?', opts: ['function = myFunction()', 'function myFunction()', 'function:myFunction()', 'create myFunction()'], ans: 1 },
+                    { q: 'How do you call a function named "myFunction"?', opts: ['call function myFunction()', 'call myFunction()', 'myFunction()', 'execute myFunction()'], ans: 2 },
+                    { q: 'How to write an IF statement in JavaScript?', opts: ['if i = 5 then', 'if i == 5 then', 'if (i == 5)', 'if i = 5'], ans: 2 },
+                    { q: 'How does a WHILE loop start?', opts: ['while (i <= 10)', 'while (i <= 10; i++)', 'while i = 1 to 10', 'while (i)'], ans: 0 },
+                    { q: 'How can you add a comment in a JavaScript?', opts: ['<!--This is a comment-->', '//This is a comment', '\'This is a comment', '**This is a comment'], ans: 1 },
+                    { q: 'What is the correct way to write a JavaScript array?', opts: ['var colors = ["red", "green", "blue"]', 'var colors = "red", "green", "blue"', 'var colors = 1 = ("red"), 2 = ("green")', 'var colors = (1:"red", 2:"green")'], ans: 0 },
+                    { q: 'How do you round the number 7.25, to the nearest integer?', opts: ['Math.rnd(7.25)', 'Math.round(7.25)', 'round(7.25)', 'rnd(7.25)'], ans: 1 },
+                    { q: 'Which event occurs when the user clicks on an HTML element?', opts: ['onchange', 'onmouseover', 'onmouseclick', 'onclick'], ans: 3 }
+                ]
+            };
+
+            let currentExamQuestions = [];
+            let currentQIndex = 0;
+            let qTimer = 60;
+            let qTimerInterval = null;
+            let userAnswers = [];
+            let currentExamSubject = '';
+
+            function generateExam() {
+                const subjects = Object.keys(examBanks);
+                const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
+                currentExamSubject = randomSubject;
+                // Add T/F questions dynamically
+                const tfExtras = {
+                    'Python': [
+                        { q: 'Python is a compiled language.', opts: ['True', 'False'], ans: 1 },
+                        { q: 'Python lists are mutable.', opts: ['True', 'False'], ans: 0 }
+                    ],
+                    'Git & GitHub': [
+                        { q: 'Git is a centralized version control system.', opts: ['True', 'False'], ans: 1 },
+                        { q: 'The git commit command uploads your code to GitHub.', opts: ['True', 'False'], ans: 1 }
+                    ],
+                    'AWS Cloud': [
+                        { q: 'Amazon S3 is a block storage service.', opts: ['True', 'False'], ans: 1 },
+                        { q: 'AWS Lambda is a serverless computing service.', opts: ['True', 'False'], ans: 0 }
+                    ],
+                    'HTML & CSS': [
+                        { q: 'HTML is considered a programming language.', opts: ['True', 'False'], ans: 1 },
+                        { q: 'CSS can be included directly within an HTML file using the style tag.', opts: ['True', 'False'], ans: 0 }
+                    ],
+                    'JavaScript': [
+                        { q: 'JavaScript is the same as Java.', opts: ['True', 'False'], ans: 1 },
+                        { q: 'JavaScript can be used for both frontend and backend development.', opts: ['True', 'False'], ans: 0 }
+                    ]
+                };
+                
+                let combined = [...examBanks[randomSubject], ...(tfExtras[randomSubject] || [])];
+                // Shuffle and pick 10
+                combined = combined.sort(() => 0.5 - Math.random()).slice(0, 10);
+                
+                currentExamQuestions = combined;
+                currentQIndex = 0;
+                userAnswers = [];
+                
+                const titleEl = document.getElementById('examSubjectTitle');
+                if (titleEl) {
+                    titleEl.innerHTML = `${randomSubject} Exam <span style="font-size:14px; font-weight:normal; background: rgba(124,77,255,0.2); padding:4px 12px; border-radius:20px; color:#b8aaff;">10 Questions</span>`;
+                }
+
+                const submitBtn = document.getElementById('submitMockExamBtn');
+                if (submitBtn) submitBtn.style.display = 'none';
+
+                renderCurrentQuestion();
+            }
+
+            function renderCurrentQuestion() {
+                const container = document.getElementById('examQuestionsContainer');
+                if (!container) return;
+
+                if (currentQIndex >= currentExamQuestions.length) {
+                    finishMockExam();
+                    return;
+                }
+
+                const q = currentExamQuestions[currentQIndex];
+                qTimer = 60;
+                clearInterval(qTimerInterval);
+
+                let html = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:10px;">
+                        <span style="color:rgba(255,255,255,0.6); font-size:14px; font-weight:600;">Question ${currentQIndex + 1} of ${currentExamQuestions.length}</span>
+                        <div style="display:flex; align-items:center; gap:8px; color:#ff6b6b; font-weight:700; font-size:16px;">
+                            <i class="fas fa-clock"></i> <span id="qTimerDisplay">01:00</span>
+                        </div>
+                    </div>
+                    <div class="exam-question">
+                        <h4>${q.q}</h4>
+                        <div class="exam-options">
+                `;
+
+                q.opts.forEach((opt, optIdx) => {
+                    html += `
+                        <label class="exam-option">
+                            <input type="radio" name="q_current" value="${optIdx}">
+                            ${opt}
+                        </label>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-top:30px; gap:16px;">
+                        <button id="skipQBtn" style="background: rgba(255,255,255,0.1); color:#fff; border:none; padding:12px 24px; border-radius:30px; font-weight:600; cursor:pointer; flex:1; transition:0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">Skip Question</button>
+                        <button id="nextQBtn" style="background: linear-gradient(135deg,#7c4dff,#448aff); color:#fff; border:none; padding:12px 24px; border-radius:30px; font-weight:600; cursor:pointer; flex:2;">
+                            ${currentQIndex === currentExamQuestions.length - 1 ? 'Finish' : 'Next Question'} <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                `;
+
+                container.innerHTML = html;
+
+                document.getElementById('skipQBtn').onclick = () => {
+                    userAnswers.push(null);
+                    currentQIndex++;
+                    renderCurrentQuestion();
+                };
+
+                document.getElementById('nextQBtn').onclick = () => {
+                    const selected = document.querySelector('input[name="q_current"]:checked');
+                    if (!selected) {
+                        showToast('Please select an answer or click Skip.', 'error');
+                        return;
+                    }
+                    saveAnswer();
+                    currentQIndex++;
+                    renderCurrentQuestion();
+                };
+
+                qTimerInterval = setInterval(() => {
+                    qTimer--;
+                    const mins = Math.floor(qTimer / 60).toString().padStart(2, '0');
+                    const secs = (qTimer % 60).toString().padStart(2, '0');
+                    const disp = document.getElementById('qTimerDisplay');
+                    if (disp) {
+                        disp.textContent = `${mins}:${secs}`;
+                        if (qTimer <= 10) {
+                            disp.parentElement.style.animation = 'pulse 1s infinite';
+                        }
+                    }
+
+                    if (qTimer <= 0) {
+                        clearInterval(qTimerInterval);
+                        userAnswers.push(null);
+                        currentQIndex++;
+                        renderCurrentQuestion();
+                    }
+                }, 1000);
+            }
+
+            function saveAnswer() {
+                const selected = document.querySelector('input[name="q_current"]:checked');
+                userAnswers.push(selected ? parseInt(selected.value) : null);
+            }
+
+            function finishMockExam() {
+                clearInterval(qTimerInterval);
+                let correctCount = 0;
+                userAnswers.forEach((ans, i) => {
+                    if (ans !== null && ans === currentExamQuestions[i].ans) {
+                        correctCount++;
+                    }
+                });
+                const total = currentExamQuestions.length;
+                const wrongCount = total - correctCount;
+                const percentage = Math.round((correctCount / total) * 100);
+
+                // Populate Stats panel
+                const statsSubject = document.getElementById('statsExamSubject');
+                const statsCorrect = document.getElementById('statsExamCorrect');
+                const statsWrong = document.getElementById('statsExamWrong');
+                const statsPercent = document.getElementById('statsExamPercent');
+                if (statsSubject) statsSubject.textContent = currentExamSubject;
+                if (statsCorrect) statsCorrect.textContent = correctCount + ' / ' + total;
+                if (statsWrong) statsWrong.textContent = wrongCount;
+                if (statsPercent) statsPercent.textContent = percentage + '%';
+
+                // Populate Report panel
+                const reportSubject = document.getElementById('reportExamSubject');
+                const reportCorrect = document.getElementById('reportExamCorrect');
+                const reportWrong = document.getElementById('reportExamWrong');
+                const reportPercent = document.getElementById('reportExamPercent');
+                if (reportSubject) reportSubject.textContent = currentExamSubject;
+                if (reportCorrect) reportCorrect.textContent = correctCount + ' / ' + total;
+                if (reportWrong) reportWrong.textContent = wrongCount;
+                if (reportPercent) reportPercent.textContent = percentage + '%';
+
+                // Update Profile Latest Result card
+                const candScore = document.getElementById('candScore');
+                const candRemark = document.getElementById('candRemark');
+                if (candScore) candScore.textContent = percentage;
+                if (candRemark) {
+                    if (percentage >= 80) candRemark.textContent = 'Excellent';
+                    else if (percentage >= 60) candRemark.textContent = 'Good';
+                    else if (percentage >= 40) candRemark.textContent = 'Fair';
+                    else candRemark.textContent = 'Needs Improvement';
+                }
+
+                const container = document.getElementById('examQuestionsContainer');
+                if (container) {
+                    container.innerHTML = `
+                        <div style="text-align:center; padding:20px 0;">
+                            <i class="fas fa-clipboard-check" style="font-size:60px; color:#51cf66; margin-bottom:20px;"></i>
+                            <h3 style="color:#fff; margin-bottom:10px;">Exam Completed!</h3>
+                            <div style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 20px; margin: 20px 0;">
+                                <div style="font-size: 14px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px;">Results</div>
+                                <div style="font-size: 36px; font-weight: 700; color: #7c4dff; margin: 10px 0; animation: scorePulse 0.6s ease;">${percentage}%</div>
+                                <div style="font-size: 16px; color: #fff;">You scored ${correctCount} out of ${total}</div>
+                                <div style="font-size: 13px; color: rgba(255,255,255,0.5); margin-top:8px;">Subject: ${currentExamSubject}</div>
+                            </div>
+                            <p style="color:rgba(255,255,255,0.6); margin-bottom:10px;">Please submit your answers to finalize the session.</p>
+                        </div>
+                    `;
+                }
+                const submitBtn = document.getElementById('submitMockExamBtn');
+                if (submitBtn) {
+                    submitBtn.style.display = 'block';
+                    submitBtn.innerHTML = '<i class="fas fa-flag-checkered"></i> Submit & End Exam';
+                    submitBtn.style.background = 'linear-gradient(135deg,#ff6b6b,#f03e3e)';
+                    submitBtn.style.color = '#fff';
+                    submitBtn.disabled = false;
+                    submitBtn.onclick = () => {
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                        submitBtn.disabled = true;
+                        showToast('Exam completed', 'success');
+                        setTimeout(() => {
+                            endExam();
+                        }, 1500);
+                    };
+                }
+            }
 
                 // ====== SYSTEM DIAGNOSTICS LOGIC ======
         const sysDiagBtn = document.getElementById('sysDiagBtn');
@@ -4086,99 +4801,105 @@
         });
 
         const setDiagItemState = (id, state, message, badgeText) => {
-    const li = document.getElementById(id);
-    if (!li) return;
-    const msgSpan = li.querySelector('.diag-msg');
-    const badge = li.querySelector('.diag-badge-el');
+    const item = document.getElementById(id);
+    if (!item) return;
+    const subtitle = item.querySelectorAll('span');
+    const badge = item.querySelector('.sysdiag-badge');
     
-    if (msgSpan && message) msgSpan.textContent = message;
+    if (subtitle.length > 0 && message) subtitle[subtitle.length - 1].textContent = message;
     if (!badge) return;
     
     if (state === 'loading') {
-        badge.className = 'diag-badge pending diag-badge-el';
-        badge.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Checking';
+        badge.style.background = 'rgba(255,255,255,0.06)';
+        badge.style.color = 'rgba(255,255,255,0.5)';
+        badge.innerHTML = '<i class="fas fa-circle-notch fa-spin" style="font-size:10px;"></i> Checking';
     } else if (state === 'success') {
-        badge.className = 'diag-badge success diag-badge-el';
+        badge.style.background = 'rgba(81,207,102,0.12)';
+        badge.style.color = '#51cf66';
         badge.innerHTML = '<i class="fas fa-check-circle"></i> ' + (badgeText || 'Ready');
+        item.style.borderColor = 'rgba(81,207,102,0.15)';
     } else if (state === 'error') {
-        badge.className = 'diag-badge error diag-badge-el';
+        badge.style.background = 'rgba(255,107,107,0.12)';
+        badge.style.color = '#ff6b6b';
         badge.innerHTML = '<i class="fas fa-times-circle"></i> Failed';
+        item.style.borderColor = 'rgba(255,107,107,0.15)';
     }
 };
 
-if (runSysDiagBtn) {
-    runSysDiagBtn.addEventListener('click', async () => {
-        runSysDiagBtn.disabled = true;
-        runSysDiagBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running...';
-        
-        const ids = ['chkBrowser', 'chkCamera', 'chkMic', 'chkNetwork'];
-        ids.forEach(id => setDiagItemState(id, 'loading', 'Checking...'));
-        
-        const summary = document.getElementById('chkSummary');
-        if (summary) summary.classList.remove('visible');
-        let allGood = true;
+document.body.addEventListener('click', async (e) => {
+    const runSysDiagBtn = e.target.closest('#runSysDiagBtn');
+    if (!runSysDiagBtn) return;
+    
+    runSysDiagBtn.disabled = true;
+    runSysDiagBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running...';
+    
+    const ids = ['chkBrowser', 'chkCamera', 'chkMic', 'chkNetwork'];
+    ids.forEach(id => setDiagItemState(id, 'loading', 'Checking...'));
+    
+    const readyBanner = document.getElementById('sysDiagAllReady');
+    if (readyBanner) readyBanner.style.display = 'none';
+    let allGood = true;
 
-        // 1. Browser
-        await new Promise(r => setTimeout(r, 600));
-        const isSupported = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
-        setDiagItemState('chkBrowser', isSupported ? 'success' : 'error', isSupported ? 'Browser is compatible' : 'Incompatible browser', 'Compatible');
-        if (!isSupported) allGood = false;
+    // 1. Browser
+    await new Promise(r => setTimeout(r, 600));
+    const isSupported = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+    setDiagItemState('chkBrowser', isSupported ? 'success' : 'error', isSupported ? 'Browser is compatible' : 'Incompatible browser', 'Compatible');
+    if (!isSupported) allGood = false;
 
-        // 2. Camera
-        if (isSupported) {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                stream.getTracks().forEach(t => t.stop());
-                setDiagItemState('chkCamera', 'success', 'Camera access granted', 'Ready');
-            } catch (err) {
-                setDiagItemState('chkCamera', 'error', 'Camera access denied or unavailable');
-                allGood = false;
-            }
-        } else {
-            setDiagItemState('chkCamera', 'error', 'Cannot test camera');
+    // 2. Camera
+    if (isSupported) {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            stream.getTracks().forEach(t => t.stop());
+            setDiagItemState('chkCamera', 'success', 'Camera access granted', 'Ready');
+        } catch (err) {
+            setDiagItemState('chkCamera', 'error', 'Camera access denied or unavailable');
             allGood = false;
         }
+    } else {
+        setDiagItemState('chkCamera', 'error', 'Cannot test camera');
+        allGood = false;
+    }
 
-        // 3. Mic
-        if (isSupported) {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                stream.getTracks().forEach(t => t.stop());
-                setDiagItemState('chkMic', 'success', 'Microphone access granted', 'Ready');
-            } catch (err) {
-                setDiagItemState('chkMic', 'error', 'Microphone access denied or unavailable');
-                allGood = false;
-            }
-        } else {
-            setDiagItemState('chkMic', 'error', 'Cannot test microphone');
+    // 3. Mic
+    if (isSupported) {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            stream.getTracks().forEach(t => t.stop());
+            setDiagItemState('chkMic', 'success', 'Microphone access granted', 'Ready');
+        } catch (err) {
+            setDiagItemState('chkMic', 'error', 'Microphone access denied or unavailable');
             allGood = false;
         }
+    } else {
+        setDiagItemState('chkMic', 'error', 'Cannot test microphone');
+        allGood = false;
+    }
 
-        // 4. Network
-        await new Promise(r => setTimeout(r, 500));
-        if (navigator.onLine) {
-            try {
-                const start = performance.now();
-                await fetch('/api/network/health?ts=' + Date.now());
-                const ping = Math.round(performance.now() - start);
-                setDiagItemState('chkNetwork', 'success', 'Connected (' + ping + 'ms latency)', 'Good');
-            } catch (err) {
-                setDiagItemState('chkNetwork', 'error', 'Network unstable');
-                allGood = false;
-            }
-        } else {
-            setDiagItemState('chkNetwork', 'error', 'Offline');
+    // 4. Network
+    await new Promise(r => setTimeout(r, 500));
+    if (navigator.onLine) {
+        try {
+            const start = performance.now();
+            await fetch('/api/network/health?ts=' + Date.now());
+            const ping = Math.round(performance.now() - start);
+            setDiagItemState('chkNetwork', 'success', 'Connected (' + ping + 'ms latency)', 'Good');
+        } catch (err) {
+            setDiagItemState('chkNetwork', 'error', 'Network unstable');
             allGood = false;
         }
-        
-        if (allGood && summary) {
-            summary.classList.add('visible');
-        }
+    } else {
+        setDiagItemState('chkNetwork', 'error', 'Offline');
+        allGood = false;
+    }
+    
+    if (allGood && readyBanner) {
+        readyBanner.style.display = 'flex';
+    }
 
-        runSysDiagBtn.disabled = false;
-        runSysDiagBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Run Diagnostics Again';
-    });
-}
+    runSysDiagBtn.disabled = false;
+    runSysDiagBtn.innerHTML = '<i class="fas fa-sync-alt" style="margin-right:10px;"></i>Run Diagnostics Again';
+});
 
 })();
     </script>
@@ -4207,62 +4928,123 @@ if (runSysDiagBtn) {
         tsParticles.load("tsparticles", {
           fpsLimit: 60,
           particles: {
-            color: { value: "#4da8da" },
-            links: { color: "#4da8da", distance: 150, enable: true, opacity: 0.15, width: 1 },
-            move: { enable: true, speed: 0.3, direction: "none", random: false, straight: false, outModes: { default: "bounce" } },
-            number: { density: { enable: true, area: 800 }, value: 30 },
-            opacity: { value: 0.3 },
+            color: { value: ["#7c4dff", "#448aff", "#4da8da", "#51cf66", "#b197fc"] },
+            links: { color: "#7c4dff", distance: 160, enable: true, opacity: 0.25, width: 1.2 },
+            move: { enable: true, speed: 0.6, direction: "none", random: true, straight: false, outModes: { default: "bounce" } },
+            number: { density: { enable: true, area: 600 }, value: 80 },
+            opacity: { value: { min: 0.3, max: 0.7 }, animation: { enable: true, speed: 0.8, minimumValue: 0.2 } },
             shape: { type: "circle" },
-            size: { value: { min: 1, max: 2 } },
+            size: { value: { min: 1.5, max: 4 }, animation: { enable: true, speed: 2, minimumValue: 1 } },
+          },
+          interactivity: {
+            events: { onHover: { enable: true, mode: "grab" } },
+            modes: { grab: { distance: 140, links: { opacity: 0.4 } } }
           },
           detectRetina: true,
         });
     </script>
         <!-- ====== SYSTEM DIAGNOSTICS MODAL ====== -->
     <div id="systemDiagModal" class="screenshot-modal">
-        <div class="screenshot-modal-content" style="width: 800px; max-width: 90vw; padding: 40px; text-align: left; background: #23212b; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; display: flex; gap: 40px; position: relative;">
-            <button class="screenshot-close-btn" id="sysDiagCloseBtn" style="position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.1); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; color: #fff;"><i class="fas fa-times"></i></button>
+        <div class="screenshot-modal-content" style="width: 900px; max-width: 92vw; padding: 0; text-align: left; background: linear-gradient(145deg, #161832, #0f1128); border: 1px solid rgba(124,77,255,0.15); border-radius: 24px; display: flex; overflow: hidden; position: relative; box-shadow: 0 30px 80px rgba(0,0,0,0.6);">
+            <!-- Close Button -->
+            <button class="screenshot-close-btn" id="sysDiagCloseBtn" style="position: absolute; top: 18px; right: 18px; background: rgba(255,255,255,0.08); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; color: rgba(255,255,255,0.6); font-size:18px; z-index:10; transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.15)';this.style.color='#fff'" onmouseout="this.style.background='rgba(255,255,255,0.08)';this.style.color='rgba(255,255,255,0.6)'"><i class="fas fa-times"></i></button>
             
-            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
-                <div style="display: flex; align-items: flex-start; gap: 15px; margin-bottom: 20px;">
-                    <i class="fas fa-list-check" style="color:#51cf66; font-size: 32px; margin-top: 5px;"></i>
-                    <h2 style="margin: 0; font-size: 32px; line-height: 1.2; color: #fff;">System<br>Readiness<br>Diagnostics</h2>
+            <!-- Left Side - Orb & Info -->
+            <div style="flex:1; padding:44px 36px; display:flex; flex-direction:column; justify-content:center; background: linear-gradient(180deg, rgba(124,77,255,0.04) 0%, transparent 100%);">
+                <!-- Animated Orb -->
+                <div style="width:160px; height:160px; margin:0 auto 30px; position:relative; display:flex; align-items:center; justify-content:center;">
+                    <div style="position:absolute; inset:0; border-radius:50%; border:2px solid rgba(124,77,255,0.2); animation: networkRingPulse 2.8s ease-out infinite;"></div>
+                    <div style="position:absolute; inset:15px; border-radius:50%; border:2px solid rgba(81,207,102,0.15); animation: networkRingPulse 2.8s ease-out 0.5s infinite;"></div>
+                    <div style="width:80px; height:80px; border-radius:50%; background: radial-gradient(circle at 40% 30%, rgba(124,77,255,0.4), rgba(30,39,80,0.9) 65%); border:1px solid rgba(124,77,255,0.3); box-shadow: 0 0 30px rgba(124,77,255,0.2), 0 0 60px rgba(124,77,255,0.1); display:flex; align-items:center; justify-content:center; animation: networkCorePulse 2.2s ease-in-out infinite;">
+                        <i id="sysDiagOrbIcon" class="fas fa-check" style="font-size:32px; color:#51cf66; filter:drop-shadow(0 0 8px rgba(81,207,102,0.4));"></i>
+                    </div>
                 </div>
-                <p style="color:#8F8C9F; font-size: 16px; line-height: 1.5; margin-bottom: 30px;">We need to ensure your environment is fully prepared before you begin the exam.</p>
-                <button class="btn btn-start" id="runSysDiagBtn" style="width: fit-content; background: #fff; color: #000; font-weight: 600; padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer;"><i class="fas fa-sync-alt" style="margin-right: 8px;"></i> Run Diagnostics</button>
+
+                <h2 style="margin:0 0 4px; font-size:30px; font-weight:700; color:#fff; text-align:center; line-height:1.2;">System Readiness</h2>
+                <h2 style="margin:0 0 18px; font-size:30px; font-weight:700; color:#51cf66; text-align:center; line-height:1.2;">Diagnostics</h2>
+                <p style="color:rgba(255,255,255,0.5); font-size:14px; line-height:1.6; text-align:center; margin-bottom:28px;">We need to ensure your environment is fully prepared before you begin the exam.</p>
+                
+                <!-- Info callout -->
+                <div style="background:rgba(255,255,255,0.04); border-radius:12px; padding:14px 16px; display:flex; align-items:center; gap:12px; margin-bottom:24px; border:1px solid rgba(255,255,255,0.06);">
+                    <i class="fas fa-info-circle" style="color:rgba(255,255,255,0.4); font-size:16px;"></i>
+                    <span style="color:rgba(255,255,255,0.5); font-size:13px; line-height:1.4;">Running diagnostics will check your system settings and permissions.</span>
+                </div>
+
+                <!-- Run Button -->
+                <button class="btn" id="runSysDiagBtn" style="width:100%; background:linear-gradient(135deg,#51cf66,#2fac4a); color:#fff; font-weight:700; padding:16px 24px; border-radius:14px; border:none; cursor:pointer; font-size:16px; box-shadow: 0 4px 20px rgba(81,207,102,0.3); letter-spacing:0.3px;">
+                    <i class="fas fa-sync-alt" style="margin-right:10px;"></i>Run Diagnostics
+                </button>
+
+                <div style="text-align:center; margin-top:16px; display:flex; align-items:center; justify-content:center; gap:6px;">
+                    <i class="fas fa-shield-alt" style="color:rgba(255,255,255,0.25); font-size:12px;"></i>
+                    <span style="color:rgba(255,255,255,0.3); font-size:12px;">Your privacy and data are protected.</span>
+                </div>
             </div>
             
-            <div style="flex: 1;">
-                <ul style="list-style:none; padding:0; margin:0;" id="sysDiagChecklist">
-                    <li id="chkBrowser" style="padding:20px; background: #2A2833; margin-bottom:15px; border-radius:12px; display:flex; align-items:center;">
-                        <i class="fas fa-spinner fa-spin" style="margin-right:20px; font-size:24px; color:#fff;"></i>
-                        <div style="flex:1;">
-                            <strong style="display:block; font-size: 16px; color: #fff;">Browser Compatibility</strong>
-                            <span style="font-size:13px; color:#8F8C9F; margin-top:4px; display:block;">Checking browser version</span>
-                        </div>
-                    </li>
-                    <li id="chkCamera" style="padding:20px; background: #2A2833; margin-bottom:15px; border-radius:12px; display:flex; align-items:center;">
-                        <i class="fas fa-spinner fa-spin" style="margin-right:20px; font-size:24px; color:#fff;"></i>
-                        <div style="flex:1;">
-                            <strong style="display:block; font-size: 16px; color: #fff;">Camera Access</strong>
-                            <span style="font-size:13px; color:#8F8C9F; margin-top:4px; display:block;">Checking video input</span>
-                        </div>
-                    </li>
-                    <li id="chkMic" style="padding:20px; background: #2A2833; margin-bottom:15px; border-radius:12px; display:flex; align-items:center;">
-                        <i class="fas fa-spinner fa-spin" style="margin-right:20px; font-size:24px; color:#fff;"></i>
-                        <div style="flex:1;">
-                            <strong style="display:block; font-size: 16px; color: #fff;">Microphone Access</strong>
-                            <span style="font-size:13px; color:#8F8C9F; margin-top:4px; display:block;">Checking audio input</span>
-                        </div>
-                    </li>
-                    <li id="chkNetwork" style="padding:20px; background: #2A2833; border-radius:12px; display:flex; align-items:center;">
-                        <i class="fas fa-spinner fa-spin" style="margin-right:20px; font-size:24px; color:#fff;"></i>
-                        <div style="flex:1;">
-                            <strong style="display:block; font-size: 16px; color: #fff;">Network Connectivity</strong>
-                            <span style="font-size:13px; color:#8F8C9F; margin-top:4px; display:block;">Checking latency and stability</span>
-                        </div>
-                    </li>
-                </ul>
+            <!-- Right Side - Check Items -->
+            <div style="flex:1.1; padding:36px 32px; display:flex; flex-direction:column; justify-content:center; gap:14px;">
+                <div id="chkBrowser" class="sysdiag-item" style="padding:20px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:14px; display:flex; align-items:center; gap:16px; transition:all 0.3s;">
+                    <div style="width:48px; height:48px; border-radius:12px; background:rgba(68,138,255,0.12); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <i class="fas fa-desktop" style="font-size:20px; color:#448aff;"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <strong style="display:block; font-size:15px; color:#fff;">Browser Compatibility</strong>
+                        <span style="font-size:12px; color:rgba(255,255,255,0.4); margin-top:3px; display:block;">Checking browser version</span>
+                    </div>
+                    <div class="sysdiag-badge" style="padding:6px 14px; border-radius:20px; font-size:12px; font-weight:600; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.4); display:flex; align-items:center; gap:5px;">
+                        <i class="fas fa-circle" style="font-size:6px;"></i> Pending
+                    </div>
+                </div>
+
+                <div id="chkCamera" class="sysdiag-item" style="padding:20px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:14px; display:flex; align-items:center; gap:16px; transition:all 0.3s;">
+                    <div style="width:48px; height:48px; border-radius:12px; background:rgba(255,107,107,0.12); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <i class="fas fa-camera" style="font-size:20px; color:#ff6b6b;"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <strong style="display:block; font-size:15px; color:#fff;">Camera Access</strong>
+                        <span style="font-size:12px; color:rgba(255,255,255,0.4); margin-top:3px; display:block;">Checking video input</span>
+                    </div>
+                    <div class="sysdiag-badge" style="padding:6px 14px; border-radius:20px; font-size:12px; font-weight:600; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.4); display:flex; align-items:center; gap:5px;">
+                        <i class="fas fa-circle" style="font-size:6px;"></i> Pending
+                    </div>
+                </div>
+
+                <div id="chkMic" class="sysdiag-item" style="padding:20px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:14px; display:flex; align-items:center; gap:16px; transition:all 0.3s;">
+                    <div style="width:48px; height:48px; border-radius:12px; background:rgba(177,151,252,0.12); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <i class="fas fa-microphone" style="font-size:20px; color:#b197fc;"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <strong style="display:block; font-size:15px; color:#fff;">Microphone Access</strong>
+                        <span style="font-size:12px; color:rgba(255,255,255,0.4); margin-top:3px; display:block;">Checking audio input</span>
+                    </div>
+                    <div class="sysdiag-badge" style="padding:6px 14px; border-radius:20px; font-size:12px; font-weight:600; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.4); display:flex; align-items:center; gap:5px;">
+                        <i class="fas fa-circle" style="font-size:6px;"></i> Pending
+                    </div>
+                </div>
+
+                <div id="chkNetwork" class="sysdiag-item" style="padding:20px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:14px; display:flex; align-items:center; gap:16px; transition:all 0.3s;">
+                    <div style="width:48px; height:48px; border-radius:12px; background:rgba(81,207,102,0.12); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <i class="fas fa-wifi" style="font-size:20px; color:#51cf66;"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <strong style="display:block; font-size:15px; color:#fff;">Network Connectivity</strong>
+                        <span style="font-size:12px; color:rgba(255,255,255,0.4); margin-top:3px; display:block;">Checking latency and stability</span>
+                    </div>
+                    <div class="sysdiag-badge" style="padding:6px 14px; border-radius:20px; font-size:12px; font-weight:600; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.4); display:flex; align-items:center; gap:5px;">
+                        <i class="fas fa-circle" style="font-size:6px;"></i> Pending
+                    </div>
+                </div>
+
+                <!-- All Systems Ready Banner (hidden by default) -->
+                <div id="sysDiagAllReady" style="display:none; padding:18px 20px; background:rgba(81,207,102,0.08); border:1px solid rgba(81,207,102,0.2); border-radius:14px; display:none; align-items:center; gap:14px; animation: fadeInUp 0.4s ease;">
+                    <div style="width:44px; height:44px; border-radius:12px; background:rgba(81,207,102,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <i class="fas fa-shield-alt" style="font-size:20px; color:#51cf66;"></i>
+                    </div>
+                    <div>
+                        <strong style="display:block; font-size:15px; color:#51cf66;">All systems are ready!</strong>
+                        <span style="font-size:12px; color:rgba(255,255,255,0.5);">You can start the exam with confidence.</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -5,8 +5,15 @@
             // ----- DOM refs (existing) -----
             const userNameDisplay = document.getElementById('userNameDisplay');
             const candId = document.getElementById('candId');
+            const candRoll = document.getElementById('candRoll');
             const candName = document.getElementById('candName');
             const candSession = document.getElementById('candSession');
+            const candCourse = document.getElementById('candCourse');
+            const candEmail = document.getElementById('candEmail');
+            const candCenter = document.getElementById('candCenter');
+            const candDevice = document.getElementById('candDevice');
+            const candNextExam = document.getElementById('candNextExam');
+            const candNextExamDate = document.getElementById('candNextExamDate');
             const candScore = document.getElementById('candScore');
             const candRemark = document.getElementById('candRemark');
             const faceRatioEl = document.getElementById('faceRatio');
@@ -412,6 +419,10 @@
                     if (workspaceInitial) workspaceInitial.textContent = shortName.charAt(0).toUpperCase() || 'S';
                     candName.textContent = currentUser.name || 'N/A';
                     candId.textContent = currentUser.student_id || 'N/A';
+                    if (candRoll) {
+                        const roll = currentUser.roll_no || (currentUser.student_id ? 'EXM-' + currentUser.student_id : 'N/A');
+                        candRoll.textContent = roll;
+                    }
                     candSession.textContent = currentUser.session_id || 'N/A';
                     showSettingsMessage('Profile updated successfully.', true);
                     await new Promise(resolve => setTimeout(resolve, 500));
@@ -742,9 +753,26 @@
                         if (workspaceInitial) workspaceInitial.textContent = shortDisplayName.charAt(0).toUpperCase() || 'S';
 
                         if (candId) candId.textContent = currentUser ? (currentUser.student_id || 'N/A') : 'N/A';
+                        if (candRoll) {
+                            const roll = (currentUser && currentUser.roll_no) ? currentUser.roll_no : (currentUser && currentUser.student_id ? 'EXM-' + currentUser.student_id : 'N/A');
+                            candRoll.textContent = roll;
+                        }
 
                         if (candName) candName.innerHTML = (currentUser ? currentUser.name : 'N/A') + badgeHtml;
                         if (candSession) candSession.textContent = currentUser ? (currentUser.session_id || 'N/A') : 'N/A';
+                        if (candCourse) candCourse.textContent = currentUser && currentUser.course ? currentUser.course : 'B.Tech Computer Science';
+                        if (candEmail) candEmail.textContent = currentUser && currentUser.email ? currentUser.email : 'N/A';
+                        if (candCenter) candCenter.textContent = 'Remote (Online)';
+                        if (candDevice) {
+                            const userAgent = navigator.userAgent;
+                            let browser = "Web Browser";
+                            if(userAgent.indexOf("Chrome") != -1 ) browser = "Chrome";
+                            else if(userAgent.indexOf("Firefox") != -1 ) browser = "Firefox";
+                            else if(userAgent.indexOf("Safari") != -1 ) browser = "Safari";
+                            candDevice.textContent = browser + " on " + navigator.platform;
+                        }
+                        if (candNextExam) candNextExam.textContent = 'In 2h 15m';
+                        if (candNextExamDate) candNextExamDate.textContent = 'Oct 24, 10:00 AM';
                         if (faceRatioEl) faceRatioEl.textContent = data.face_ratio !== undefined ? data.face_ratio : 'N/A';
 
                         const finalScore = data.final_score;
