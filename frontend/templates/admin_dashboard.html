@@ -10,14 +10,21 @@
 
         /* ===== COMPLETE MODERN DARK ADMIN REDESIGN ===== */
         * { margin:0; padding:0; box-sizing:border-box; }
+        html {
+            overflow-x: hidden;
+            height: 100%;
+        }
         body {
             font-family:'Inter',sans-serif;
             background: #0d0b2e;
             color:#e8e6f0;
-            min-height:100vh;
+            min-height: 100vh;
             display:flex;
             flex-direction: column;
             align-items: center;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
         }
 
         /* ===== TOP PILL NAV (sidebar → horizontal) ===== */
@@ -428,6 +435,17 @@
         .health-item .h-label { font-size: 12px; color: rgba(255,255,255,0.4); text-transform: uppercase; margin-bottom: 6px; }
         .health-item .h-value { font-size: 18px; font-weight: 700; }
 
+        /* Investigation Modal Styles */
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .detail-item { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 12px 16px; border: 1px solid rgba(255,255,255,0.05); }
+        .detail-item .label { font-size: 11px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; font-weight: 600; }
+        .detail-item .value { font-size: 15px; font-weight: 700; color: #fff; }
+        .detail-item .value.risk-high { color: #ff6b6b; }
+        .detail-item .value.risk-medium { color: #fcc419; }
+        .detail-item .value.risk-low { color: #51cf66; }
+        .event-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; max-height: 200px; overflow-y: auto; padding-right: 4px; }
+        .event-item { display: flex; justify-content: space-between; align-items: center; background: rgba(124,77,255,0.08); padding: 10px 14px; border-radius: 10px; font-size: 13px; border: 1px solid rgba(124,77,255,0.15); }
+        .modal-actions { display: flex; gap: 10px; margin-top: 24px; justify-content: flex-end; flex-wrap: wrap; }
         /* ===== TOAST ===== */
         .toast {
             position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px);
@@ -1174,7 +1192,26 @@
                     return;
                 }
                 
-                let html = toolbarHtml + `<div class="live-grid">`;
+                let tickerContent = allEvents.slice(0, 5).map(e => {
+                    const color = e.type === 'Face Not Detected' ? '#ef4444' : '#fcc419';
+                    const sName = allStudents.find(st => st.id === e.student_id)?.name || 'Unknown';
+                    const time = new Date(e.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+                    return `<span style="margin-right:40px;"><span style="color:${color};font-weight:700;">[${e.type}]</span> ${sName} at ${time}</span>`;
+                }).join('');
+                if (!tickerContent) tickerContent = '<span style="color:rgba(255,255,255,0.4);">No recent suspicious events</span>';
+
+                let tickerHtml = `
+                    <div class="live-ticker" style="width:100%; background:rgba(0,0,0,0.2); border-radius:12px; padding:10px 16px; margin-bottom:24px; border:1px solid rgba(124,77,255,0.15); display:flex; align-items:center; gap:12px; overflow:hidden;">
+                        <div style="color:#b8aaff; font-size:12px; font-weight:700; white-space:nowrap; border-right:1px solid rgba(255,255,255,0.1); padding-right:12px;"><i class="fas fa-bolt"></i> REAL-TIME</div>
+                        <div style="flex:1; overflow:hidden; position:relative;">
+                            <marquee style="color:rgba(255,255,255,0.7); font-size:13px; display:flex; align-items:center;" scrollamount="5">
+                                ${tickerContent}
+                            </marquee>
+                        </div>
+                    </div>
+                `;
+
+                let html = toolbarHtml + tickerHtml + `<div class="live-grid">`;
                 live.forEach((s, idx) => {
                     const riskColor = s.risk_label === 'High Risk' ? '#ef4444' : s.risk_label === 'Medium Risk' ? '#fcc419' : '#51cf66';
                     const animDelay = (idx * 0.1) + 's';
@@ -1196,6 +1233,10 @@
                             <div class="status-row" style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.2); padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,0.03);">
                                 <span class="badge" style="background:rgba(${riskColor === '#ef4444' ? '239,68,68' : riskColor === '#fcc419' ? '252,196,25' : '81,207,102'}, 0.15); color:${riskColor}; padding:6px 10px; border-radius:8px; font-size:11px; font-weight:700;">${s.risk_label || 'N/A'}</span>
                                 <span class="score" style="font-size:12px; color:rgba(255,255,255,0.5); display:flex; align-items:center; gap:6px;">Integrity: <strong style="color:#fff; font-size:16px;">${s.integrity_score ?? 100}</strong></span>
+                            </div>
+                            <div class="actions-row" style="display:flex; gap:8px; margin-top:16px;">
+                                <button style="flex:1; background:rgba(252,196,25,0.1); border:1px solid rgba(252,196,25,0.2); color:#fcc419; padding:8px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:6px; transition:0.2s;" onmouseover="this.style.background='rgba(252,196,25,0.2)'" onmouseout="this.style.background='rgba(252,196,25,0.1)'" onclick="event.stopPropagation(); alert('Warning sent to ${s.name}')"><i class="fas fa-exclamation-triangle"></i> Warn</button>
+                                <button style="flex:1; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); color:#ef4444; padding:8px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:6px; transition:0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'" onclick="event.stopPropagation(); alert('Exam terminated for ${s.name}')"><i class="fas fa-times-circle"></i> Terminate</button>
                             </div>
                         </div>
                     `;
@@ -1304,6 +1345,7 @@
 
                     const rightButtons = `
                         <button class="btn-action primary view-btn" data-id="${s.id}">VIEW</button>
+                        ${(category === 'immediate' || category === 'monitor') ? `<button class="btn-action primary snooze-btn" style="border-color: rgba(255,255,255,0.2); color: #ccc;" data-id="${s.id}">SNOOZE</button>` : ''}
                         ${category === 'monitor' ? `<button class="btn-action promote promote-btn" data-id="${s.id}">PROMOTE</button>` : ''}
                         ${category !== 'done' ? `<button class="btn-action primary check-btn" data-id="${s.id}">CHECK</button>` : ''}
                     `;
@@ -1341,6 +1383,18 @@
                         const id = parseInt(this.dataset.id);
                         const student = allStudents.find(s => s.id === id);
                         if (student) openInvestigation(student);
+                    });
+                });
+
+                document.querySelectorAll('.snooze-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const id = parseInt(this.dataset.id);
+                        hiddenIds.add(id); // Temporarily hide them
+                        renderActionCenter();
+                        updateBadges();
+                        showToast('Candidate snoozed for 5 minutes', 'success');
+                        setTimeout(() => { hiddenIds.delete(id); renderActionCenter(); updateBadges(); }, 300000);
                     });
                 });
 
@@ -1418,8 +1472,11 @@
                         <div class="event-list">
                             ${recentEvents.map(e => `
                                 <div class="event-item">
-                                    <span>${e.type}</span>
-                                    <span style="color:rgba(255,255,255,0.4);">${e.timestamp} ${e.deducted ? '🔴 -'+e.deducted : ''}</span>
+                                    <span style="font-weight:600;"><i class="fas fa-exclamation-circle" style="color:#ff6b6b;margin-right:6px;"></i> ${e.type}</span>
+                                    <span style="color:rgba(255,255,255,0.5);font-size:11px;display:flex;align-items:center;">
+                                        ${e.timestamp}
+                                        ${e.deducted ? `<span style="background:rgba(255,107,107,0.2);color:#ff6b6b;padding:2px 6px;border-radius:6px;margin-left:8px;font-weight:700;">-${e.deducted} pts</span>` : ''}
+                                    </span>
                                 </div>
                             `).join('')}
                         </div>
