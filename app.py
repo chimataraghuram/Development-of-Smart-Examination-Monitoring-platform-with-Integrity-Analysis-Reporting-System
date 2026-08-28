@@ -112,6 +112,15 @@ def dashboard_page():
     response.headers['Expires'] = '0'
     return response
 
+@app.route('/exam')
+@login_required
+def exam_page():
+    response = make_response(render_template('exam.html'))
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
+
 @app.route('/admin_dashboard')
 @app.route('/admin_dashboard.html')
 @admin_required

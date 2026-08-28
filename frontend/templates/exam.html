@@ -1022,6 +1022,9 @@ max-width: 100% !important;
         ::-webkit-scrollbar-thumb { background: rgba(124,77,255,0.3); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(124,77,255,0.5); }
 
+        .content-panels { display: none !important; }
+        .exam-controls { justify-content: center !important; }
+
         /* ---------- EXAM INTERFACE ---------- */
         .camera-section {
             display: none;
@@ -2550,8 +2553,25 @@ max-width: 100% !important;
     </div>
 
     <!-- ====== EXAM CONTROLS ====== -->
-    <div class="exam-controls" style="justify-content: center; padding: 30px;">
-        <a href="/exam" class="btn btn-start" style="font-size: 20px; padding: 15px 40px; text-decoration: none;"><i class="fas fa-play"></i> Start Exam</a>
+    <div class="exam-controls">
+        <button class="btn btn-start" id="startExamBtn"><i class="fas fa-play"></i> Start Exam</button>
+        <button class="btn btn-toggle-pause" id="togglePauseBtn" disabled><i class="fas fa-pause"></i> Pause</button>
+        <button class="btn btn-end" id="endExamBtn" disabled><i class="fas fa-stop"></i> End Exam</button>
+    </div>
+
+    <!-- ====== INTEGRITY SCORE (hidden, synced in profile) ====== -->
+    <div class="integrity-score" style="display:none !important;">
+        <div class="score-header"><i class="fas fa-shield-alt"></i> Integrity Score</div>
+        <div class="score-display">
+            <span id="scoreValue">100</span>
+            <span class="score-label">/ 100</span>
+        </div>
+        <div class="score-bar">
+            <div id="scoreBar" class="score-bar-fill" style="width:100%; background: linear-gradient(90deg, #51cf66, #69db7c);"></div>
+        </div>
+        <div class="risk-label">
+            <i class="fas fa-tag"></i> Risk Level: <span id="riskLabel" style="font-weight:700;">-</span>
+        </div>
     </div>
 
     <!-- ====== WIZARD OVERLAY ====== -->
@@ -3463,24 +3483,24 @@ max-width: 100% !important;
 
                         // Exam state
                         if (examRunning) {
-                            if(startBtn) startBtn.disabled = true;
-                            if(togglePauseBtn) togglePauseBtn.disabled = false;
-                            if(togglePauseBtn) togglePauseBtn.textContent = 'Pause';
-                            if(togglePauseBtn) togglePauseBtn.classList.remove('resume');
-                            if(togglePauseBtn) togglePauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
-                            if(endBtn) endBtn.disabled = false;
+                            startBtn.disabled = true;
+                            togglePauseBtn.disabled = false;
+                            togglePauseBtn.textContent = 'Pause';
+                            togglePauseBtn.classList.remove('resume');
+                            togglePauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                            endBtn.disabled = false;
                             if (!cameraStream) startCamera();
                             if (!timerInterval) {
                                 sessionStartTime = Date.now() - totalPausedDuration;
                                 startTimer();
                             }
                         } else {
-                            if(startBtn) startBtn.disabled = false;
-                            if(togglePauseBtn) togglePauseBtn.disabled = true;
-                            if(togglePauseBtn) togglePauseBtn.textContent = 'Pause';
-                            if(togglePauseBtn) togglePauseBtn.classList.remove('resume');
-                            if(togglePauseBtn) togglePauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
-                            if(endBtn) endBtn.disabled = true;
+                            startBtn.disabled = false;
+                            togglePauseBtn.disabled = true;
+                            togglePauseBtn.textContent = 'Pause';
+                            togglePauseBtn.classList.remove('resume');
+                            togglePauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                            endBtn.disabled = true;
                             if (cameraStream) stopCamera();
                             if (timerInterval) {
                                 clearInterval(timerInterval);
@@ -4205,12 +4225,12 @@ max-width: 100% !important;
                         startCamera().then(() => {
                             examRunning = true;
                             examPaused = false;
-                            if(startBtn) startBtn.disabled = true;
-                            if(togglePauseBtn) togglePauseBtn.disabled = false;
-                            if(togglePauseBtn) togglePauseBtn.textContent = 'Pause';
-                            if(togglePauseBtn) togglePauseBtn.classList.remove('resume');
-                            if(togglePauseBtn) togglePauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
-                            if(endBtn) endBtn.disabled = false;
+                            startBtn.disabled = true;
+                            togglePauseBtn.disabled = false;
+                            togglePauseBtn.textContent = 'Pause';
+                            togglePauseBtn.classList.remove('resume');
+                            togglePauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                            endBtn.disabled = false;
                             totalPausedDuration = 0;
                             sessionStartTime = Date.now();
                             startTimer();
@@ -4238,9 +4258,9 @@ max-width: 100% !important;
                 if (examPaused) {
                     startCamera().then(() => {
                         examPaused = false;
-                        if(togglePauseBtn) togglePauseBtn.textContent = 'Pause';
-                        if(togglePauseBtn) togglePauseBtn.classList.remove('resume');
-                        if(togglePauseBtn) togglePauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                        togglePauseBtn.textContent = 'Pause';
+                        togglePauseBtn.classList.remove('resume');
+                        togglePauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
                         showToast('Exam resumed', 'success');
                     }).catch(err => {
                         showToast('Failed to resume camera: ' + err.message, 'error');
@@ -4248,9 +4268,9 @@ max-width: 100% !important;
                 } else {
                     stopCamera();
                     examPaused = true;
-                    if(togglePauseBtn) togglePauseBtn.textContent = 'Resume';
-                    if(togglePauseBtn) togglePauseBtn.classList.add('resume');
-                    if(togglePauseBtn) togglePauseBtn.innerHTML = '<i class="fas fa-play"></i> Resume';
+                    togglePauseBtn.textContent = 'Resume';
+                    togglePauseBtn.classList.add('resume');
+                    togglePauseBtn.innerHTML = '<i class="fas fa-play"></i> Resume';
                     totalPausedDuration += (Date.now() - sessionStartTime - totalPausedDuration) - elapsedSeconds * 1000;
                     showToast('Exam paused', 'success');
                 }
@@ -4271,14 +4291,14 @@ max-width: 100% !important;
                             clearInterval(timerInterval);
                             timerInterval = null;
                         }
-                        if(startBtn) startBtn.disabled = false;
-                        if(togglePauseBtn) togglePauseBtn.disabled = true;
-                        if(togglePauseBtn) togglePauseBtn.textContent = 'Pause';
-                        if(togglePauseBtn) togglePauseBtn.classList.remove('resume');
-                        if(togglePauseBtn) togglePauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
-                        if(endBtn) endBtn.disabled = true;
-                        loadDashboard();
-                        showToast('Exam ended.', 'success');
+                        startBtn.disabled = false;
+                        togglePauseBtn.disabled = true;
+                        togglePauseBtn.textContent = 'Pause';
+                        togglePauseBtn.classList.remove('resume');
+                        togglePauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                        endBtn.disabled = true;
+                        window.location.href = '/dashboard';
+                        showToast('Exam ended. Redirecting...', 'success');
                     })
                     .catch(err => showToast(err.message, 'error'));
             }
@@ -4411,7 +4431,7 @@ max-width: 100% !important;
             }
 
             // ----- Start Exam button on dashboard (opens wizard) -----
-            if(startBtn) startBtn.addEventListener('click', function() {
+            startBtn.addEventListener('click', function() {
                 if (examRunning) return;
                 openWizard();
             });
@@ -4447,9 +4467,9 @@ max-width: 100% !important;
 
                         document.getElementById('reportRefreshBtn')?.addEventListener('click', loadInlineReport);
             // ----- Event listeners for exam controls -----
-            if(togglePauseBtn) togglePauseBtn.addEventListener('click', togglePause);
+            togglePauseBtn.addEventListener('click', togglePause);
 
-            if(endBtn) endBtn.addEventListener('click', endExam);
+            endBtn.addEventListener('click', endExam);
             logoutBtn.addEventListener('click', logout);
 
             // ----- Init -----
