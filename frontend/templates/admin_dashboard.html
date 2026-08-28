@@ -382,6 +382,14 @@
             animation: fadeSlideUp 0.4s ease forwards; opacity: 0;
             transition: all 0.2s ease;
         }
+        .action-cards .action-card:nth-child(1) { animation-delay: 0.2s; }
+        .action-cards .action-card:nth-child(2) { animation-delay: 0.3s; }
+        .action-cards .action-card:nth-child(3) { animation-delay: 0.4s; }
+        .action-cards .action-card:nth-child(4) { animation-delay: 0.5s; }
+        .action-cards .action-card:nth-child(5) { animation-delay: 0.6s; }
+        .action-cards .action-card:nth-child(6) { animation-delay: 0.7s; }
+        .action-cards .action-card:nth-child(7) { animation-delay: 0.8s; }
+        .action-cards .action-card:nth-child(n+8) { animation-delay: 0.9s; }
         .action-card:hover { border-color: rgba(124,77,255,0.4); transform: translateX(4px); box-shadow: 0 8px 20px rgba(0,0,0,0.2); background: rgba(124,77,255,0.05); }
         .action-card .left { display: flex; align-items: center; gap: 14px; flex: 1; }
         .action-card .avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
@@ -456,10 +464,11 @@
     
         /* ===== ACTION BUTTONS (VIEW, PROMOTE, CHECK) ===== */
         .btn-action {
-            padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 700;
+            padding: 8px 16px; border-radius: 8px; font-size: 11px; font-weight: 700;
             cursor: pointer; border: 1px solid; font-family: 'Inter',sans-serif;
-            transition: 0.2s; text-transform: uppercase; letter-spacing: 0.03em;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); text-transform: uppercase; letter-spacing: 0.05em;
         }
+        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
         .btn-action.primary {
             background: rgba(124,77,255,0.15); color: #b8aaff;
             border-color: rgba(124,77,255,0.3);
@@ -472,12 +481,23 @@
         .btn-action.promote:hover { background: rgba(81,207,102,0.3); }
 
         /* Category indicators in Action Center */
-        .cat { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-        .cat .count { font-weight: 700; }
-        .cat.red { color: #ff6b6b; }
-        .cat.orange { color: #fcc419; }
-        .cat.gray { color: rgba(255,255,255,0.5); }
-        .cat.green { color: #51cf66; }
+        .action-category-header { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+        .cat { 
+            display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; 
+            padding: 10px 18px; border-radius: 14px; background: rgba(0,0,0,0.2); 
+            border: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(10px);
+            animation: fadeSlideUp 0.4s ease forwards; opacity: 0;
+        }
+        .cat:nth-child(1) { animation-delay: 0.1s; }
+        .cat:nth-child(2) { animation-delay: 0.2s; }
+        .cat:nth-child(3) { animation-delay: 0.3s; }
+        .cat:nth-child(4) { animation-delay: 0.4s; }
+        .cat .count { font-weight: 700; background: rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 20px; color: #fff; }
+        .cat.red { border-color: rgba(255,107,107,0.3); color: #ff6b6b; background: rgba(255,107,107,0.08); }
+        .cat.orange { border-color: rgba(252,196,25,0.3); color: #fcc419; background: rgba(252,196,25,0.08); }
+        .cat.blue { border-color: rgba(77,171,247,0.3); color: #4dabf7; background: rgba(77,171,247,0.08); }
+        .cat.green { border-color: rgba(81,207,102,0.3); color: #51cf66; background: rgba(81,207,102,0.08); }
+        .cat.gray { border-color: rgba(255,255,255,0.15); color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.05); }
 
         .system-check-counter {
             display: flex; align-items: center; gap: 8px;
@@ -1093,26 +1113,89 @@
             // ----- Render Live Monitoring -----
             function renderLive() {
                 const live = allStudents.filter(s => s.exam_running == true && !hiddenIds.has(s.id));
+                
+                let toolbarHtml = `
+                    <style>
+                        @keyframes radarPing {
+                            0% { transform: scale(0.8); opacity: 0.8; }
+                            100% { transform: scale(2.5); opacity: 0; }
+                        }
+                        .live-toolbar input::placeholder { color: rgba(255,255,255,0.3); }
+                        .glass-card-live {
+                            background: rgba(18, 14, 52, 0.6);
+                            border: 1px solid rgba(255,255,255,0.08);
+                            border-radius: 16px;
+                            padding: 18px;
+                            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                            backdrop-filter: blur(16px);
+                            -webkit-backdrop-filter: blur(16px);
+                            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+                        }
+                        .glass-card-live:hover {
+                            transform: translateY(-5px);
+                            border-color: rgba(124,77,255,0.4);
+                            box-shadow: 0 12px 40px rgba(124,77,255,0.25);
+                        }
+                    </style>
+                    <div class="live-toolbar" style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:16px 24px; border-radius:16px; margin-bottom:24px; border:1px solid rgba(255,255,255,0.05); flex-wrap:wrap; gap:16px;">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div style="background:rgba(124,77,255,0.15); color:#b8aaff; padding:8px 16px; border-radius:12px; font-weight:700; font-size:14px; display:flex; align-items:center; gap:10px; border:1px solid rgba(124,77,255,0.3);">
+                                <i class="fas fa-satellite-dish" style="animation: pulse 2s infinite;"></i> Active Streams: ${live.length}
+                            </div>
+                            <div class="search-box" style="position:relative;">
+                                <i class="fas fa-search" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:rgba(255,255,255,0.4);"></i>
+                                <input type="text" placeholder="Search candidates..." style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); padding:10px 16px 10px 40px; border-radius:12px; color:#fff; outline:none; font-family:inherit; width:260px; font-size:13px; transition:0.3s;" onfocus="this.style.borderColor='rgba(124,77,255,0.5)'; this.style.boxShadow='0 0 0 3px rgba(124,77,255,0.1)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.boxShadow='none'">
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <button style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px 16px; border-radius:12px; cursor:pointer; font-weight:600; font-size:13px; display:flex; align-items:center; gap:8px; transition:0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'"><i class="fas fa-filter"></i> Filters</button>
+                            <div style="display:flex; background:rgba(0,0,0,0.2); border-radius:12px; padding:4px; border:1px solid rgba(255,255,255,0.05);">
+                                <button style="background:rgba(255,255,255,0.1); border:none; color:#fff; padding:6px 12px; border-radius:8px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.2);"><i class="fas fa-th-large"></i></button>
+                                <button style="background:transparent; border:none; color:rgba(255,255,255,0.4); padding:6px 12px; border-radius:8px; cursor:pointer; transition:0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.4)'"><i class="fas fa-list"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
                 if (live.length === 0) {
-                    liveContainer.innerHTML = `<div class="no-data">🔴 No live candidates at the moment</div>`;
+                    liveContainer.innerHTML = toolbarHtml + `
+                        <div class="empty-live-state" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:100px 20px; background:linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.2) 100%); border-radius:24px; border:1px dashed rgba(255,255,255,0.1); margin-top:10px;">
+                            <div style="position:relative; width:100px; height:100px; display:flex; align-items:center; justify-content:center; margin-bottom:30px;">
+                                <div style="position:absolute; width:100%; height:100%; border-radius:50%; border:2px solid rgba(124,77,255,0.6); animation:radarPing 2.5s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+                                <div style="position:absolute; width:100%; height:100%; border-radius:50%; border:2px solid rgba(68,138,255,0.6); animation:radarPing 2.5s cubic-bezier(0, 0, 0.2, 1) infinite; animation-delay:1.25s;"></div>
+                                <div style="width:64px; height:64px; background:linear-gradient(135deg, #7c4dff, #448aff); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; color:#fff; box-shadow:0 0 30px rgba(124,77,255,0.5); z-index:2;">
+                                    <i class="fas fa-satellite-dish"></i>
+                                </div>
+                            </div>
+                            <h3 style="font-size:22px; color:#fff; margin-bottom:10px; font-weight:700; letter-spacing:0.5px;">System is Monitoring</h3>
+                            <p style="color:rgba(255,255,255,0.5); font-size:15px; text-align:center; max-width:350px; line-height:1.5;">There are no candidates currently active in an exam session. Listening for secure connections...</p>
+                        </div>
+                    `;
                     return;
                 }
-                let html = `<div class="live-grid">`;
-                live.forEach(s => {
-                    const riskClass = s.risk_label === 'High Risk' ? 'red' : s.risk_label === 'Medium Risk' ? 'orange' : 'green';
+                
+                let html = toolbarHtml + `<div class="live-grid">`;
+                live.forEach((s, idx) => {
+                    const riskColor = s.risk_label === 'High Risk' ? '#ef4444' : s.risk_label === 'Medium Risk' ? '#fcc419' : '#51cf66';
+                    const animDelay = (idx * 0.1) + 's';
                     html += `
-                        <div class="live-card">
-                            <div class="camera-preview">
-                                <div class="placeholder"><i class="fas fa-user"></i></div>
-                                <div class="live-badge"><i class="fas fa-circle"></i> LIVE</div>
+                        <div class="glass-card-live" style="animation: fadeSlideUp 0.6s ease forwards; opacity:0; animation-delay: ${animDelay}; border-top: 3px solid ${riskColor}; cursor: pointer;" onclick="window.location.hash='#candidate-' + '${s.id}'">
+                            <div class="camera-preview" style="position:relative; width:100%; padding-top:60%; background:#0a0816; border-radius:12px; overflow:hidden; margin-bottom:16px; border:1px solid rgba(255,255,255,0.05);">
+                                <div class="placeholder" style="position:absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:40px; color:rgba(255,255,255,0.05);"><i class="fas fa-video-slash"></i></div>
+                                <div class="live-badge" style="position:absolute; top:12px; left:12px; background:rgba(239,68,68,0.2); color:#ef4444; padding:4px 10px; border-radius:8px; font-size:11px; font-weight:700; border:1px solid rgba(239,68,68,0.4); display:flex; align-items:center; gap:6px;">
+                                    <div style="width:6px; height:6px; border-radius:50%; background:#ef4444; animation:pulse 1.5s infinite;"></div> REC
+                                </div>
+                                <div style="position:absolute; bottom:12px; right:12px; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); color:#fff; padding:4px 8px; border-radius:6px; font-size:10px; font-weight:600; border:1px solid rgba(255,255,255,0.1);">
+                                    <i class="fas fa-desktop" style="color:#b8aaff; margin-right:4px;"></i> Active
+                                </div>
                             </div>
-                            <div class="info">
-                                <span class="name">${s.name || 'Unknown'}</span>
-                                <span class="id">${s.student_id || s.id}</span>
+                            <div class="info" style="display:flex; flex-direction:column; gap:4px; margin-bottom:16px;">
+                                <span class="name" style="font-size:18px; font-weight:700; color:#fff; letter-spacing:0.3px;">${s.name || 'Unknown'}</span>
+                                <span class="id" style="font-size:12px; color:rgba(255,255,255,0.4);"><i class="fas fa-id-badge" style="margin-right:4px;"></i>${s.student_id || s.id}</span>
                             </div>
-                            <div class="status-row">
-                                <span class="badge ${riskClass}">${s.risk_label || 'N/A'}</span>
-                                <span class="score">Score: <span>${s.integrity_score ?? 100}</span></span>
+                            <div class="status-row" style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.2); padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,0.03);">
+                                <span class="badge" style="background:rgba(${riskColor === '#ef4444' ? '239,68,68' : riskColor === '#fcc419' ? '252,196,25' : '81,207,102'}, 0.15); color:${riskColor}; padding:6px 10px; border-radius:8px; font-size:11px; font-weight:700;">${s.risk_label || 'N/A'}</span>
+                                <span class="score" style="font-size:12px; color:rgba(255,255,255,0.5); display:flex; align-items:center; gap:6px;">Integrity: <strong style="color:#fff; font-size:16px;">${s.integrity_score ?? 100}</strong></span>
                             </div>
                         </div>
                     `;
@@ -1169,11 +1252,18 @@
                     <div class="cat green"><span>✅ Done</span> <span class="count">${done.length}</span></div>
                 </div>`;
 
-                // ----- SYSTEM CHECK COUNTER (displayed in Action Center) -----
+                // ----- SYSTEM CHECK COUNTER & QUICK FILTERS (displayed in Action Center) -----
                 html += `
-                    <div class="system-check-counter">
-                        <span><i class="fas fa-check-double"></i> System Checks performed:</span>
-                        <strong id="systemCheckCountDisplay">${systemCheckCount}</strong>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                        <div class="system-check-counter" style="margin: 0;">
+                            <span><i class="fas fa-check-double"></i> System Checks performed:</span>
+                            <strong id="systemCheckCountDisplay">${systemCheckCount}</strong>
+                        </div>
+                        <div class="quick-filters" style="display: flex; gap: 8px;">
+                            <button class="btn btn-primary" style="padding: 4px 10px; font-size: 11px; background: rgba(124,77,255,0.2); border: 1px solid rgba(124,77,255,0.4);"><i class="fas fa-filter"></i> All</button>
+                            <button class="btn btn-primary" style="padding: 4px 10px; font-size: 11px; background: transparent; border: 1px solid rgba(255,255,255,0.1);"><i class="fas fa-bolt"></i> Immediate</button>
+                            <button class="btn btn-primary" style="padding: 4px 10px; font-size: 11px; background: transparent; border: 1px solid rgba(255,255,255,0.1);"><i class="fas fa-eye"></i> Monitor</button>
+                        </div>
                     </div>
                 `;
 
