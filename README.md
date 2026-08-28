@@ -1,67 +1,23 @@
-# 🎓 Development of Smart Examination Monitoring platform with Integrity Analysis Reporting System
+# Smart Examination Monitoring Platform with Integrity Analysis Reporting System
 
-An AI-powered Online Exam Monitoring System developed as part of an internship project. The platform helps monitor candidates during online examinations using computer vision and event logging to improve exam integrity.
-
----
-
-## 🚀 Features
-
-### 👤 Candidate Management
-- Candidate Registration
-- Candidate Login
-- Modern Dark-Themed Candidate Dashboard
-- SQLite Database Integration
-
-### 📷 OpenCV Integration
-- Access System Webcam
-- Live Video Feed
-- Capture Candidate Photo (Evidence)
-- Save Photos Automatically
-
-### 😀 Face Detection & Analytics
-- Haar Cascade Face Detection
-- Real-Time Face Monitoring
-- Face Detected / Face Not Detected / Multiple Faces Status
-- Dynamic Integrity Scoring Algorithm
-
-### ⏱️ Monitoring Features
-- Continuous Face Presence Monitoring
-- Browser Tab & Focus Loss Tracking
-- Server-authoritative Start / Pause / Resume / End lifecycle
-- Real-Time Monitoring Information
-- Connection and readiness indicators
-- Animated Statistical Pie Charts
-
-### 🗓️ Examination Management
-- Admin-created examination drafts
-- Publish and close examination lifecycle
-- Duration, break-policy, and custom-rule configuration
-- Candidate assignment workflow
-
-### 📋 Event Logging
-Whenever a suspicious event occurs, the system automatically logs:
-
-- Candidate ID
-- Event Type (Face Absence, Focus Loss, Tab Switching)
-- Timestamp
-- Evidence (Base64 Screenshots)
-
-### 📝 Session Management
-- Start Exam
-- Pause and Resume Exam
-- End Exam
-- Continuous Uninterrupted Sessions
-- Persistent integrity review decisions and administrator notes
-- Student notifications for exam and review updates
-
-### 🤖 AI Chatbot Assistant
-- **Admin Assistant:** Instantly summarizes candidate logs, identifies high-risk behaviors, and gives actionable recommendations.
-- **Candidate Assistant:** Provides real-time rule clarification, tech support, and exam anxiety reduction.
-- **Context-Aware:** Powered by LLMs and aware of real-time monitoring data.
+An AI-powered online exam monitoring system. The platform monitors candidates during online examinations using computer vision, browser-event logging, integrity scoring, and administrator reporting.
 
 ---
 
-## 🛠️ Technologies Used
+## Features
+
+- Candidate registration, login, and exam workspace
+- Administrator dashboard, live monitoring, alerts, and event logs
+- OpenCV Haar-cascade face detection (presence / absence / multiple faces)
+- Tab switching and browser focus-loss tracking
+- Server-authoritative start, pause, resume, and end session lifecycle
+- Integrity scoring, review decisions, and student notifications
+- Optional context-aware AI assistant (OpenRouter)
+- SQLite persistence and report export
+
+---
+
+## Technologies
 
 - Python (Flask)
 - SQLite
@@ -69,50 +25,45 @@ Whenever a suspicious event occurs, the system automatically logs:
 - Scikit-Image
 - HTML / CSS / JavaScript
 - OpenRouter API (optional AI assistant)
-- Werkzeug password hashing
 
 ---
 
-## 📂 Project Structure
+## Repository structure
 
 ```text
-Development-of-Smart-Examination-Monitoring-platform-with-Integrity-Analysis-Reporting-System
+Team GitHub Repository
 │
-├── app.py                         # Main Flask Application Entry Point
-├── requirements.txt               # Python Dependencies
+├── Frontend/
+│   └── Complete frontend source code (templates, static assets)
+│
+├── Backend/
+│   └── Complete backend source code (Flask app, database, scoring, AI, exports)
+│
+├── Agile Documentation/
+│   └── Required Agile documents
+│
+├── LICENSE
+│   └── MIT License
+│
 ├── README.md
-├── .env                           # Environment Variables (API Keys)
+│   └── Project information + setup/run instructions
 │
-├── backend/                      # Core Backend Logic
-
-│   ├── database.py                # SQLite Database Operations
-│   ├── ai_service.py              # LLM Chatbot Integration
-│   ├── export_service.py          # CSV/PDF Export Logic
-│   ├── integrity_scorer.py        # Algorithmic Scoring Engine
-│   └── haarcascade_frontalface_default.xml
-│
-├── frontend/                      # Frontend UI
-│   └── templates/                 # HTML Views (Jinja2)
-│       ├── _ai_assistant.html     # AI Chatbot Component
-│       ├── admin_dashboard.html   # Admin View
-│       ├── dashboard.html         # Candidate View
-│       ├── login.html
-│       ├── register.html
-│       └── report.html
-│
-├── scripts/                       # Testing & Diagnostic Scripts
-├── logs/                          # Application Logs
-└── evidence/                      # Stored Webcam Screenshots
+└── Other required project files
+    ├── app.py                 # Run from the repository root
+    ├── requirements.txt
+    ├── .env.example
+    ├── run_local.ps1
+    └── scripts/               # Diagnostic helpers
 ```
 
 ---
 
-## ⚙️ Installation
+## Installation
 
 Clone the repository:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/chimataraghuram/Development-of-Smart-Examination-Monitoring-platform-with-Integrity-Analysis-Reporting-System.git
 ```
 
 Move into the project directory:
@@ -121,70 +72,68 @@ Move into the project directory:
 cd Development-of-Smart-Examination-Monitoring-platform-with-Integrity-Analysis-Reporting-System
 ```
 
-Install dependencies:
+Create a virtual environment (recommended) and install dependencies:
 
 ```bash
+python -m venv .venv
+.venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Set up your environment variables:
-Create a `.env` file from `.env.example`. Add a long random `FLASK_SECRET_KEY`; add `OPENROUTER_API_KEY` only if you want to use the AI assistant. The local seeded administrator is `admin@gmail.com` with the password configured by `ADMIN_DEFAULT_PASSWORD` (default: `admin@123`). Change it before any shared deployment.
+On macOS or Linux, activate with `source .venv/bin/activate`.
+
+Set up environment variables:
+
+1. Copy `.env.example` to `.env`.
+2. Set a long random `FLASK_SECRET_KEY`.
+3. Add `OPENROUTER_API_KEY` only if you want the AI assistant.
+
+The seeded local administrator is `admin@gmail.com`. The password comes from `ADMIN_DEFAULT_PASSWORD` (default: `admin@123`). Change it before any shared deployment.
 
 ---
 
-## ▶️ Run the Project
+## Run the project
 
-Start the Flask application:
+From the repository root:
 
 ```bash
 python app.py
 ```
 
-The application will run on `http://127.0.0.1:5000/`.
+The application listens on `http://127.0.0.1:5000/`.
+
+On Windows, `run_local.ps1` stops a stale local server and starts the app with the project virtual environment.
 
 ---
 
-## 📸 Current Modules
+## Current modules
 
-- ✅ Candidate Registration & Login
-- ✅ Admin Dashboard & Live Analytics
-- ✅ Browser Tab & Focus Monitoring
-- ✅ Photo/Evidence Capture
-- ✅ Face Detection (OpenCV)
-- ✅ Continuous Face Monitoring
-- ✅ Integrity Scoring Algorithm
-- ✅ Event Logging & Timeline
-- ✅ Session Management with Persistent Pause/Resume
-- ✅ Examination Creation, Publishing, and Candidate Assignment
-- ✅ Persistent Integrity Review Workflow
-- ✅ Student Notifications and Connection Status
-- ✅ SQLite Database
-- ✅ Context-Aware AI Chatbot Assistant
-
----
-
-## 📈 Future Improvements
-
-- Face Recognition Integration
-- Eye Gaze Tracking
-- Head Pose Detection
-- Advanced PDF Report Generation
-- Email Notifications
+- Candidate registration and login
+- Admin dashboard and live analytics
+- Browser tab and focus monitoring
+- Photo / evidence capture
+- Face detection (OpenCV)
+- Integrity scoring
+- Event logging and timeline
+- Session management with pause / resume
+- Examination creation, publishing, and candidate assignment
+- Integrity review workflow
+- Student notifications
+- SQLite database
+- Optional AI chatbot assistant
 
 ---
 
-## 📄 License
+## License
 
-This project is licensed under the MIT License.
+This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-## 👨‍💻 TEAM
+## Team
 
 **Raghuram Chimata**
 
-GitHub: https://github.com/chimataraghuram
-
-LinkedIn: https://linkedin.com/in/chimataraghuram
-
-Portfolio: https://chimataraghuram.vercel.app
+- GitHub: https://github.com/chimataraghuram
+- LinkedIn: https://linkedin.com/in/chimataraghuram
+- Portfolio: https://chimataraghuram.vercel.app

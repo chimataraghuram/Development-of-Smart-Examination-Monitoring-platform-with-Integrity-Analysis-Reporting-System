@@ -11,8 +11,9 @@ try:
 except ImportError:
     from integrity_scorer import SCORE_MAX, VIOLATION_DEDUCTION
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DB_PATH = os.path.join(BASE_DIR, 'backend', 'exam_monitor.db')
+BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(BACKEND_DIR)
+DB_PATH = os.path.join(BACKEND_DIR, 'exam_monitor.db')
 DEFAULT_ADMIN_PASSWORD = os.getenv('ADMIN_DEFAULT_PASSWORD', 'admin@123')
 
 VIOLATION_EVENT_TYPES = frozenset({

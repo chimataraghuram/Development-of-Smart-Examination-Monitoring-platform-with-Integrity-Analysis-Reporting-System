@@ -15,7 +15,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
 sys.path.insert(0, ROOT)
 
-from backend import database as db
+from Backend import database as db
 
 work_dir = tempfile.mkdtemp(prefix='exam_monitor_suite_')
 db.DB_PATH = os.path.join(work_dir, 'exam_monitor.db')

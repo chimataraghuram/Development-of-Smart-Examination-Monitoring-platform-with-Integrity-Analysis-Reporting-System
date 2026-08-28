@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 os.chdir(ROOT)
 sys.path.insert(0, str(ROOT))
 
-from backend import database as db
+from Backend import database as db
 
 work_dir = Path(tempfile.mkdtemp(prefix='dashboard_feature_check_'))
 db.DB_PATH = str(work_dir / 'exam_monitor.db')

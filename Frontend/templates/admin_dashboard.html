@@ -148,7 +148,7 @@
             display: flex; align-items: center; gap: 8px; font-family: 'Inter',sans-serif;
         }
         .top-bar .btn-export:hover { background: rgba(81,207,102,0.2); }
-        
+
         .notif-wrapper { position: relative; cursor: pointer; padding: 6px; }
         .notif-wrapper .bell { font-size: 20px; color: rgba(255,255,255,0.45); transition: 0.2s; }
         .notif-wrapper .bell:hover { color: #fff; }
@@ -217,7 +217,7 @@
         /* ===== ANALYTICS ROW ===== */
         .analytics-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
         @media (max-width: 900px) { .analytics-row { grid-template-columns: 1fr; } .stats-grid { grid-template-columns: repeat(2,1fr); } }
-        
+
         .analytics-row .card {
             background: rgba(26, 21, 69, 0.4) !important;
             border: 1px solid rgba(124,77,255,0.15) !important;
@@ -259,7 +259,7 @@
         .risk-legend { display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
         .risk-legend .legend-item { display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,0.6); }
         .risk-legend .color-box { width: 14px; height: 14px; border-radius: 4px; }
-        
+
         .risk-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
         .risk-tile {
             background: rgba(13, 11, 46, 0.5); border-radius: 10px; padding: 14px 8px;
@@ -437,7 +437,7 @@
         .alert-card.high::before { background: #ff6b6b; box-shadow: 0 0 12px #ff6b6b; }
         .alert-card.medium::before { background: #fcc419; }
         .alert-card.low::before { background: #51cf66; }
-        
+
         .alert-cards .alert-card:nth-child(1) { animation-delay: 0.1s; }
         .alert-cards .alert-card:nth-child(2) { animation-delay: 0.15s; }
         .alert-cards .alert-card:nth-child(3) { animation-delay: 0.2s; }
@@ -445,7 +445,7 @@
         .alert-cards .alert-card:nth-child(5) { animation-delay: 0.3s; }
         .alert-cards .alert-card:nth-child(n+6) { animation-delay: 0.35s; }
         .alert-card:hover { transform: translateX(4px); box-shadow: 0 8px 30px rgba(0,0,0,0.25); border-color: rgba(124,77,255,0.2); }
-        
+
         .alert-card .alert-icon { font-size: 24px; padding-top: 2px; }
         .alert-card .alert-content { flex: 1; min-width: 0; display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 20px; }
         .alert-card .alert-header { display: flex; align-items: center; gap: 12px; min-width: 250px; }
@@ -455,13 +455,13 @@
         .alert-card .sev-badge.high { background: rgba(255,107,107,0.15); color: #ff6b6b; border: 1px solid rgba(255,107,107,0.3); }
         .alert-card .sev-badge.medium { background: rgba(252,196,25,0.15); color: #fcc419; border: 1px solid rgba(252,196,25,0.3); }
         .alert-card .sev-badge.low { background: rgba(81,207,102,0.15); color: #51cf66; border: 1px solid rgba(81,207,102,0.3); }
-        
+
         .alert-card .alert-body { font-size: 13px; color: rgba(255,255,255,0.7); }
         .alert-card .event-type { font-weight: 600; margin-bottom: 6px; color: #e2e8f0; font-size: 14px; }
         .alert-card .event-type i { font-size: 12px; opacity: 0.8; color: #ff6b6b; margin-right: 4px; }
         .alert-card .event-meta { font-size: 11px; color: rgba(255,255,255,0.5); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .alert-card .penalty { background: rgba(255,107,107,0.2); color: #ff6b6b; padding: 2px 8px; border-radius: 6px; font-weight: 800; border: 1px solid rgba(255,107,107,0.3); }
-        
+
         .alert-card .alert-actions { display: flex; flex-direction: column; gap: 8px; justify-content: center; border-left: 1px solid rgba(255,255,255,0.05); padding-left: 16px; margin-left: 4px; }
 
         /* ===== EVENT LOGS TABLE ===== */
@@ -476,7 +476,7 @@
         .logs-table tr { animation: fadeSlideUp 0.3s ease forwards; opacity: 0; transition: background 0.2s; }
         .logs-table tr:hover { background: rgba(255,255,255,0.04); }
         .logs-table tr:last-child td { border-bottom: none; }
-        
+
         .risk-pill { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; display: inline-flex; align-items: center; gap: 6px; }
         .risk-pill.high { background: rgba(255,107,107,0.15); color: #ff6b6b; border: 1px solid rgba(255,107,107,0.3); }
         .risk-pill.medium { background: rgba(252,196,25,0.15); color: #fcc419; border: 1px solid rgba(252,196,25,0.3); }
@@ -554,7 +554,7 @@
         ::-webkit-scrollbar-thumb { background: rgba(124,77,255,0.3); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(124,77,255,0.5); }
 
-    
+
         /* ===== ACTION BUTTONS (VIEW, PROMOTE, CHECK) ===== */
         .btn-action {
             padding: 8px 16px; border-radius: 8px; font-size: 11px; font-weight: 700;
@@ -575,9 +575,9 @@
 
         /* Category indicators in Action Center */
         .action-category-header { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
-        .cat { 
-            display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; 
-            padding: 10px 18px; border-radius: 14px; background: rgba(0,0,0,0.2); 
+        .cat {
+            display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600;
+            padding: 10px 18px; border-radius: 14px; background: rgba(0,0,0,0.2);
             border: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(10px);
             animation: fadeSlideUp 0.4s ease forwards; opacity: 0;
         }
@@ -656,10 +656,10 @@
         .exam-form-card textarea { resize:vertical; }
         .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
         .form-status { min-height:20px; margin-top:10px; color:#74c0fc; font-size:13px; }
-        .exam-card { 
-            background: rgba(0,0,0,0.16); border: 1px solid rgba(255,255,255,0.08); 
-            border-radius: 14px; padding: 16px; margin-bottom: 12px; 
-            animation: fadeSlideUp 0.4s ease forwards; opacity: 0; 
+        .exam-card {
+            background: rgba(0,0,0,0.16); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px; padding: 16px; margin-bottom: 12px;
+            animation: fadeSlideUp 0.4s ease forwards; opacity: 0;
             transition: all 0.2s ease;
         }
         .exam-card:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.2); border-color: rgba(124,77,255,0.3); }
@@ -704,10 +704,8 @@
         <button class="nav-item active" data-page="dashboard"><i class="fas fa-home" style="color: #9d7cff;"></i> <span class="label">Dashboard</span></button>
         <button class="nav-item" data-page="live"><i class="fas fa-video" style="color: #20c997;"></i> <span class="label">Live Monitoring</span></button>
         <button class="nav-item" data-page="action"><i class="fas fa-bullseye" style="color: #339af0;"></i> <span class="label">Action Center</span>
-            <span class="badge-side" id="actionBadge">0</span>
         </button>
         <button class="nav-item" data-page="alerts"><i class="fas fa-shield-alt" style="color: #ff922b;"></i> <span class="label">Suspicious Alerts</span>
-            <span class="badge-side" id="alertBadge">0</span>
         </button>
         <button class="nav-item" data-page="exams"><i class="fas fa-clipboard-list" style="color: #b197fc;"></i> <span class="label">Examinations</span></button>
         <button class="nav-item" data-page="logs"><i class="fas fa-file-alt" style="color: #51cf66;"></i> <span class="label">Event Logs</span></button>
@@ -752,7 +750,7 @@
                         <div style="display:flex;align-items:center;gap:10px;"><i class="fas fa-chart-line"></i> Integrity Trend</div>
                         <div style="font-size:11px;background:rgba(124,77,255,0.2);color:#b8aaff;padding:4px 8px;border-radius:6px;font-weight:700;display:flex;align-items:center;gap:4px;">LIVE <i class="fas fa-circle" style="font-size:6px;color:#ff6b6b;animation:pulse 1.5s infinite;"></i></div>
                     </div>
-                    
+
                     <div style="flex:1; display:flex; align-items:center; justify-content:center; margin-bottom:20px; position:relative;">
                         <canvas id="integrityLineChart" width="500" height="180" style="width:100%; height:180px;"></canvas>
                     </div>
@@ -889,7 +887,7 @@
                 -webkit-backdrop-filter: blur(16px);
             }
             .modern-input {
-                width: 100%; margin-top: 8px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); 
+                width: 100%; margin-top: 8px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);
                 background: rgba(0,0,0,0.3); color: #fff; padding: 12px 16px; font-family: inherit; font-size:14px;
                 transition: all 0.3s ease;
             }
@@ -922,7 +920,7 @@
         <div class="page" id="page-exams">
             <h2 style="animation: fadeSlide 0.4s ease;"><i class="fas fa-calendar-alt" style="color:#4dabf7;margin-right:12px;"></i>Examination Management</h2>
             <div class="sub" style="animation: fadeSlide 0.5s ease;">Create examinations, publish rules, and assign registered candidates.</div>
-            
+
             <div class="exam-management-grid" style="animation: fadeSlideUp 0.6s ease forwards;">
                 <form class="glass-form-card" id="examCreateForm">
                     <div class="form-card-title"><i class="fas fa-magic" style="color:#b8aaff;"></i> Quick Templates</div>
@@ -937,7 +935,7 @@
                     <label style="display:block; font-size:12px; color:rgba(255,255,255,0.65); margin-bottom:14px; font-weight:600;">Exam Title
                         <input id="examTitleInput" class="modern-input" maxlength="120" required placeholder="e.g. Database Systems Final">
                     </label>
-                    
+
                     <div class="form-row">
                         <label style="display:block; font-size:12px; color:rgba(255,255,255,0.65); margin-bottom:14px; font-weight:600;">Date and Time
                             <input id="examDateInput" class="modern-input" type="datetime-local" required>
@@ -959,11 +957,11 @@
                             <input id="examBreakInput" class="modern-input" type="number" min="0" max="60" value="5" required>
                         </label>
                     </div>
-                    
+
                     <label style="display:block; font-size:12px; color:rgba(255,255,255,0.65); margin-bottom:14px; font-weight:600;">Exam Rules & Instructions
                         <textarea id="examRulesInput" class="modern-input" maxlength="5000" rows="4" placeholder="Enter rules shown to students before the exam..."></textarea>
                     </label>
-                    
+
                     <button class="btn-save-exam" type="submit"><i class="fas fa-paper-plane"></i> Publish Examination</button>
                     <div id="examFormStatus" class="form-status" style="text-align:center; margin-top:12px;"></div>
                 </form>
@@ -988,7 +986,7 @@
                 const dur = document.getElementById('examDurationInput');
                 const rules = document.getElementById('examRulesInput');
                 const strict = document.getElementById('examStrictnessInput');
-                
+
                 if (type === 'midterm') {
                     title.value = 'Midterm Examination'; dur.value = 90; strict.value = 'medium';
                     rules.value = '1. No external materials allowed.\\n2. Ensure your face is visible at all times.\\n3. Stay within the browser window.';
@@ -1002,7 +1000,7 @@
                     title.value = 'Mock Practice Test'; dur.value = 60; strict.value = 'medium';
                     rules.value = '1. This is a practice test to check your system.\\n2. Do your best!';
                 }
-                
+
                 // Add a little highlight animation to show it worked
                 [title, dur, rules, strict].forEach(el => {
                     if(!el) return;
@@ -1217,15 +1215,15 @@
                     { label: 'Medium', value: medium, color: '#fcc419' },
                     { label: 'High', value: high, color: '#ff6b6b' }
                 ].filter(s => s.value > 0);
-                
+
                 let progress = 0;
                 if(pieAnimFrame) cancelAnimationFrame(pieAnimFrame);
-                
+
                 function animatePie() {
                     progress += 0.04;
                     if(progress > 1) progress = 1;
                     const easeProgress = 1 - Math.pow(1 - progress, 3);
-                    
+
                     ctx.clearRect(0, 0, width, height);
                     let startAngle = -Math.PI / 2;
                     slices.forEach(slice => {
@@ -1244,7 +1242,7 @@
                     if(progress < 1) pieAnimFrame = requestAnimationFrame(animatePie);
                 }
                 animatePie();
-                
+
                 const legendContainer = document.getElementById('riskLegend');
                 let legendHtml = '';
                 slices.forEach(slice => {
@@ -1253,13 +1251,13 @@
                 legendContainer.innerHTML = legendHtml;
             }
             // ----- Draw Integrity Line Chart (Canvas) -----
+            let lineAnimFrame = null;
             function drawIntegrityLineChart(events) {
                 const canvas = document.getElementById('integrityLineChart');
                 if (!canvas) return;
                 const ctx = canvas.getContext('2d');
                 const width = canvas.width;
                 const height = canvas.height;
-                ctx.clearRect(0, 0, width, height);
 
                 // Create some mock trend data based on current time to make it look "alive"
                 const now = Date.now();
@@ -1271,14 +1269,11 @@
                     data.push(base);
                 }
 
-                // If no events, just draw the baseline
-                // If events exist, slightly pull down the latest points
                 if (events.length > 0) {
                     data[points - 1] = Math.max(50, data[points - 1] - 15);
                     data[points - 2] = Math.max(60, data[points - 2] - 10);
                 }
 
-                // Plotting Area bounds
                 const padLeft = 30;
                 const padBottom = 20;
                 const padTop = 10;
@@ -1286,75 +1281,97 @@
                 const graphWidth = width - padLeft - padRight;
                 const graphHeight = height - padBottom - padTop;
 
-                // Draw Grid
-                ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                for (let i = 0; i <= 4; i++) {
-                    let y = padTop + (graphHeight / 4) * i;
-                    ctx.moveTo(padLeft, y);
-                    ctx.lineTo(width - padRight, y);
-                }
-                ctx.stroke();
+                let progress = 0;
+                if (lineAnimFrame) cancelAnimationFrame(lineAnimFrame);
 
-                // Draw labels (Y axis)
-                ctx.fillStyle = 'rgba(255,255,255,0.4)';
-                ctx.font = '10px Inter';
-                ctx.textAlign = 'right';
-                ctx.textBaseline = 'middle';
-                [100, 75, 50, 25, 0].forEach((val, i) => {
-                    let y = padTop + (graphHeight / 4) * i;
-                    ctx.fillText(val, padLeft - 8, y);
-                });
+                function animateLine() {
+                    progress += 0.03;
+                    if(progress > 1) progress = 1;
+                    const easeProgress = 1 - Math.pow(1 - progress, 4);
 
-                // Line Path
-                ctx.beginPath();
-                const sliceWidth = graphWidth / (points - 1);
-                
-                data.forEach((val, i) => {
-                    let x = padLeft + (i * sliceWidth);
-                    let y = padTop + graphHeight - (val / 100 * graphHeight);
-                    if (i === 0) ctx.moveTo(x, y);
-                    else ctx.lineTo(x, y);
-                });
+                    ctx.clearRect(0, 0, width, height);
 
-                // Stroke Line
-                ctx.strokeStyle = '#b8aaff';
-                ctx.lineWidth = 3;
-                ctx.shadowColor = 'rgba(124, 77, 255, 0.6)';
-                ctx.shadowBlur = 12;
-                ctx.stroke();
-                
-                // Draw fill gradient
-                const gradient = ctx.createLinearGradient(0, padTop, 0, height - padBottom);
-                gradient.addColorStop(0, 'rgba(124,77,255,0.3)');
-                gradient.addColorStop(1, 'rgba(124,77,255,0.0)');
-                
-                data.forEach((val, i) => {
-                    let x = padLeft + (i * sliceWidth);
-                    let y = padTop + graphHeight - (val / 100 * graphHeight);
-                    if(i===0) ctx.moveTo(x,y);
-                    else ctx.lineTo(x,y);
-                });
-                
-                ctx.lineTo(padLeft + graphWidth, padTop + graphHeight);
-                ctx.lineTo(padLeft, padTop + graphHeight);
-                ctx.fillStyle = gradient;
-                ctx.shadowBlur = 0; // turn off shadow for fill
-                ctx.fill();
-                
-                // Draw Points
-                data.forEach((val, i) => {
-                    let x = padLeft + (i * sliceWidth);
-                    let y = padTop + graphHeight - (val / 100 * graphHeight);
+                    // Draw Grid
+                    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+                    ctx.lineWidth = 1;
                     ctx.beginPath();
-                    ctx.arc(x, y, 4, 0, Math.PI * 2);
-                    ctx.fillStyle = '#120e34';
-                    ctx.fill();
-                    ctx.lineWidth = 2;
-                    ctx.strokeStyle = '#b8aaff';
+                    for (let i = 0; i <= 4; i++) {
+                        let y = padTop + (graphHeight / 4) * i;
+                        ctx.moveTo(padLeft, y);
+                        ctx.lineTo(width - padRight, y);
+                    }
                     ctx.stroke();
-                });
+
+                    // Draw labels (Y axis)
+                    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                    ctx.font = '10px Inter';
+                    ctx.textAlign = 'right';
+                    ctx.textBaseline = 'middle';
+                    [100, 75, 50, 25, 0].forEach((val, i) => {
+                        let y = padTop + (graphHeight / 4) * i;
+                        ctx.fillText(val, padLeft - 8, y);
+                    });
+
+                    // Reveal by clipping
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.rect(padLeft - 10, 0, (graphWidth + 20) * easeProgress, height);
+                    ctx.clip();
+
+                    // Line Path
+                    ctx.beginPath();
+                    const sliceWidth = graphWidth / (points - 1);
+
+                    data.forEach((val, i) => {
+                        let x = padLeft + (i * sliceWidth);
+                        let y = padTop + graphHeight - (val / 100 * graphHeight);
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    });
+
+                    // Stroke Line
+                    ctx.strokeStyle = '#b8aaff';
+                    ctx.lineWidth = 3;
+                    ctx.shadowColor = 'rgba(124, 77, 255, 0.6)';
+                    ctx.shadowBlur = 12;
+                    ctx.stroke();
+
+                    // Draw fill gradient
+                    const gradient = ctx.createLinearGradient(0, padTop, 0, height - padBottom);
+                    gradient.addColorStop(0, 'rgba(124,77,255,0.3)');
+                    gradient.addColorStop(1, 'rgba(124,77,255,0.0)');
+
+                    data.forEach((val, i) => {
+                        let x = padLeft + (i * sliceWidth);
+                        let y = padTop + graphHeight - (val / 100 * graphHeight);
+                        if(i===0) ctx.moveTo(x,y);
+                        else ctx.lineTo(x,y);
+                    });
+
+                    ctx.lineTo(padLeft + graphWidth, padTop + graphHeight);
+                    ctx.lineTo(padLeft, padTop + graphHeight);
+                    ctx.fillStyle = gradient;
+                    ctx.shadowBlur = 0;
+                    ctx.fill();
+
+                    // Draw Points
+                    data.forEach((val, i) => {
+                        let x = padLeft + (i * sliceWidth);
+                        let y = padTop + graphHeight - (val / 100 * graphHeight);
+                        ctx.beginPath();
+                        ctx.arc(x, y, 4, 0, Math.PI * 2);
+                        ctx.fillStyle = '#120e34';
+                        ctx.fill();
+                        ctx.lineWidth = 2;
+                        ctx.strokeStyle = '#b8aaff';
+                        ctx.stroke();
+                    });
+
+                    ctx.restore();
+
+                    if (progress < 1) lineAnimFrame = requestAnimationFrame(animateLine);
+                }
+                animateLine();
             }
 
             // ----- Render Risk Distribution -----
@@ -1423,6 +1440,9 @@
 
                         allStudents = data.students || [];
                         allEvents = data.events || [];
+                        // Expose to other script blocks
+                        window._allStudents = allStudents;
+                        window._allEvents = allEvents;
 
                         // ----- FALLBACK: compute total_suspicious from events if missing -----
                         allStudents = allStudents.map(student => {
@@ -1449,7 +1469,7 @@
             // ----- Render Live Monitoring -----
             function renderLive() {
                 const live = allStudents.filter(s => s.exam_running == true && !hiddenIds.has(s.id));
-                
+
                 let toolbarHtml = `
                     <style>
                         @keyframes radarPing {
@@ -1509,7 +1529,7 @@
                     `;
                     return;
                 }
-                
+
                 let tickerContent = allEvents.slice(0, 5).map(e => {
                     const color = e.type === 'Face Not Detected' ? '#ef4444' : '#fcc419';
                     const sName = allStudents.find(st => st.id === e.student_id)?.name || 'Unknown';
@@ -1916,24 +1936,24 @@
                         .h-node.degraded .h-icon { background:linear-gradient(135deg, #b08d00, #fcc419); }
                         .h-node.degraded .h-icon::after { border-color: #fcc419; animation-duration:1s; }
                         .h-label { font-size:12px; font-weight:700; color:rgba(255,255,255,0.7); text-transform:uppercase; background:rgba(0,0,0,0.5); padding:4px 8px; border-radius:6px; backdrop-filter:blur(4px); }
-                        
+
                         /* Node positions */
                         .node-api { top:50%; left:50%; transform:translate(-50%, -50%); z-index:3; }
                         .node-db { top:15%; left:50%; transform:translateX(-50%); }
                         .node-ai { top:85%; left:50%; transform:translateX(-50%); }
                         .node-clients { top:50%; left:15%; transform:translateY(-50%); }
                         .node-video { top:50%; right:15%; transform:translateY(-50%); }
-                        
+
                         /* Data Streams (lines) */
                         .h-stream { position:absolute; background:rgba(255,255,255,0.1); z-index:1; }
                         .h-stream::before { content:''; position:absolute; background:#51cf66; box-shadow:0 0 10px #51cf66; }
-                        
+
                         .stream-v { width:2px; height:35%; left:50%; transform:translateX(-50%); }
                         .stream-v.top { top:15%; }
                         .stream-v.bottom { bottom:15%; }
                         .stream-v.top::before { width:100%; height:20%; animation:streamDown 1.5s linear infinite; }
                         .stream-v.bottom::before { width:100%; height:20%; animation:streamUp 1.5s linear infinite; }
-                        
+
                         .stream-h { height:2px; width:35%; top:50%; transform:translateY(-50%); }
                         .stream-h.left { left:15%; }
                         .stream-h.right { right:15%; }
@@ -1950,7 +1970,7 @@
                         <span style="font-size:20px;font-weight:700;letter-spacing:0.5px;">Live System Topology</span>
                         <div style="margin-top:6px;font-size:14px;color:#51cf66;"><i class="fas fa-shield-check"></i> ${Object.values(status).every(v => v !== 'degraded' && v !== 'unhealthy') ? 'All Core Systems Operational' : 'Some Nodes Degraded'}</div>
                     </div>
-                    
+
                     <div class="health-node-map">
                         <!-- Data Streams -->
                         <div class="h-stream stream-v top"></div>
@@ -1980,7 +2000,7 @@
                             <div class="h-label">Video Relay</div>
                         </div>
                     </div>
-                    
+
                     <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 16px; background:rgba(255,255,255,0.03); border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
                         <div style="font-size:13px;color:rgba(255,255,255,0.5);"><i class="fas fa-clock"></i> Last Ping: ${status.last_check || 'N/A'}</div>
                         <button class="btn btn-primary" id="runHealthCheck" style="padding:8px 16px; font-size:13px; border-radius:8px;"><i class="fas fa-sync-alt"></i> Run Diagnostics</button>
@@ -2092,7 +2112,7 @@
                     html += `
                         <div class="alert-card ${sev}">
                             <div class="alert-icon">${sevIcon}</div>
-                            
+
                             <div class="alert-content">
                                 <div class="alert-header">
                                     <span class="candidate-name">${name}</span>
@@ -2181,8 +2201,10 @@
                 }
 
                 const alertCount = suspicious.length;
-                alertBadge.textContent = alertCount;
-                alertBadge.style.display = alertCount > 0 ? 'inline' : 'none';
+                if (alertBadge) {
+                    alertBadge.textContent = alertCount;
+                    alertBadge.style.display = alertCount > 0 ? 'inline' : 'none';
+                }
             }
 
             // ----- Update Badges (sidebar) -----
@@ -2191,8 +2213,10 @@
                 const immediate = visible.filter(s => categorizeStudent(s) === 'immediate').length;
                 const monitor = visible.filter(s => categorizeStudent(s) === 'monitor').length;
                 const actionCount = immediate + monitor;
-                actionBadge.textContent = actionCount;
-                actionBadge.style.display = actionCount > 0 ? 'inline' : 'none';
+                if (actionBadge) {
+                    actionBadge.textContent = actionCount;
+                    actionBadge.style.display = actionCount > 0 ? 'inline' : 'none';
+                }
             }
 
             // ----- Update Notifications (today) -----
@@ -2301,7 +2325,7 @@
                     .filter(e => isToday(e.timestamp) && (e.deducted > 3 || e.type === 'Multiple Faces' || e.type === 'Face Absence'))
                     .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp))
                     .slice(0, 4);
-                
+
                 let html = '';
                 if (suspicious.length > 0) {
                     suspicious.forEach(e => {
@@ -2350,7 +2374,7 @@
         function loadLogsInline() {
             const container = document.getElementById('logsInlineContainer');
             if (!container) return;
-            
+
             fetch('/api/dashboard/admin', { credentials: 'include' })
                 .then(r => r.json())
                 .then(data => {
@@ -2381,13 +2405,13 @@
                                 </thead>
                                 <tbody>
                     `;
-                    
+
                     events.slice().reverse().forEach((ev, index) => {
                         const time = new Date(ev.timestamp).toLocaleString();
                         const name = ev.name || 'Unknown';
                         const cid = ev.candidate_id || '-';
                         const type = ev.type || ev.event_type || 'Event';
-                        
+
                         let risk = 'info';
                         let riskText = 'Info';
                         const typeLower = type.toLowerCase();
@@ -2398,7 +2422,7 @@
                         } else if (typeLower.includes('detected') || typeLower.includes('regained')) {
                             risk = 'low'; riskText = 'Low';
                         }
-                        
+
                         const delay = Math.min(index * 0.05, 0.5); // cap at 0.5s so it doesn't take forever
                         html += `<tr style="animation-delay: ${delay}s">`;
                         html += '<td>' + time + '</td>';
@@ -2408,7 +2432,7 @@
                         html += '<td><span class="risk-pill ' + risk + '">' + riskText + '</span></td>';
                         html += '</tr>';
                     });
-                    
+
                     html += '</tbody></table></div>';
                     container.innerHTML = html;
                 })
@@ -2467,9 +2491,9 @@
             const statusClass = String(exam.status || '').toLowerCase();
             const publishButton = exam.status === 'Draft' ? `<button data-exam-status="Published" data-exam-id="${exam.id}" style="background:rgba(81,207,102,0.15); color:#51cf66; border:1px solid rgba(81,207,102,0.3); border-radius:8px; padding:6px 12px; cursor:pointer; font-weight:600; font-size:12px; transition:0.2s;"><i class="fas fa-globe"></i> Publish</button>` : '';
             const closeButton = exam.status === 'Published' ? `<button data-exam-status="Closed" data-exam-id="${exam.id}" style="background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3); border-radius:8px; padding:6px 12px; cursor:pointer; font-weight:600; font-size:12px; transition:0.2s;"><i class="fas fa-lock"></i> Close</button>` : '';
-            
+
             const animDelay = (idx * 0.08) + 's';
-            
+
             return `<article class="exam-card" style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:18px; margin-bottom:16px; animation:fadeSlideUp 0.5s ease forwards; opacity:0; animation-delay:${animDelay}; transition:transform 0.2s, border-color 0.2s;">
                 <div class="exam-card-head" style="display:flex; justify-content:space-between; align-items:start; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:12px; margin-bottom:12px;">
                     <div>
