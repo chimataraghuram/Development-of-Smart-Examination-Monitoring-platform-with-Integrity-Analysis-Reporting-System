@@ -408,6 +408,44 @@
             cursor: pointer; border: none; font-family: 'Inter',sans-serif; transition: 0.2s;
         }
 
+        /* ===== ALERT CARDS ===== */
+        .alert-cards { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+        .alert-card {
+            background: rgba(26, 21, 69, 0.4); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px; padding: 16px; display: flex; gap: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            animation: fadeSlideUp 0.4s ease forwards; opacity: 0;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .alert-cards .alert-card:nth-child(1) { animation-delay: 0.1s; }
+        .alert-cards .alert-card:nth-child(2) { animation-delay: 0.2s; }
+        .alert-cards .alert-card:nth-child(3) { animation-delay: 0.3s; }
+        .alert-cards .alert-card:nth-child(4) { animation-delay: 0.4s; }
+        .alert-cards .alert-card:nth-child(5) { animation-delay: 0.5s; }
+        .alert-cards .alert-card:nth-child(n+6) { animation-delay: 0.6s; }
+        .alert-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.25); border-color: rgba(124,77,255,0.3); }
+        .alert-card.high { border-left: 4px solid #ff6b6b; }
+        .alert-card.medium { border-left: 4px solid #fcc419; }
+        .alert-card.low { border-left: 4px solid #51cf66; }
+        
+        .alert-card .alert-icon { font-size: 20px; padding-top: 2px; }
+        .alert-card .alert-content { flex: 1; min-width: 0; }
+        .alert-card .alert-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+        .alert-card .candidate-name { font-weight: 700; font-size: 14px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+        .alert-card .candidate-id { font-size: 11px; color: rgba(255,255,255,0.5); font-family: monospace; }
+        .alert-card .sev-badge { padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+        .alert-card .sev-badge.high { background: rgba(255,107,107,0.15); color: #ff6b6b; }
+        .alert-card .sev-badge.medium { background: rgba(252,196,25,0.15); color: #fcc419; }
+        .alert-card .sev-badge.low { background: rgba(81,207,102,0.15); color: #51cf66; }
+        
+        .alert-card .alert-body { font-size: 13px; color: rgba(255,255,255,0.8); }
+        .alert-card .event-type { font-weight: 600; margin-bottom: 4px; }
+        .alert-card .event-type i { font-size: 11px; opacity: 0.7; color: #ff6b6b; }
+        .alert-card .event-meta { font-size: 11px; color: rgba(255,255,255,0.4); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .alert-card .penalty { background: rgba(255,107,107,0.2); color: #ff6b6b; padding: 2px 6px; border-radius: 6px; font-weight: 700; }
+        
+        .alert-card .alert-actions { display: flex; flex-direction: column; gap: 6px; justify-content: center; }
+
         /* ===== MODALS ===== */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -1682,10 +1720,17 @@
                     alertsContainer.innerHTML = `<div class="no-data">No suspicious activity today.</div>`;
                     return;
                 }
-                let html = `<div class="alert-cards">`;
+                let html = `
+                    <div style="display:flex; justify-content:flex-end; gap:8px; margin-bottom:16px;">
+                        <button class="btn btn-primary" style="padding: 6px 12px; font-size: 11px;"><i class="fas fa-filter"></i> High Risk</button>
+                        <button class="btn btn-primary" style="padding: 6px 12px; font-size: 11px;"><i class="fas fa-check-double"></i> Dismiss All</button>
+                    </div>
+                    <div class="alert-cards">
+                `;
                 suspicious.forEach(e => {
                     const sev = e.deducted > 7 ? 'high' : e.deducted > 4 ? 'medium' : 'low';
-                    const sevLabel = sev === 'high' ? '🔴 High' : sev === 'medium' ? '🟠 Medium' : '🟡 Low';
+                    const sevIcon = sev === 'high' ? '🔴' : sev === 'medium' ? '🟠' : '🟡';
+                    const sevText = sev === 'high' ? 'High Risk' : sev === 'medium' ? 'Medium Risk' : 'Low Risk';
                     let name = e.student_name || e.student_id || 'Unknown';
                     let id = e.student_id || e.user_id || '';
                     if (!e.student_name && e.user_id && studentMap[e.user_id]) {
@@ -1696,12 +1741,27 @@
                     const when = formatTime(e.timestamp);
                     const timeAgo = getTimeAgo(e.timestamp);
                     html += `
-                        <div class="alert-card">
-                            <div class="sev ${sev}">${sevLabel}</div>
-                            <div class="candidate">${name} (${id})</div>
-                            <div class="what">${what}</div>
-                            <div class="when">${when}</div>
-                            <div class="duration">${timeAgo}</div>
+                        <div class="alert-card ${sev}">
+                            <div class="alert-icon">${sevIcon}</div>
+                            <div class="alert-content">
+                                <div class="alert-header">
+                                    <span class="candidate-name">${name}</span>
+                                    <span class="candidate-id">ID: ${id}</span>
+                                    <span class="sev-badge ${sev}">${sevText}</span>
+                                </div>
+                                <div class="alert-body">
+                                    <div class="event-type"><i class="fas fa-exclamation-triangle"></i> ${what}</div>
+                                    <div class="event-meta">
+                                        <span><i class="far fa-clock"></i> ${when}</span>
+                                        <span style="opacity:0.6;">(${timeAgo})</span>
+                                        ${e.deducted ? `<span class="penalty">-${e.deducted} pts</span>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="alert-actions">
+                                <button class="btn-action primary view-btn" data-id="${e.user_id}">Investigate</button>
+                                <button class="btn-action dismiss-alert" style="background:transparent; border-color:rgba(255,255,255,0.1); color:rgba(255,255,255,0.4);" data-id="${e.user_id}"><i class="fas fa-times"></i></button>
+                            </div>
                         </div>
                     `;
                 });
@@ -1710,6 +1770,29 @@
                 if (typeof window.populateBottomPanels === 'function') {
                     window.populateBottomPanels();
                 }
+
+                // Attach alert button listeners
+                alertsContainer.querySelectorAll('.view-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const id = parseInt(this.dataset.id);
+                        const student = allStudents.find(s => s.id === id);
+                        if (student) openInvestigation(student);
+                    });
+                });
+
+                alertsContainer.querySelectorAll('.dismiss-alert').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        // Find closest alert-card and remove it with an animation
+                        const card = this.closest('.alert-card');
+                        if (card) {
+                            card.style.transform = 'scale(0.9)';
+                            card.style.opacity = '0';
+                            setTimeout(() => card.remove(), 200);
+                        }
+                    });
+                });
 
                 const alertCount = suspicious.length;
                 alertBadge.textContent = alertCount;
