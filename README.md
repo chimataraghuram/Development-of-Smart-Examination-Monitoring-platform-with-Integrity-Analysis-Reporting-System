@@ -1,141 +1,325 @@
-# Smart Examination Monitoring Platform with Integrity Analysis Reporting System
+# ExamMonitor
+> AI-powered online examination monitoring and invigilation platform.
 
-An AI-powered online exam monitoring system. The platform monitors candidates during online examinations using computer vision, browser-event logging, integrity scoring, and administrator reporting.
+[Project Overview](#-about-the-project) • [Features](#-key-features) • [Installation](#-installation) • [Usage](#%E2%96%B6%EF%B8%8F-running-the-project) • [Documentation](#-documentation)
 
 ---
 
-## 1. Project Name
-**Development of Smart Examination Monitoring Platform with Integrity Analysis Reporting System**
+## 📌 About the Project
+ExamMonitor is an online examination monitoring platform designed to help institutions conduct and monitor examinations through a centralized system. The platform provides separate experiences for:
+- 👨‍🎓 **Candidates**
+- 👨‍💼 **Administrators / Invigilators**
 
-## 2. Project Overview
-This project provides a robust platform for administering online examinations while maintaining academic integrity. It uses advanced monitoring techniques including face detection and browser behavior tracking to ensure a fair testing environment.
+It combines examination management, candidate monitoring, suspicious-event detection, session tracking, statistics, reporting, and AI-assisted insights in one platform.
 
-## 3. Problem Statement
-With the shift towards remote learning and online assessments, traditional invigilation methods are no longer sufficient. There is a critical need for an automated, intelligent system that can continuously monitor candidates and accurately report suspicious activities to maintain the credibility of online exams.
+---
 
-## 4. Main Objectives
-- Provide a secure, easy-to-use exam environment for candidates.
-- Give administrators and invigilators real-time oversight of ongoing exams.
-- Automate the detection of suspicious behaviors (e.g., looking away, multiple faces, switching tabs).
-- Generate comprehensive integrity reports and automated scores.
+## 🎯 Objectives
+- Conduct online examinations in a controlled environment
+- Monitor candidates during examinations
+- Detect and record suspicious activities
+- Provide administrators with centralized examination insights
+- Generate examination reports
+- Provide candidates with clear examination and result information
+- Provide AI-assisted answers and insights
 
-## 5. Key Features
-- **Real-time Monitoring:** Browser focus tracking and OpenCV Haar-cascade face detection.
-- **Role-based Dashboards:** Dedicated panels for Candidates and Administrators.
-- **Integrity Scoring:** Automated deductions based on violation severity.
-- **AI Assistant:** Context-aware chatbot (via OpenRouter) to assist users and admins.
-- **Reporting:** Exportable integrity reports and timeline logs.
+---
 
-## 6. Technology Stack
-- **Backend:** Python, Flask
-- **Database:** SQLite
-- **Computer Vision:** OpenCV (Haar Cascade Classifier), Scikit-Image
-- **Frontend:** HTML, CSS, JavaScript (Vanilla JS with glassmorphism UI)
-- **AI Integration:** OpenRouter API
+## ✨ Key Features
 
-## 7. Project Architecture
-The platform follows a monolithic client-server architecture. The Flask backend serves server-side rendered HTML templates and RESTful APIs, which the JavaScript frontend consumes to handle live monitoring (webcam feeds, browser events) and asynchronous data loading.
+### 👨‍🎓 Candidate Panel
+- Candidate profile
+- Examination access
+- System readiness diagnostics
+- Camera and monitoring checks
+- Examination session monitoring
+- Activity history
+- Monitoring statistics
+- Examination report
+- Report download
+- AI Ask assistant
 
-## 8. Repository Structure
+### 👨‍💼 Admin / Invigilator Panel
+- Dashboard overview
+- Live candidate monitoring
+- Examination management
+- Action center
+- Suspicious alerts
+- Event logs
+- Candidate information
+- Session information
+- Monitoring statistics
+- Report generation
+- Report export
+- AI Ask assistant
+
+### 🤖 AI Assistant
+#### Candidate AI
+The candidate assistant can answer questions such as:
+- What are my examination rules?
+- What is my current score?
+- What is my examination about?
+- Do I have an examination today?
+- What is my examination status?
+- Can I take a break?
+- What happened during my examination?
+- What is my monitoring status?
+- What is my risk level?
+- How many suspicious events were detected?
+
+Responses should be concise and personalized using the candidate\'s available examination/session data.
+
+#### Admin AI
+The administrator assistant can provide personalized examination insights, such as:
+- Who scored the highest?
+- Who scored the lowest?
+- What is the average score?
+- How many candidates completed the examination?
+- Did we conduct an examination today?
+- Which candidates have high-risk activity?
+- How many suspicious events occurred?
+- Which candidate has the most alerts?
+- Show candidate/session information
+- Summarize examination activity
+
+Where supported, candidate data can also be prepared for export.
+
+---
+
+## 🔍 Monitoring & Integrity
+ExamMonitor records examination monitoring events such as:
+- Face absence
+- Multiple faces
+- Browser focus loss
+- Tab switching
+
+The system maintains event timestamps and associated monitoring information for examination review.
+
+---
+
+## 📊 Reports
+The system provides examination reports containing relevant information such as:
+- Candidate details
+- Session information
+- Examination result
+- Monitoring statistics
+- Risk level
+- Face presence information
+- Suspicious events
+- Event timestamps
+- Available evidence/screenshots
+
+Reports can be viewed and exported where supported.
+
+---
+
+## 🏗️ Project Structure
 \\	ext
 ExamMonitor/
+│
 ├── Frontend/
 │   ├── package.json
 │   ├── package-lock.json
-│   ├── templates/            # HTML Templates
-│   └── static/               # CSS, JS, Images
+│   ├── templates/
+│   └── static/
+│
 ├── Backend/
-│   ├── app.py                # Main Flask entry point
-│   ├── requirements.txt      # Python dependencies
-│   ├── database.py           # SQLite operations
-│   ├── ai_service.py         # AI chatbot integration
-│   ├── integrity_scorer.py   # Scoring logic
-│   └── haarcascade...xml     # OpenCV model
-├── Agile Documentation/      # Sprint plans, backlogs, user stories
-├── evidence/                 # Internship screenshots and testing evidence
-├── scripts/                  # Diagnostic and run scripts (e.g., run_local.ps1)
-├── .env.example              # Environment variables template
+│   ├── app.py
+│   ├── requirements.txt
+│   ├── database.py
+│   ├── ai_service.py
+│   ├── integrity_scorer.py
+│   ├── export_service.py
+│   ├── haarcascade_frontalface_default.xml
+│   └── exam_monitor.db
+│
+├── Agile Documentation/
+│   ├── Daily_Scrum.md
+│   ├── Definition_of_Done.md
+│   ├── Product_Backlog.md
+│   ├── Sprint_Backlog.md
+│   ├── Sprint_Planning.md
+│   ├── Sprint_Retrospective.md
+│   ├── User_Stories.md
+│   └── Vision_and_Scope.md
+│
+├── evidence/
+│   └── (Candidate monitoring screenshots and event logs)
+│
+├── scripts/
+│   └── run_local.ps1
+│
+├── .env.example
 ├── .gitignore
-├── FINAL_SUBMISSION_AUDIT.md # Audit document for final submission
-├── LICENSE                   # MIT License
-└── README.md                 # This file
+├── FINAL_SUBMISSION_AUDIT.md
+├── LICENSE
+└── README.md
 \
-## 9. Frontend Setup
-The frontend uses standard web technologies. Optional Node dependencies (like JSDOM/Puppeteer) are listed in \Frontend/package.json\ for testing purposes.
-\\ash
-cd Frontend
-npm install
-cd ..
-\
-## 10. Backend Setup & 11. Environment Configuration
-Create a virtual environment (recommended) and install backend dependencies:
+---
 
-\\ash
-python -m venv .venv
-# Windows:
-.venv\Scriptsctivate
-# macOS/Linux:
-source .venv/bin/activate
+## 🛠️ Technology Stack
 
-pip install -r Backend/requirements.txt
-\
-Set up environment variables:
-1. Copy \.env.example\ to a new file named \.env\ in the root directory.
-2. Set a long random \FLASK_SECRET_KEY\.
-3. Add \OPENROUTER_API_KEY\ if you want to enable the AI assistant.
-4. Set \ADMIN_DEFAULT_PASSWORD\ to a strong private value before first use.
+**Backend**
+- Python
+- Flask
+- OpenCV
+- Scikit-Image
 
-## 12. Database Setup
-The application uses SQLite. On startup, it automatically creates or migrates the \Backend/exam_monitor.db\ database file and seeds the local administrator account (admin@gmail.com) using the \ADMIN_DEFAULT_PASSWORD\ from \.env\.
+**Frontend**
+- HTML
+- CSS
+- JavaScript
+- Vanilla JS with Glassmorphism UI elements
 
-## 13. How to run the project
-From the repository root (with the virtual environment activated):
+**Database**
+- SQLite
 
+**AI**
+- OpenRouter API
+
+**Monitoring**
+- Camera / video monitoring
+- Browser activity monitoring
+- Face detection
+- Suspicious-event detection
+
+---
+
+## ⚙️ Requirements
+Before running the project, make sure you have:
+- Python 3.9+
+- SQLite (built into Python)
+
+---
+
+## 🚀 Installation
+
+1. **Clone the repository**
+   \\ash
+   git clone https://github.com/chimataraghuram/Development-of-Smart-Examination-Monitoring-platform-with-Integrity-Analysis-Reporting-System.git
+   cd Development-of-Smart-Examination-Monitoring-platform-with-Integrity-Analysis-Reporting-System
+   \
+2. **Backend setup**
+   \\ash
+   python -m venv .venv
+   \   Activate the virtual environment.
+   *Windows:*
+   \\cmd
+   .venv\Scripts\activate
+   \   *Linux/macOS:*
+   \\ash
+   source .venv/bin/activate
+   \   Install dependencies:
+   \\ash
+   pip install -r Backend/requirements.txt
+   \
+3. **Frontend setup**
+   (Optional) If you plan to use testing frameworks, the dependencies are in Frontend/.
+   \\ash
+   cd Frontend
+   npm install
+   cd ..
+   \
+4. **Environment configuration**
+   Create a \.env\ file in the root directory based on \.env.example\.
+   \\env
+   # Example only
+   FLASK_SECRET_KEY=your_secret_key_here
+   OPENROUTER_API_KEY=your_api_key_here
+   ADMIN_DEFAULT_PASSWORD=your_admin_password
+   \   *Do not commit real API keys, passwords, tokens, or other secrets.*
+
+---
+
+## ▶️ Running the Project
+
+**Start the Application:**
+Make sure your virtual environment is active, then run:
 \\ash
 python -m Backend.app
 \
-The application will listen on \http://127.0.0.1:5000/\.
-
-**Windows Users:** You can use the provided PowerShell script to automatically kill stale instances and start the server:
+*(Windows Alternative)*: You can use the provided PowerShell runner from the root:
 \\powershell
-.\scriptsun_local.ps1
+.\scripts\run_local.ps1
 \
-## 14. Candidate/User Features
-- Secure registration and login.
-- Exam workspace with readiness checks.
-- Real-time display of integrity score and session status.
-- Personal AI assistant for exam-related queries.
-- Submission and post-exam reports.
+---
 
-## 15. Admin/Invigilator Features
-- Comprehensive dashboard displaying active sessions and live metrics.
-- Action center for reviewing suspicious alerts and flags.
-- Ability to pause, resume, or terminate candidate sessions.
-- Final review decisions on flagged exams.
+## 👤 User Flow
 
-## 16. AI Assistant Features
-- Powered by OpenRouter, available directly in the UI.
-- Context-aware: knows the student's current score, exam rules, and session status.
-- Admin capabilities: can query the database to summarize candidate data and suspicious events on demand.
+**Candidate Flow**
+Candidate Login ↓ Candidate Dashboard ↓ System Readiness Check ↓ Start Examination ↓ Monitoring ↓ Examination Completion ↓ Result / Report
 
-## 17. Monitoring Features
-- **Browser Tracking:** Detects tab switching, window minimizing, and focus loss.
-- **Vision Tracking:** Uses the webcam to detect Face Absence and Multiple Faces.
-- Continuous event logging directly to the backend timeline.
-
-## 18. Report Generation
-- Automated integrity score calculation (starts at 100, deducts based on violations).
-- Downloadable/exportable session reports with full timeline logs.
-
-## 19. Testing Information
-Diagnostic and testing scripts are available in the \scripts/\ directory to probe the API endpoints, verify scoring schemas, and test dashboard features.
-
-## 20. Team/Contribution Information
-**Raghuram Chimata**
-- GitHub: https://github.com/chimataraghuram
-- LinkedIn: https://linkedin.com/in/chimataraghuram
-- Portfolio: https://chimataraghuram.vercel.app
+**👨‍💼 Admin Flow**
+Admin Login ↓ Dashboard ↓ Live Monitoring ↓ Examination Management ↓ Suspicious Alerts / Event Logs ↓ Candidate & Session Review ↓ Report Generation
 
 ---
-## License
-This project is licensed under the [MIT License](LICENSE).
+
+## 🔐 Security
+The project follows basic security practices including:
+- Environment variables for sensitive configuration
+- \.gitignore\ for local/sensitive files
+- No real credentials in the repository
+- Protected authentication routes
+- Controlled access to admin functionality
+
+---
+
+## 🧪 Testing
+Testing includes verification of:
+- Authentication
+- Candidate examination flow
+- Admin dashboard
+- Monitoring
+- Suspicious-event logging
+- Database operations
+- Reports
+- AI assistant
+- Frontend/backend communication
+
+Diagnostic scripts are located in the \scripts/\ directory (if applicable).
+
+---
+
+## 📚 Documentation
+Project documentation is available in:
+\Agile Documentation/This includes the project\'s available Agile and development documentation.
+
+Additional final-submission information is available in:
+\FINAL_SUBMISSION_AUDIT.md
+---
+
+## 📸 Project Screenshots
+
+**Evidence: Face Absence Detection**
+![Face Absence](evidence/0222/Face%20Not%20Detected_20260812_192430.png)
+
+**Evidence: Multiple Faces Detection**
+![Multiple Faces](evidence/0222/Multiple_Faces_20260825_192620_159041_3fc19b38.png)
+
+*(Note: Live dashboard screenshots have not been tracked in the repository. The above images demonstrate the real-time computer vision monitoring engine storing evidence.)*
+
+---
+
+## 📄 License
+This project is licensed under the MIT License.
+See the [LICENSE](LICENSE) file for details.
+
+---
+
+## 👥 Team
+
+### CHIMATA RAGHURAM
+- **LinkedIn:** https://www.linkedin.com/in/chimataraghuram/
+- **GitHub:** https://github.com/chimataraghuram
+
+### NARLA SAHITHYA REDDY
+- **LinkedIn:** https://www.linkedin.com/in/narla-sahithyareddy-056342399/
+- **GitHub:** https://github.com/narlasahithyareddy
+
+### SIREESHA JONNADA
+- **LinkedIn:** https://www.linkedin.com/in/sireesha-jonnada-650468315
+- **GitHub:** https://github.com/sireeshajonnada05-pixel
+
+### THOTA SATHWIKA
+- **LinkedIn:** https://www.linkedin.com/in/thota-sathwika-2648b42bb
+- **GitHub:** https://github.com/thota-sathwika
