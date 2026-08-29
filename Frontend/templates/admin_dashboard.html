@@ -2423,8 +2423,16 @@
             const timelineList = document.getElementById('timelineList');
 
             if (recentList && typeof window._allEvents !== 'undefined') {
+                const checkToday = function(ts) {
+                    const date = new Date(ts);
+                    const today = new Date();
+                    return date.getFullYear() === today.getFullYear() &&
+                           date.getMonth() === today.getMonth() &&
+                           date.getDate() === today.getDate();
+                };
+
                 const suspicious = window._allEvents
-                    .filter(e => isToday(e.timestamp) && (e.deducted > 3 || e.type === 'Multiple Faces' || e.type === 'Face Absence'))
+                    .filter(e => checkToday(e.timestamp) && (e.deducted > 3 || e.type === 'Multiple Faces' || e.type === 'Face Absence'))
                     .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp))
                     .slice(0, 4);
 
