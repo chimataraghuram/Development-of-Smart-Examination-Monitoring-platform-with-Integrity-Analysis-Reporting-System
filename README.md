@@ -160,7 +160,6 @@ ExamMonitor/
 │
 ├── .env.example
 ├── .gitignore
-├── FINAL_SUBMISSION_AUDIT.md
 ├── LICENSE
 └── README.md
 ```
@@ -308,9 +307,6 @@ Diagnostic scripts are located in the `scripts/` directory to verify endpoints.
 Project documentation is available in:
 `Agile Documentation/`
 This includes the project's available Agile and development documentation.
-
-Additional final-submission information is available in:
-`FINAL_SUBMISSION_AUDIT.md`
 
 ---
 
