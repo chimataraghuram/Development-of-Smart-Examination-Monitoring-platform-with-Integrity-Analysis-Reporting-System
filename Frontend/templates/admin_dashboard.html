@@ -1531,11 +1531,11 @@
                     })
                     .then(data => {
                         const stats = data.stats || {};
-                        totalCandidates.textContent = stats.total_candidates || 0;
-                        activeSessions.textContent = stats.active_sessions || 0;
-                        completedSessions.textContent = stats.completed_sessions || 0;
-                        avgIntegrity.textContent = stats.average_integrity || 0;
-                        totalSuspiciousEvents.textContent = stats.total_suspicious_events || 0;
+                        if (totalCandidates) totalCandidates.textContent = stats.total_candidates || 0;
+                        if (activeSessions) activeSessions.textContent = stats.active_sessions || 0;
+                        if (completedSessions) completedSessions.textContent = stats.completed_sessions || 0;
+                        if (totalSuspiciousEvents) totalSuspiciousEvents.textContent = stats.total_suspicious_events || 0;
+                        if (avgIntegrity) avgIntegrity.textContent = stats.average_integrity || 0;
 
                         const analytics = data.analytics || {};
                         totalFaceAbsence.textContent = analytics.total_face_absence || 0;
