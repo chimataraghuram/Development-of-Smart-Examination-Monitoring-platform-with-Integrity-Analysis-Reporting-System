@@ -5,6 +5,21 @@
 
 ---
 
+## 🚀 Quick Overview
+
+| | |
+|---|---|
+| **Project** | ExamMonitor |
+| **Type** | AI-powered Online Examination Monitoring |
+| **Program** | Infosys Virtual Internship 7.0 |
+| **Architecture** | Frontend + Backend |
+| **Monitoring** | Face & Browser Activity Monitoring |
+| **AI** | AI-powered Candidate & Admin Assistant |
+| **Reporting** | Examination & Monitoring Reports |
+| **License** | MIT |
+
+---
+
 ## 📌 About the Project
 ExamMonitor is an online examination monitoring platform designed to help institutions conduct and monitor examinations through a centralized system. The platform provides separate experiences for:
 - 👨‍🎓 **Candidates**
@@ -192,8 +207,8 @@ Before running the project, make sure you have:
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/chimataraghuram/Development-of-Smart-Examination-Monitoring-platform-with-Integrity-Analysis-Reporting-System.git
-cd Development-of-Smart-Examination-Monitoring-platform-with-Integrity-Analysis-Reporting-System
+git clone https://github.com/chimataraghuram/Development-of-Smart-Examination-Monitoring-platform-with-Integrity-Analysis-Reporting-System.git ExamMonitor
+cd ExamMonitor
 ```
 
 2. **Backend setup**
@@ -314,38 +329,38 @@ Additional final-submission information is available in:
 
 ---
 
-## 📄 License
-This project is licensed under the MIT License.
-See the [LICENSE](LICENSE) file for details.
-
----
-
 ## 🎓 Internship Project
 
 This project was developed as part of the **Infosys Virtual Internship 7.0**.
 
-**Mentor:** Subramaniam Sir  
-**Program:** Infosys Virtual Internship 7.0
+**Mentor:** Subramaniam Sir
 
-> This project was developed collaboratively as part of the internship program,
-> with guidance and mentorship throughout the project lifecycle.
+This was developed collaboratively as a team project under mentor guidance
+throughout the internship project lifecycle.
 
 ---
 
 ## 👥 Team
 
 ### CHIMATA RAGHURAM
-- **LinkedIn:** [LinkedIn](https://www.linkedin.com/in/chimataraghuram/)
-- **GitHub:** [GitHub](https://github.com/chimataraghuram)
+- 🔗 **LinkedIn:** https://www.linkedin.com/in/chimataraghuram/
+- 💻 **GitHub:** https://github.com/chimataraghuram
 
 ### NARLA SAHITHYA REDDY
-- **LinkedIn:** [LinkedIn](https://www.linkedin.com/in/narla-sahithyareddy-056342399/)
-- **GitHub:** [GitHub](https://github.com/narlasahithyareddy)
+- 🔗 **LinkedIn:** https://www.linkedin.com/in/narla-sahithyareddy-056342399/
+- 💻 **GitHub:** https://github.com/narlasahithyareddy
 
 ### SIREESHA JONNADA
-- **LinkedIn:** [LinkedIn](https://www.linkedin.com/in/sireesha-jonnada-650468315)
-- **GitHub:** [GitHub](https://github.com/sireeshajonnada05-pixel)
+- 🔗 **LinkedIn:** https://www.linkedin.com/in/sireesha-jonnada-650468315
+- 💻 **GitHub:** https://github.com/sireeshajonnada05-pixel
 
 ### THOTA SATHWIKA
-- **LinkedIn:** [LinkedIn](https://www.linkedin.com/in/thota-sathwika-2648b42bb)
-- **GitHub:** [GitHub](https://github.com/thota-sathwika)
+- 🔗 **LinkedIn:** https://www.linkedin.com/in/thota-sathwika-2648b42bb
+- 💻 **GitHub:** https://github.com/thota-sathwika
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
+See the [LICENSE](LICENSE) file for details.
