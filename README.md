@@ -67,7 +67,7 @@ The candidate assistant can answer questions such as:
 - What is my risk level?
 - How many suspicious events were detected?
 
-Responses should be concise and personalized using the candidate\'s available examination/session data.
+Responses should be concise and personalized using the candidate's available examination/session data.
 
 #### Admin AI
 The administrator assistant can provide personalized examination insights, such as:
@@ -114,25 +114,8 @@ Reports can be viewed and exported where supported.
 ---
 
 ## 🏗️ Project Structure
-\\	ext
+```text
 ExamMonitor/
-│
-├── Frontend/
-│   ├── package.json
-│   ├── package-lock.json
-│   ├── templates/
-│   └── static/
-│
-├── Backend/
-│   ├── app.py
-│   ├── requirements.txt
-│   ├── database.py
-│   ├── ai_service.py
-│   ├── integrity_scorer.py
-│   ├── export_service.py
-│   ├── haarcascade_frontalface_default.xml
-│   └── exam_monitor.db
-│
 ├── Agile Documentation/
 │   ├── Daily_Scrum.md
 │   ├── Definition_of_Done.md
@@ -143,9 +126,23 @@ ExamMonitor/
 │   ├── User_Stories.md
 │   └── Vision_and_Scope.md
 │
-├── evidence/
-│   └── (Candidate monitoring screenshots and event logs)
+├── Backend/
+│   ├── app.py
+│   ├── database.py
+│   ├── ai_service.py
+│   ├── integrity_scorer.py
+│   ├── export_service.py
+│   ├── haarcascade_frontalface_default.xml
+│   ├── requirements.txt
+│   └── exam_monitor.db
 │
+├── Frontend/
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── templates/
+│   └── static/
+│
+├── evidence/
 ├── scripts/
 │   └── run_local.ps1
 │
@@ -154,7 +151,8 @@ ExamMonitor/
 ├── FINAL_SUBMISSION_AUDIT.md
 ├── LICENSE
 └── README.md
-\
+```
+
 ---
 
 ## 🛠️ Technology Stack
@@ -162,17 +160,14 @@ ExamMonitor/
 **Backend**
 - Python
 - Flask
-- OpenCV
+- SQLite
+- OpenCV (Haar Cascade Classifier)
 - Scikit-Image
 
 **Frontend**
 - HTML
 - CSS
 - JavaScript
-- Vanilla JS with Glassmorphism UI elements
-
-**Database**
-- SQLite
 
 **AI**
 - OpenRouter API
@@ -189,59 +184,76 @@ ExamMonitor/
 Before running the project, make sure you have:
 - Python 3.9+
 - SQLite (built into Python)
+- Node.js & npm (for optional frontend testing packages)
 
 ---
 
 ## 🚀 Installation
 
 1. **Clone the repository**
-   \\ash
-   git clone https://github.com/chimataraghuram/Development-of-Smart-Examination-Monitoring-platform-with-Integrity-Analysis-Reporting-System.git
-   cd Development-of-Smart-Examination-Monitoring-platform-with-Integrity-Analysis-Reporting-System
-   \
+```bash
+git clone https://github.com/chimataraghuram/Development-of-Smart-Examination-Monitoring-platform-with-Integrity-Analysis-Reporting-System.git
+cd Development-of-Smart-Examination-Monitoring-platform-with-Integrity-Analysis-Reporting-System
+```
+
 2. **Backend setup**
-   \\ash
-   python -m venv .venv
-   \   Activate the virtual environment.
-   *Windows:*
-   \\cmd
-   .venv\Scripts\activate
-   \   *Linux/macOS:*
-   \\ash
-   source .venv/bin/activate
-   \   Install dependencies:
-   \\ash
-   pip install -r Backend/requirements.txt
-   \
+```bash
+python -m venv .venv
+```
+Activate the virtual environment.
+
+*Windows:*
+```cmd
+.venv\Scripts\activate
+```
+*Linux/macOS:*
+```bash
+source .venv/bin/activate
+```
+Install dependencies:
+```bash
+pip install -r Backend/requirements.txt
+```
+
 3. **Frontend setup**
-   (Optional) If you plan to use testing frameworks, the dependencies are in Frontend/.
-   \\ash
-   cd Frontend
-   npm install
-   cd ..
-   \
+```bash
+cd Frontend
+npm install
+cd ..
+```
+
 4. **Environment configuration**
-   Create a \.env\ file in the root directory based on \.env.example\.
-   \\env
-   # Example only
-   FLASK_SECRET_KEY=your_secret_key_here
-   OPENROUTER_API_KEY=your_api_key_here
-   ADMIN_DEFAULT_PASSWORD=your_admin_password
-   \   *Do not commit real API keys, passwords, tokens, or other secrets.*
+Create a `.env` file in the root directory based on `.env.example`.
+```env
+# Example only
+FLASK_SECRET_KEY=your_secret_key_here
+OPENROUTER_API_KEY=your_api_key_here
+ADMIN_DEFAULT_PASSWORD=your_admin_password
+```
+*Do not commit real API keys, passwords, tokens, or other secrets.*
 
 ---
 
 ## ▶️ Running the Project
 
-**Start the Application:**
-Make sure your virtual environment is active, then run:
-\\ash
+### Backend
+
+To run the Flask application natively from the repository root:
+```bash
 python -m Backend.app
-\
-*(Windows Alternative)*: You can use the provided PowerShell runner from the root:
-\\powershell
+```
+
+### Windows
+
+From the repository root, you can use the provided PowerShell runner to automatically start the environment and server:
+```powershell
 .\scripts\run_local.ps1
-\
+```
+
+### Frontend
+
+*(Note: The frontend HTML templates are rendered directly by the Flask backend, so no separate frontend development server is required).*
+
 ---
 
 ## 👤 User Flow
@@ -257,7 +269,7 @@ Admin Login ↓ Dashboard ↓ Live Monitoring ↓ Examination Management ↓ Sus
 ## 🔐 Security
 The project follows basic security practices including:
 - Environment variables for sensitive configuration
-- \.gitignore\ for local/sensitive files
+- `.gitignore` for local/sensitive files
 - No real credentials in the repository
 - Protected authentication routes
 - Controlled access to admin functionality
@@ -276,16 +288,18 @@ Testing includes verification of:
 - AI assistant
 - Frontend/backend communication
 
-Diagnostic scripts are located in the \scripts/\ directory (if applicable).
+Diagnostic scripts are located in the `scripts/` directory to verify endpoints.
 
 ---
 
 ## 📚 Documentation
 Project documentation is available in:
-\Agile Documentation/This includes the project\'s available Agile and development documentation.
+`Agile Documentation/`
+This includes the project's available Agile and development documentation.
 
 Additional final-submission information is available in:
-\FINAL_SUBMISSION_AUDIT.md
+`FINAL_SUBMISSION_AUDIT.md`
+
 ---
 
 ## 📸 Project Screenshots
