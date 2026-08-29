@@ -132,14 +132,11 @@ Reports can be viewed and exported where supported.
 ```text
 ExamMonitor/
 ├── Agile Documentation/
-│   ├── Daily_Scrum.md
-│   ├── Definition_of_Done.md
-│   ├── Product_Backlog.md
-│   ├── Sprint_Backlog.md
-│   ├── Sprint_Planning.md
-│   ├── Sprint_Retrospective.md
-│   ├── User_Stories.md
-│   └── Vision_and_Scope.md
+│   ├── Agile_Template_Completed.xlsm
+│   ├── Agile_Template_v0.1_Completed.xlsx
+│   ├── Defect_Tracker_Template_v0.1_Completed.xlsx
+│   ├── Sample_Agile_Completed.xls
+│   └── Unit_Test_Plan_v0.1_Completed.xlsx
 │
 ├── Backend/
 │   ├── app.py
