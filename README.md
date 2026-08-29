@@ -1,130 +1,73 @@
 # ExamMonitor
 > AI-powered online examination monitoring and invigilation platform.
 
-[Project Overview](#-about-the-project) • [Features](#-key-features) • [Installation](#-installation) • [Usage](#%E2%96%B6%EF%B8%8F-running-the-project) • [Documentation](#-documentation)
-
----
-
-## 🚀 Quick Overview
-
-| | |
-|---|---|
-| **Project** | ExamMonitor |
-| **Type** | AI-powered Online Examination Monitoring |
-| **Program** | Infosys Virtual Internship 7.0 |
-| **Architecture** | Frontend + Backend |
-| **Monitoring** | Face & Browser Activity Monitoring |
-| **AI** | AI-powered Candidate & Admin Assistant |
-| **Reporting** | Examination & Monitoring Reports |
-| **License** | MIT |
+*Developed collaboratively as a team project for the Infosys Virtual Internship 7.0 under the mentorship of Subramaniam Sir.*
 
 ---
 
 ## 📌 About the Project
-ExamMonitor is an online examination monitoring platform designed to help institutions conduct and monitor examinations through a centralized system. The platform provides separate experiences for:
-- 👨‍🎓 **Candidates**
-- 👨‍💼 **Administrators / Invigilators**
+ExamMonitor is an online examination monitoring platform designed to help institutions conduct and monitor examinations through a centralized system. It provides a secure testing environment by actively monitoring candidates and detecting suspicious events.
 
-It combines examination management, candidate monitoring, suspicious-event detection, session tracking, statistics, reporting, and AI-assisted insights in one platform.
+The platform includes:
+- Real-time candidate monitoring using computer vision
+- Suspicious-event detection (e.g., face absence, multiple faces, browser tab switching)
+- Automated integrity scoring based on violations
+- Continuous activity and event tracking
+- Comprehensive statistics and exportable reports
+- Centralized admin monitoring dashboard
+- Context-aware AI assistant functionality for both candidates and administrators
 
 ---
 
 ## 🎯 Objectives
-- Conduct online examinations in a controlled environment
-- Monitor candidates during examinations
-- Detect and record suspicious activities
-- Provide administrators with centralized examination insights
-- Generate examination reports
-- Provide candidates with clear examination and result information
-- Provide AI-assisted answers and insights
+- Conduct online examinations in a controlled, secure environment.
+- Continuously monitor candidates during examinations.
+- Detect and record suspicious activities automatically.
+- Provide administrators with centralized examination insights and alerts.
+- Generate comprehensive examination integrity reports.
+- Provide candidates with clear examination rules and result information.
+- Provide AI-assisted answers and insights on demand.
 
 ---
 
 ## ✨ Key Features
 
-### 👨‍🎓 Candidate Panel
-- Candidate profile
-- Examination access
-- System readiness diagnostics
-- Camera and monitoring checks
-- Examination session monitoring
-- Activity history
-- Monitoring statistics
-- Examination report
-- Report download
-- AI Ask assistant
+### Candidate Features
+- Candidate profile and authentication
+- System readiness diagnostics (Camera and monitoring checks)
+- Examination access and active session monitoring
+- Activity history and monitoring statistics
+- Downloadable examination reports
 
-### 👨‍💼 Admin / Invigilator Panel
-- Dashboard overview
-- Live candidate monitoring
-- Examination management
-- Action center
-- Suspicious alerts
-- Event logs
-- Candidate information
-- Session information
-- Monitoring statistics
-- Report generation
-- Report export
-- AI Ask assistant
+### AI-Powered Monitoring
+- Face absence detection
+- Multiple faces detection
+- Browser focus loss and tab switching detection
+- Context-aware AI assistant (Candidate AI & Admin AI)
 
-### 🤖 AI Assistant
-#### Candidate AI
-The candidate assistant can answer questions such as:
-- What are my examination rules?
-- What is my current score?
-- What is my examination about?
-- Do I have an examination today?
-- What is my examination status?
-- Can I take a break?
-- What happened during my examination?
-- What is my monitoring status?
-- What is my risk level?
-- How many suspicious events were detected?
+### Admin Features
+- Dashboard overview and live candidate monitoring
+- Examination management and candidate assignments
+- Action center with live suspicious alerts and event logs
+- Candidate and session information review
 
-Responses should be concise and personalized using the candidate's available examination/session data.
+### Reports & Analytics
+- Automated integrity scoring
+- Comprehensive monitoring statistics
+- Report generation and export
 
-#### Admin AI
-The administrator assistant can provide personalized examination insights, such as:
-- Who scored the highest?
-- Who scored the lowest?
-- What is the average score?
-- How many candidates completed the examination?
-- Did we conduct an examination today?
-- Which candidates have high-risk activity?
-- How many suspicious events occurred?
-- Which candidate has the most alerts?
-- Show candidate/session information
-- Summarize examination activity
-
-Where supported, candidate data can also be prepared for export.
+### Security/Integrity
+- Automated violation logging with timestamps
+- Webcam evidence capture for flagged events
+- SQLite persistence for audit trails
 
 ---
 
-## 🔍 Monitoring & Integrity
-ExamMonitor records examination monitoring events such as:
-- Face absence
-- Multiple faces
-- Browser focus loss
-- Tab switching
-
-The system maintains event timestamps and associated monitoring information for examination review.
-
----
-
-## 📊 Reports
-The system provides examination reports containing relevant information such as:
-- Candidate details
-- Session information
-- Examination result
-- Monitoring statistics
-- Risk level
-- Face presence information
-- Suspicious events
-- Event timestamps
-- Available evidence/screenshots
-
-Reports can be viewed and exported where supported.
+## 🛠️ Technologies Used
+- **Backend:** Python, Flask, SQLite
+- **Computer Vision:** OpenCV (Haar Cascade Classifier), Scikit-Image
+- **Frontend:** HTML, CSS, Vanilla JavaScript
+- **AI Integration:** OpenRouter API
 
 ---
 
@@ -155,6 +98,8 @@ ExamMonitor/
 │   └── static/
 │
 ├── evidence/
+│   └── (Candidate monitoring screenshots and event logs)
+│
 ├── scripts/
 │   └── run_local.ps1
 │
@@ -166,48 +111,24 @@ ExamMonitor/
 
 ---
 
-## 🛠️ Technology Stack
+## 🚀 Running the Project
 
-**Backend**
-- Python
-- Flask
-- SQLite
-- OpenCV (Haar Cascade Classifier)
-- Scikit-Image
-
-**Frontend**
-- HTML
-- CSS
-- JavaScript
-
-**AI**
-- OpenRouter API
-
-**Monitoring**
-- Camera / video monitoring
-- Browser activity monitoring
-- Face detection
-- Suspicious-event detection
-
----
-
-## ⚙️ Requirements
-Before running the project, make sure you have:
-- Python 3.9+
-- SQLite (built into Python)
-- Node.js & npm (for optional frontend testing packages)
-
----
-
-## 🚀 Installation
-
-1. **Clone the repository**
+### 1. Clone the repository
 ```bash
 git clone https://github.com/chimataraghuram/Development-of-Smart-Examination-Monitoring-platform-with-Integrity-Analysis-Reporting-System.git ExamMonitor
 cd ExamMonitor
 ```
 
-2. **Backend setup**
+### 2. Configure Environment Variables
+Create a `.env` file in the root directory based on `.env.example`.
+```env
+FLASK_SECRET_KEY=your_secret_key_here
+OPENROUTER_API_KEY=your_api_key_here
+ADMIN_DEFAULT_PASSWORD=your_admin_password
+```
+*Note: Do not commit real API keys, passwords, tokens, or other secrets.*
+
+### 3. Setup Virtual Environment & Install Dependencies
 ```bash
 python -m venv .venv
 ```
@@ -221,49 +142,19 @@ Activate the virtual environment.
 ```bash
 source .venv/bin/activate
 ```
-Install dependencies:
+Install backend dependencies:
 ```bash
 pip install -r Backend/requirements.txt
 ```
 
-3. **Frontend setup**
-```bash
-cd Frontend
-npm install
-cd ..
-```
-
-4. **Environment configuration**
-Create a `.env` file in the root directory based on `.env.example`.
-```env
-# Example only
-FLASK_SECRET_KEY=your_secret_key_here
-OPENROUTER_API_KEY=your_api_key_here
-ADMIN_DEFAULT_PASSWORD=your_admin_password
-```
-*Do not commit real API keys, passwords, tokens, or other secrets.*
-
----
-
-## ▶️ Running the Project
-
-### Backend
-
+### 4. Start the Application
 To run the Flask application natively from the repository root:
 ```bash
 python -m Backend.app
 ```
+*(Windows users can alternately use the provided PowerShell script from the root: `.\scripts\run_local.ps1`)*
 
-### Windows
-
-From the repository root, you can use the provided PowerShell runner to automatically start the environment and server:
-```powershell
-.\scripts\run_local.ps1
-```
-
-### Frontend
-
-*(Note: The frontend HTML templates are rendered directly by the Flask backend, so no separate frontend development server is required).*
+The application will be accessible locally at `http://127.0.0.1:5000/`. The frontend HTML templates are rendered directly by the Flask backend, so no separate frontend development server is required.
 
 ---
 
@@ -272,41 +163,28 @@ From the repository root, you can use the provided PowerShell runner to automati
 **Candidate Flow**
 Candidate Login ↓ Candidate Dashboard ↓ System Readiness Check ↓ Start Examination ↓ Monitoring ↓ Examination Completion ↓ Result / Report
 
-**👨‍💼 Admin Flow**
+**Admin Flow**
 Admin Login ↓ Dashboard ↓ Live Monitoring ↓ Examination Management ↓ Suspicious Alerts / Event Logs ↓ Candidate & Session Review ↓ Report Generation
 
 ---
 
 ## 🔐 Security
-The project follows basic security practices including:
 - Environment variables for sensitive configuration
-- `.gitignore` for local/sensitive files
-- No real credentials in the repository
+- `.gitignore` for local database and sensitive files
 - Protected authentication routes
-- Controlled access to admin functionality
+- Controlled access to administrator functionality
 
 ---
 
 ## 🧪 Testing
-Testing includes verification of:
-- Authentication
-- Candidate examination flow
-- Admin dashboard
-- Monitoring
-- Suspicious-event logging
-- Database operations
-- Reports
-- AI assistant
-- Frontend/backend communication
+The project includes verification for authentication, candidate examination flow, admin dashboard functionality, computer vision monitoring, suspicious-event logging, database operations, and frontend/backend communication.
 
-Diagnostic scripts are located in the `scripts/` directory to verify endpoints.
+Diagnostic scripts are located in the `scripts/` directory to verify backend endpoints.
 
 ---
 
 ## 📚 Documentation
-Project documentation is available in:
-`Agile Documentation/`
-This includes the project's available Agile and development documentation.
+The repository contains the required Agile and project documentation located under the `Agile Documentation/` directory.
 
 ---
 
@@ -322,34 +200,33 @@ This includes the project's available Agile and development documentation.
 
 ---
 
-## 🎓 Internship Project
+## 🎓 Internship
 
-This project was developed as part of the **Infosys Virtual Internship 7.0**.
+This project was developed as part of the Infosys Virtual Internship 7.0 program.
 
 **Mentor:** Subramaniam Sir
-
-This was developed collaboratively as a team project under mentor guidance
-throughout the internship project lifecycle.
 
 ---
 
 ## 👥 Team
 
+This is a collaborative team project developed by:
+
 ### CHIMATA RAGHURAM
-- 🔗 **LinkedIn:** https://www.linkedin.com/in/chimataraghuram/
-- 💻 **GitHub:** https://github.com/chimataraghuram
+- LinkedIn: https://www.linkedin.com/in/chimataraghuram/
+- GitHub: https://github.com/chimataraghuram
 
 ### NARLA SAHITHYA REDDY
-- 🔗 **LinkedIn:** https://www.linkedin.com/in/narla-sahithyareddy-056342399/
-- 💻 **GitHub:** https://github.com/narlasahithyareddy
+- LinkedIn: https://www.linkedin.com/in/narla-sahithya-reddy-056342399/
+- GitHub: https://github.com/narlasahithyareddy
 
 ### SIREESHA JONNADA
-- 🔗 **LinkedIn:** https://www.linkedin.com/in/sireesha-jonnada-650468315
-- 💻 **GitHub:** https://github.com/sireeshajonnada05-pixel
+- LinkedIn: https://www.linkedin.com/in/sireesha-jonnada-650468315
+- GitHub: https://github.com/sireeshajonnada05-pixel
 
 ### THOTA SATHWIKA
-- 🔗 **LinkedIn:** https://www.linkedin.com/in/thota-sathwika-2648b42bb
-- 💻 **GitHub:** https://github.com/thota-sathwika
+- LinkedIn: https://www.linkedin.com/in/thota-sathwika-2648b42bb
+- GitHub: https://github.com/thota-sathwika
 
 ---
 
