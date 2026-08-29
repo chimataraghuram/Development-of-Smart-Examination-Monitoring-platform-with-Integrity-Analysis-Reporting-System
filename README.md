@@ -320,20 +320,32 @@ See the [LICENSE](LICENSE) file for details.
 
 ---
 
+## 🎓 Internship Project
+
+This project was developed as part of the **Infosys Virtual Internship 7.0**.
+
+**Mentor:** Subramaniam Sir  
+**Program:** Infosys Virtual Internship 7.0
+
+> This project was developed collaboratively as part of the internship program,
+> with guidance and mentorship throughout the project lifecycle.
+
+---
+
 ## 👥 Team
 
 ### CHIMATA RAGHURAM
-- **LinkedIn:** https://www.linkedin.com/in/chimataraghuram/
-- **GitHub:** https://github.com/chimataraghuram
+- **LinkedIn:** [LinkedIn](https://www.linkedin.com/in/chimataraghuram/)
+- **GitHub:** [GitHub](https://github.com/chimataraghuram)
 
 ### NARLA SAHITHYA REDDY
-- **LinkedIn:** https://www.linkedin.com/in/narla-sahithyareddy-056342399/
-- **GitHub:** https://github.com/narlasahithyareddy
+- **LinkedIn:** [LinkedIn](https://www.linkedin.com/in/narla-sahithyareddy-056342399/)
+- **GitHub:** [GitHub](https://github.com/narlasahithyareddy)
 
 ### SIREESHA JONNADA
-- **LinkedIn:** https://www.linkedin.com/in/sireesha-jonnada-650468315
-- **GitHub:** https://github.com/sireeshajonnada05-pixel
+- **LinkedIn:** [LinkedIn](https://www.linkedin.com/in/sireesha-jonnada-650468315)
+- **GitHub:** [GitHub](https://github.com/sireeshajonnada05-pixel)
 
 ### THOTA SATHWIKA
-- **LinkedIn:** https://www.linkedin.com/in/thota-sathwika-2648b42bb
-- **GitHub:** https://github.com/thota-sathwika
+- **LinkedIn:** [LinkedIn](https://www.linkedin.com/in/thota-sathwika-2648b42bb)
+- **GitHub:** [GitHub](https://github.com/thota-sathwika)
