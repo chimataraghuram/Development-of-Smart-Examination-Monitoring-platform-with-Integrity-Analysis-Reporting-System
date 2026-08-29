@@ -1,3 +1,4 @@
+
 """Server-side AI support for authorized ExamMonitor questions."""
 
 import json
@@ -7,6 +8,9 @@ from collections import Counter
 from datetime import datetime
 from pathlib import Path
 from urllib import error, request
+
+from dotenv import load_dotenv
+load_dotenv()
 
 try:
     from . import database as db

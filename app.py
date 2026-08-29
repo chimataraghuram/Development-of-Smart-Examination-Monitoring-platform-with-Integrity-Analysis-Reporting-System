@@ -1,5 +1,7 @@
 """Launch the Flask application from the repository root."""
 import os
+from dotenv import load_dotenv
+load_dotenv()
 import sys
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
