@@ -1,9 +1,9 @@
 $ErrorActionPreference = 'Stop'
-$projectRoot = (Resolve-Path $PSScriptRoot).Path
+$projectRoot = (Resolve-Path "$PSScriptRoot\..").Path
 $projectPattern = [regex]::Escape($projectRoot)
 
 Get-CimInstance Win32_Process -Filter "Name = 'python.exe'" |
-    Where-Object { $_.CommandLine -match $projectPattern -and $_.CommandLine -match 'app\.py' } |
+    Where-Object { $_.CommandLine -match $projectPattern -and $_.CommandLine -match 'Backend\.app' } |
     ForEach-Object {
         Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
         Write-Host "Stopped stale project server PID $($_.ProcessId)"
@@ -15,4 +15,4 @@ if (-not (Test-Path $python)) { throw "Virtual environment Python was not found 
 Set-Location $projectRoot
 Write-Host "Serving project: $projectRoot"
 Write-Host "Local URL: http://127.0.0.1:5000/login"
-& $python app.py
+& $python -m Backend.app

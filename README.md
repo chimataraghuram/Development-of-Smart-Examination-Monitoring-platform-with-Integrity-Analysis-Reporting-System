@@ -4,146 +4,138 @@ An AI-powered online exam monitoring system. The platform monitors candidates du
 
 ---
 
-## Features
+## 1. Project Name
+**Development of Smart Examination Monitoring Platform with Integrity Analysis Reporting System**
 
-- Candidate registration, login, and exam workspace
-- Administrator dashboard, live monitoring, alerts, and event logs
-- OpenCV Haar-cascade face detection (presence / absence / multiple faces)
-- Tab switching and browser focus-loss tracking
-- Server-authoritative start, pause, resume, and end session lifecycle
-- Integrity scoring, review decisions, and student notifications
-- Optional context-aware AI assistant (OpenRouter)
-- SQLite persistence and report export
+## 2. Project Overview
+This project provides a robust platform for administering online examinations while maintaining academic integrity. It uses advanced monitoring techniques including face detection and browser behavior tracking to ensure a fair testing environment.
 
----
+## 3. Problem Statement
+With the shift towards remote learning and online assessments, traditional invigilation methods are no longer sufficient. There is a critical need for an automated, intelligent system that can continuously monitor candidates and accurately report suspicious activities to maintain the credibility of online exams.
 
-## Technologies
+## 4. Main Objectives
+- Provide a secure, easy-to-use exam environment for candidates.
+- Give administrators and invigilators real-time oversight of ongoing exams.
+- Automate the detection of suspicious behaviors (e.g., looking away, multiple faces, switching tabs).
+- Generate comprehensive integrity reports and automated scores.
 
-- Python (Flask)
-- SQLite
-- OpenCV (Haar Cascade Classifier)
-- Scikit-Image
-- HTML / CSS / JavaScript
-- OpenRouter API (optional AI assistant)
+## 5. Key Features
+- **Real-time Monitoring:** Browser focus tracking and OpenCV Haar-cascade face detection.
+- **Role-based Dashboards:** Dedicated panels for Candidates and Administrators.
+- **Integrity Scoring:** Automated deductions based on violation severity.
+- **AI Assistant:** Context-aware chatbot (via OpenRouter) to assist users and admins.
+- **Reporting:** Exportable integrity reports and timeline logs.
 
----
+## 6. Technology Stack
+- **Backend:** Python, Flask
+- **Database:** SQLite
+- **Computer Vision:** OpenCV (Haar Cascade Classifier), Scikit-Image
+- **Frontend:** HTML, CSS, JavaScript (Vanilla JS with glassmorphism UI)
+- **AI Integration:** OpenRouter API
 
-## Repository structure
+## 7. Project Architecture
+The platform follows a monolithic client-server architecture. The Flask backend serves server-side rendered HTML templates and RESTful APIs, which the JavaScript frontend consumes to handle live monitoring (webcam feeds, browser events) and asynchronous data loading.
 
-```text
-Team GitHub Repository
-│
+## 8. Repository Structure
+\\	ext
+ExamMonitor/
 ├── Frontend/
-│   └── Complete frontend source code (templates, static assets)
-│
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── templates/            # HTML Templates
+│   └── static/               # CSS, JS, Images
 ├── Backend/
-│   └── Complete backend source code (Flask app, database, scoring, AI, exports)
-│
-├── Agile Documentation/
-│   └── Required Agile documents
-│
-├── LICENSE
-│   └── MIT License
-│
-├── README.md
-│   └── Project information + setup/run instructions
-│
-└── Other required project files
-    ├── app.py                 # Run from the repository root
-    ├── requirements.txt
-    ├── .env.example
-    ├── run_local.ps1
-    └── scripts/               # Diagnostic helpers
-```
+│   ├── app.py                # Main Flask entry point
+│   ├── requirements.txt      # Python dependencies
+│   ├── database.py           # SQLite operations
+│   ├── ai_service.py         # AI chatbot integration
+│   ├── integrity_scorer.py   # Scoring logic
+│   └── haarcascade...xml     # OpenCV model
+├── Agile Documentation/      # Sprint plans, backlogs, user stories
+├── evidence/                 # Internship screenshots and testing evidence
+├── scripts/                  # Diagnostic and run scripts (e.g., run_local.ps1)
+├── .env.example              # Environment variables template
+├── .gitignore
+├── FINAL_SUBMISSION_AUDIT.md # Audit document for final submission
+├── LICENSE                   # MIT License
+└── README.md                 # This file
+\
+## 9. Frontend Setup
+The frontend uses standard web technologies. Optional Node dependencies (like JSDOM/Puppeteer) are listed in \Frontend/package.json\ for testing purposes.
+\\ash
+cd Frontend
+npm install
+cd ..
+\
+## 10. Backend Setup & 11. Environment Configuration
+Create a virtual environment (recommended) and install backend dependencies:
 
----
-
-## Installation
-
-Clone the repository:
-
-```bash
-git clone https://github.com/chimataraghuram/Development-of-Smart-Examination-Monitoring-platform-with-Integrity-Analysis-Reporting-System.git
-```
-
-Move into the project directory:
-
-```bash
-cd Development-of-Smart-Examination-Monitoring-platform-with-Integrity-Analysis-Reporting-System
-```
-
-Create a virtual environment (recommended) and install dependencies:
-
-```bash
+\\ash
 python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-```
+# Windows:
+.venv\Scriptsctivate
+# macOS/Linux:
+source .venv/bin/activate
 
-On macOS or Linux, activate with `source .venv/bin/activate`.
-
+pip install -r Backend/requirements.txt
+\
 Set up environment variables:
+1. Copy \.env.example\ to a new file named \.env\ in the root directory.
+2. Set a long random \FLASK_SECRET_KEY\.
+3. Add \OPENROUTER_API_KEY\ if you want to enable the AI assistant.
+4. Set \ADMIN_DEFAULT_PASSWORD\ to a strong private value before first use.
 
-1. Copy `.env.example` to `.env`.
-2. Set a long random `FLASK_SECRET_KEY`.
-3. Add `OPENROUTER_API_KEY` only if you want the AI assistant.
+## 12. Database Setup
+The application uses SQLite. On startup, it automatically creates or migrates the \Backend/exam_monitor.db\ database file and seeds the local administrator account (admin@gmail.com) using the \ADMIN_DEFAULT_PASSWORD\ from \.env\.
 
-The local administrator account uses the email `admin@gmail.com`. Set `ADMIN_DEFAULT_PASSWORD` in `.env` to a strong private value before first use; never commit that value or the resulting `.env` file.
+## 13. How to run the project
+From the repository root (with the virtual environment activated):
 
----
+\\ash
+python -m Backend.app
+\
+The application will listen on \http://127.0.0.1:5000/\.
 
-## Run the project
+**Windows Users:** You can use the provided PowerShell script to automatically kill stale instances and start the server:
+\\powershell
+.\scriptsun_local.ps1
+\
+## 14. Candidate/User Features
+- Secure registration and login.
+- Exam workspace with readiness checks.
+- Real-time display of integrity score and session status.
+- Personal AI assistant for exam-related queries.
+- Submission and post-exam reports.
 
-From the repository root:
+## 15. Admin/Invigilator Features
+- Comprehensive dashboard displaying active sessions and live metrics.
+- Action center for reviewing suspicious alerts and flags.
+- Ability to pause, resume, or terminate candidate sessions.
+- Final review decisions on flagged exams.
 
-```bash
-python app.py
-```
+## 16. AI Assistant Features
+- Powered by OpenRouter, available directly in the UI.
+- Context-aware: knows the student's current score, exam rules, and session status.
+- Admin capabilities: can query the database to summarize candidate data and suspicious events on demand.
 
-The application listens on `http://127.0.0.1:5000/`.
+## 17. Monitoring Features
+- **Browser Tracking:** Detects tab switching, window minimizing, and focus loss.
+- **Vision Tracking:** Uses the webcam to detect Face Absence and Multiple Faces.
+- Continuous event logging directly to the backend timeline.
 
-On Windows, `run_local.ps1` stops a stale local server and starts the app with the project virtual environment.
+## 18. Report Generation
+- Automated integrity score calculation (starts at 100, deducts based on violations).
+- Downloadable/exportable session reports with full timeline logs.
 
-## Database setup
+## 19. Testing Information
+Diagnostic and testing scripts are available in the \scripts/\ directory to probe the API endpoints, verify scoring schemas, and test dashboard features.
 
-The application uses SQLite. On startup, it creates or migrates `Backend/exam_monitor.db` and seeds the local administrator account from `ADMIN_DEFAULT_PASSWORD`. The database file is intentionally ignored by Git because it contains local runtime data.
-
-## How to use the system
-
-Candidates register or sign in, review assigned examinations, complete the readiness checks, start an exam, and keep the monitoring workspace active until submission. During an active session, browser and face-monitoring events are recorded and reflected in the activity, statistics, and report views.
-
-Administrators sign in through the same authentication flow and use the dashboard to review active sessions, alerts, event logs, examinations, integrity reports, review decisions, exports, and the optional AI assistant. The AI assistant requires `OPENROUTER_API_KEY`; without it, the application remains usable and reports that the assistant is unavailable.
-
----
-
-## Current modules
-
-- Candidate registration and login
-- Admin dashboard and live analytics
-- Browser tab and focus monitoring
-- Photo / evidence capture
-- Face detection (OpenCV)
-- Integrity scoring
-- Event logging and timeline
-- Session management with pause / resume
-- Examination creation, publishing, and candidate assignment
-- Integrity review workflow
-- Student notifications
-- SQLite database
-- Optional AI chatbot assistant
-
----
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
-
----
-
-## Team
-
+## 20. Team/Contribution Information
 **Raghuram Chimata**
-
 - GitHub: https://github.com/chimataraghuram
 - LinkedIn: https://linkedin.com/in/chimataraghuram
 - Portfolio: https://chimataraghuram.vercel.app
+
+---
+## License
+This project is licensed under the [MIT License](LICENSE).
