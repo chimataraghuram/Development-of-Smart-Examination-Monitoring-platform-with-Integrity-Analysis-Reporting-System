@@ -1950,7 +1950,6 @@ max-width: 100% !important;
         </div>
         
         <div class="cp-section-header">
-            <h2>Profile Information</h2>
             <button class="cp-btn cp-outline settings-trigger-btn" id="openSettingsButton"><i class="fas fa-pencil-alt"></i> Edit Profile</button>
         </div>
         
@@ -2069,7 +2068,6 @@ max-width: 100% !important;
         <div class="network-modal-card">
             <div class="network-reference-header">
                 <button type="button" class="network-back-button" id="networkCloseButton" aria-label="Close network diagnosis"><i class="fas fa-arrow-left"></i></button>
-                <h2>Network diagnosis</h2>
                 <span class="network-header-clock" id="networkHeaderClock"></span>
             </div>
             <div class="network-diagnosis-stage">
@@ -2265,7 +2263,6 @@ max-width: 100% !important;
 
         <!-- Session Panel -->
         <div class="panel" id="panelSession">
-            <h2>Session Information</h2>
             <div class="session-sub">Overview of your exam session activity</div>
             
             <div class="session-cards">
@@ -2323,7 +2320,6 @@ max-width: 100% !important;
             <div class="stats-header">
                 <div class="stats-header-icon"><i class="fas fa-chart-bar"></i></div>
                 <div>
-                    <h2>Monitoring Statistics</h2>
                     <div class="stats-sub">Overview of your exam monitoring statistics</div>
                 </div>
             </div>
@@ -2417,7 +2413,6 @@ max-width: 100% !important;
                 <div class="report-header-left">
                     <div class="report-header-icon"><i class="fas fa-file-alt"></i></div>
                     <div>
-                        <h2>Exam Report</h2>
                         <div class="report-sub">Your examination result and integrity activity, displayed without leaving the dashboard.</div>
                     </div>
                 </div>
@@ -2560,8 +2555,6 @@ max-width: 100% !important;
 
             <!-- Step 1: Capture Photo (only if no reference) -->
             <div class="wizard-step" id="step1">
-                <h2><i class="fas fa-camera" style="color:#7c4dff;margin-right:10px;"></i>Capture Your Photo</h2>
-                <div class="sub">Position your face clearly in the frame and capture.</div>
                 <div class="camera-preview">
                     <div class="camera-container">
                         <video id="wizardVideo" autoplay playsinline></video>
@@ -2642,8 +2635,6 @@ max-width: 100% !important;
 
             <!-- Step 3: Instructions & Consent -->
             <div class="wizard-step" id="step3">
-                <h2><i class="fas fa-file-alt" style="color:#fcc419;margin-right:10px;"></i>Exam Instructions</h2>
-                <div class="sub">Please read the following carefully.</div>
                 <div style="background:rgba(255,255,255,0.03);border-radius:12px;padding:16px;margin:16px 0;border:1px solid rgba(255,255,255,0.05);">
                     <ul style="list-style:none;color:rgba(255,255,255,0.7);font-size:14px;line-height:1.8;">
                         <li><i class="fas fa-check-circle" style="color:#51cf66;margin-right:10px;"></i> Ensure you are in a quiet, well-lit environment.</li>
@@ -4917,7 +4908,31 @@ document.body.addEventListener('click', async (e) => {
           },
           detectRetina: true,
         });
-    </script>
+    
+        // --- Browser Focus Detection (Anti-Cheat) ---
+        let blurTime = null;
+        window.addEventListener('blur', () => {
+            blurTime = Date.now();
+        });
+        
+        window.addEventListener('focus', () => {
+            if (blurTime) {
+                const duration = Math.round((Date.now() - blurTime) / 1000);
+                blurTime = null;
+                
+                // Send focus lost event to backend
+                fetch('/api/events', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'Browser Focus Loss',
+                        message: \Candidate switched tabs or minimized browser for \ seconds\,
+                        deduction: 5
+                    })
+                }).catch(e => console.error('Error logging focus lost:', e));
+            }
+        });
+</script>
         <!-- ====== SYSTEM DIAGNOSTICS MODAL ====== -->
     <div id="systemDiagModal" class="screenshot-modal">
         <div class="screenshot-modal-content" style="width: 900px; max-width: 92vw; padding: 0; text-align: left; background: linear-gradient(145deg, #161832, #0f1128); border: 1px solid rgba(124,77,255,0.15); border-radius: 24px; display: flex; overflow: hidden; position: relative; box-shadow: 0 30px 80px rgba(0,0,0,0.6);">
