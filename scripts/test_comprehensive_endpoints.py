@@ -149,7 +149,7 @@ assert all(event['deducted'] == 0 for event in current_report['events'] if event
     'Face Detected', 'Browser Focus Regained'
 })
 
-with patch.dict(os.environ, {'OPENROUTER_API_KEY': 'test-key'}, clear=False), patch('backend.ai_service.request.urlopen', return_value=FakeAIResponse()):
+with patch.dict(os.environ, {'OPENROUTER_API_KEY': 'test-key'}, clear=False), patch('Backend.ai_service.request.urlopen', return_value=FakeAIResponse()):
     ai_answer = expect(student.post('/api/ai/ask', json={
         'question': 'Why is my score 60?',
         'history': [{'role': 'user', 'content': 'Explain my report.'}],
@@ -194,7 +194,7 @@ assert 'duration_seconds' in student_overview
 expect(admin.get('/api/dashboard/admin?candidate_id=8123&event_type=Browser%20Focus%20Loss'), 200, 'admin filters')
 admin_report = expect(admin.get(f'/api/integrity_report/{student_id}'), 200, 'admin cross-candidate report').get_json()
 assert admin_report['user']['id'] == student_id
-with patch.dict(os.environ, {'OPENROUTER_API_KEY': 'test-key'}, clear=False), patch('backend.ai_service.request.urlopen', side_effect=capture_ai_request):
+with patch.dict(os.environ, {'OPENROUTER_API_KEY': 'test-key'}, clear=False), patch('Backend.ai_service.request.urlopen', side_effect=capture_ai_request):
     admin_ai_answer = expect(admin.post('/api/ai/ask', json={'question': 'Summarize the monitoring dashboard.'}), 200, 'admin AI Ask').get_json()
     assert '60' in admin_ai_answer['answer']
     system_message = captured_ai_payload['request']['messages'][0]['content']

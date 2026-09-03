@@ -40,27 +40,34 @@ class AIServiceError(Exception):
 
 def _load_local_environment():
     """Load a local .env file only when deployment variables are not already set."""
-    env_path = Path(__file__).with_name('.env')
-    if not env_path.exists():
-        return
-
-    try:
-        for line in env_path.read_text(encoding='utf-8').splitlines():
-            line = line.strip()
-            if not line or line.startswith('#') or '=' not in line:
-                continue
-            key, value = line.split('=', 1)
-            key = key.strip()
-            value = value.strip().strip('"').strip("'")
-            if key and key not in os.environ:
-                os.environ[key] = value
-    except OSError:
-        logger.warning('Unable to read local AI configuration.')
+    candidate_paths = [
+        Path(__file__).resolve().parent.parent / '.env',
+        Path(__file__).resolve().parent / '.env',
+        Path.cwd() / '.env',
+    ]
+    for env_path in candidate_paths:
+        if not env_path.is_file():
+            continue
+        try:
+            for line in env_path.read_text(encoding='utf-8').splitlines():
+                line = line.strip()
+                if not line or line.startswith('#') or '=' not in line:
+                    continue
+                key, value = line.split('=', 1)
+                key = key.strip()
+                value = value.strip().strip('"').strip("'")
+                if key and key not in os.environ:
+                    os.environ[key] = value
+        except OSError:
+            logger.warning('Unable to read local AI configuration from %s', env_path)
 
 
 def _get_api_key():
     _load_local_environment()
-    return os.getenv('OPENROUTER_API_KEY', '').strip()
+    key = os.getenv('OPENROUTER_API_KEY', '').strip()
+    if key.lower() in {'replace_with_your_openrouter_key', 'your_api_key_here', 'your_openrouter_api_key_here'}:
+        return ''
+    return key
 
 
 def get_admin_system_prompt():
@@ -120,6 +127,16 @@ def _student_context(user_id):
     exam_rules = db.get_app_setting('exam_rules', '')
     break_policy = db.get_app_setting('break_policy', '')
 
+    try:
+        assigned_exams = db.get_student_exams(user_id)
+    except Exception:
+        assigned_exams = []
+
+    try:
+        current_exam = db.get_current_exam_for_student(user_id)
+    except Exception:
+        current_exam = None
+
     return {
         'role': 'student',
         'candidate': {
@@ -142,6 +159,8 @@ def _student_context(user_id):
                 if int(event.get('deducted') or 0) > 0
             ],
         },
+        'assigned_exams': assigned_exams,
+        'current_exam': current_exam,
         'exam_rules': exam_rules if exam_rules else 'I don\'t have that rule information available.',
         'break_policy': break_policy if break_policy else 'I don\'t have the break policy for this examination.',
     }
@@ -152,6 +171,8 @@ def _admin_context():
     return {
         'role': 'admin',
         'dashboard_summary': dashboard.get('stats', {}),
+        'analytics': dashboard.get('analytics', {}),
+        'students': dashboard.get('students', []),
         'instruction': 'You have tools to query the database. If a user asks about specific candidates, events, or reports, use the tools to fetch the data before answering.'
     }
 
@@ -392,20 +413,187 @@ def _tool_compare_candidates(args):
     })
 
 
+def _local_student_answer(user, question, context):
+    """Provide accurate, contextual responses for student queries even without external LLM."""
+    q = question.lower()
+    candidate = context.get('candidate', {})
+    candidate_name = candidate.get('name') or user.get('name') or 'Candidate'
+    session_data = context.get('current_or_latest_session', {})
+    status = session_data.get('status', 'Not Started')
+    score_raw = session_data.get('integrity_score', 100)
+    try:
+        score = int(score_raw) if float(score_raw).is_integer() else score_raw
+    except (TypeError, ValueError):
+        score = score_raw
+    raw_risk = session_data.get('risk_label', 'Low Risk')
+    risk = raw_risk if 'risk' in str(raw_risk).lower() else f"{raw_risk} Risk"
+    deductions_raw = session_data.get('total_deduction', 0)
+    try:
+        deductions = int(deductions_raw) if float(deductions_raw).is_integer() else deductions_raw
+    except (TypeError, ValueError):
+        deductions = deductions_raw
+    event_counts = session_data.get('event_counts', {})
+    face_ratio = session_data.get('face_presence_ratio', 100)
+    exam_rules = context.get('exam_rules', '')
+    break_policy = context.get('break_policy', '')
+    assigned_exams = context.get('assigned_exams', [])
+
+    # 1. Exam Schedule / Today's exam
+    if any(k in q for k in ['exam today', 'have exam', 'any exam', 'schedule', 'when is my exam', 'next exam', 'exam date', 'exam time', 'my exam', 'have an exam']):
+        today_str = datetime.now().strftime('%Y-%m-%d')
+        today_exams = [e for e in assigned_exams if str(e.get('exam_date', '')).startswith(today_str)]
+        
+        if today_exams:
+            exam_titles = ', '.join(f"**{e.get('title')}** at {e.get('exam_date')}" for e in today_exams)
+            return f"Yes, {candidate_name}, you have examination(s) scheduled for today: {exam_titles}."
+        elif status == 'In Progress':
+            return f"Yes, {candidate_name}, you currently have an active examination session **In Progress**."
+        elif assigned_exams:
+            next_exam = assigned_exams[0]
+            return f"You do not have an exam scheduled for today. Your upcoming exam is **{next_exam.get('title')}** scheduled for {next_exam.get('exam_date')}."
+        else:
+            return f"No, {candidate_name}, you do not have any examinations scheduled for today. Your monitoring session status is currently **{status}**."
+
+    # 2. Score / Deductions / Violations
+    if any(k in q for k in ['score', 'point', 'deduct', 'loss', 'lost', 'penalty', 'violation', 'mark', 'why is my score', 'why did i lose']):
+        base = f"Your current integrity score is **{score}/100** ({risk})."
+        if deductions > 0:
+            parts = [f"{base} Total deduction: **{deductions} points**."]
+            if event_counts:
+                parts.append("\n**Violation breakdown:**")
+                for ev_type, count in event_counts.items():
+                    if count > 0:
+                        parts.append(f"- **{ev_type}**: {count} occurrence(s) (-{count * 5} pts)")
+            parts.append("\nTip: Maintain continuous webcam visibility and avoid switching tabs or windows to prevent deductions.")
+            return '\n'.join(parts)
+        else:
+            return f"{base} You have **0 deductions** and no recorded violations. Keep up the high integrity!"
+
+    # 3. Rules & Guidelines
+    if any(k in q for k in ['rule', 'regulation', 'guideline', 'instruction', 'allowed', 'prohibited', 'cheat']):
+        if exam_rules and 'not have that rule' not in exam_rules.lower():
+            return f"**Examination Rules:**\n{exam_rules}"
+        return (
+            "**Key Platform Rules:**\n"
+            "1. **Webcam Visibility**: Keep your face centered and clearly visible throughout the exam.\n"
+            "2. **Window Focus**: Do not switch tabs, open new windows, or minimize the browser.\n"
+            "3. **Environment**: Ensure no multiple faces or unauthorized persons are in frame.\n"
+            "4. **Scoring**: Each detected violation deducts 5 points from your initial 100 integrity points."
+        )
+
+    # 4. Break Policy
+    if any(k in q for k in ['break', 'rest', 'toilet', 'washroom', 'pause', 'leave']):
+        if break_policy and 'not have the break policy' not in break_policy.lower():
+            return f"**Break Policy:**\n{break_policy}"
+        return "I don't have a specific break policy recorded for this examination. Please consult your invigilator or administrator before stepping away."
+
+    # 5. Monitoring Status / Camera / Face
+    if any(k in q for k in ['status', 'running', 'active', 'camera', 'webcam', 'monitor', 'presence', 'face']):
+        return (
+            f"**Current Session Overview:**\n"
+            f"- Candidate: **{candidate_name}** ({candidate.get('student_id', 'N/A')})\n"
+            f"- Session Status: **{status}**\n"
+            f"- Integrity Score: **{score}/100** ({risk})\n"
+            f"- Face Presence Ratio: **{face_ratio}%**\n"
+            f"- Total Deductions: **{deductions} points**"
+        )
+
+    # 6. Greetings / General Help
+    if any(k in q for k in ['hi', 'hello', 'hey', 'help', 'who are you', 'what can you do', 'good morning', 'good afternoon']):
+        return (
+            f"Hello {candidate_name}! I am your ExamMonitor AI assistant.\n\n"
+            "I can help you with:\n"
+            "- Checking your exam schedule (`Do I have an exam today?`)\n"
+            f"- Explaining your integrity score and point deductions (`Why is my score {score}?`)\n"
+            "- Viewing exam rules and break policies\n"
+            "- Monitoring guidelines and tips to avoid penalties."
+        )
+
+    # 7. Fallback response for unclassified queries
+    return (
+        f"Hello {candidate_name}. Based on your latest examination records:\n"
+        f"- Session Status: **{status}**\n"
+        f"- Integrity Score: **{score}/100** ({risk})\n\n"
+        "You can ask me about your exam schedule, integrity score, violation reasons, or examination rules."
+    )
+
+
+def _local_admin_answer(user, question, context):
+    """Provide quick, contextual responses for admin queries even without external LLM."""
+    q = question.lower()
+    summary = context.get('dashboard_summary', {})
+    candidates = summary.get('total_candidates', 0)
+    active = summary.get('active_exams', 0)
+    completed = summary.get('completed_exams', 0)
+    suspicious = summary.get('total_suspicious_events', 0)
+    avg_score = summary.get('average_integrity', 100)
+
+    # 1. Summary / Overview / Today's exam
+    if any(k in q for k in ['today', 'conduct', 'summary', 'overview', 'dashboard', 'status', 'participate']):
+        return (
+            f"Exam Status Overview:\n"
+            f"- Total Candidates: **{candidates}**\n"
+            f"- Active Sessions: **{active}**\n"
+            f"- Completed Sessions: **{completed}**\n"
+            f"- Average Integrity Score: **{avg_score}%**\n"
+            f"- Total Suspicious Events: **{suspicious}**\n\n"
+            "[ Export Excel ](/api/admin/export/candidates)"
+        )
+
+    # 2. Export / Excel
+    if any(k in q for k in ['export', 'excel', 'sheet', 'csv', 'download']):
+        return (
+            "Available Excel Reports:\n"
+            "- All Candidates: [ Export Excel ](/api/admin/export/candidates)\n"
+            "- Average Students: [ Export Excel ](/api/admin/export/average_students)\n"
+            "- High-Risk Candidates: [ Export Excel ](/api/admin/export/high_risk)\n"
+            "- Suspicious Events: [ Export Excel ](/api/admin/export/suspicious_events)"
+        )
+
+    # 3. High Risk / Suspicious
+    if any(k in q for k in ['high risk', 'risk', 'suspicious', 'violation']):
+        return (
+            f"There are **{suspicious}** suspicious events recorded across sessions.\n\n"
+            "You can review or export the list here: [ Export Excel ](/api/admin/export/high_risk)"
+        )
+
+    # 4. Scores
+    if any(k in q for k in ['score', 'average', 'highest', 'lowest']):
+        return (
+            f"Current Cohort Integrity Scores:\n"
+            f"- Average Score: **{avg_score}%**\n"
+            f"- Candidates Count: **{candidates}**\n\n"
+            "[ Export Excel ](/api/admin/export/candidates)"
+        )
+
+    return (
+        f"Admin Dashboard Summary: {candidates} candidate(s), {active} active session(s), "
+        f"average integrity score {avg_score}%. Total suspicious events: {suspicious}.\n\n"
+        "[ Export Excel ](/api/admin/export/candidates)"
+    )
+
+
+def _local_fallback_answer(user, question, context):
+    """Route fallback to the appropriate role."""
+    if user.get('role') == 'admin':
+        return _local_admin_answer(user, question, context)
+    return _local_student_answer(user, question, context)
+
+
 def answer_question(user, question, history=None):
-    """Ask the configured external provider without exposing its key to the browser."""
+    """Ask the configured external provider without exposing its key to the browser, with robust local fallback."""
     question = str(question or '').strip()
     if not question:
         raise AIServiceError('Please enter a question.', 400)
     if len(question) > MAX_QUESTION_LENGTH:
         raise AIServiceError(f'Questions must be {MAX_QUESTION_LENGTH} characters or fewer.', 400)
 
+    context = build_authorized_context(user)
     api_key = _get_api_key()
     if not api_key:
-        raise AIServiceError('AI Ask is not configured on this server. Add OPENROUTER_API_KEY to the local environment.', 503)
+        return _local_fallback_answer(user, question, context)
 
     is_admin = user.get('role') == 'admin'
-    context = build_authorized_context(user)
     messages = [{'role': 'system', 'content': _system_prompt(user.get('role', 'student'), context)}]
     messages.extend(_sanitize_history(history))
     messages.append({'role': 'user', 'content': question})
@@ -438,20 +626,17 @@ def answer_question(user, question, history=None):
             with request.urlopen(provider_request, timeout=35) as provider_response:
                 response_payload = json.loads(provider_response.read().decode('utf-8'))
         except error.HTTPError as exc:
-            logger.warning('AI provider returned HTTP %s.', exc.code)
-            if exc.code in (401, 403):
-                raise AIServiceError('The AI service credentials were rejected. Update the server configuration.', 503) from exc
-            if exc.code == 429:
-                raise AIServiceError('AI Ask is temporarily busy. Please try again shortly.', 429) from exc
-            raise AIServiceError('AI Ask is temporarily unavailable. Please try again.', 502) from exc
+            logger.warning('AI provider returned HTTP %s. Using local fallback.', exc.code)
+            return _local_fallback_answer(user, question, context)
         except (error.URLError, TimeoutError, json.JSONDecodeError) as exc:
-            logger.warning('AI provider request failed: %s', type(exc).__name__)
-            raise AIServiceError('AI Ask is temporarily unavailable. Please try again.', 502) from exc
+            logger.warning('AI provider request failed: %s. Using local fallback.', type(exc).__name__)
+            return _local_fallback_answer(user, question, context)
 
         try:
             message_obj = response_payload['choices'][0]['message']
         except (KeyError, IndexError, TypeError) as exc:
-            raise AIServiceError('The AI service returned an incomplete response. Please try again.') from exc
+            logger.warning('AI provider returned invalid response structure. Using local fallback.')
+            return _local_fallback_answer(user, question, context)
 
         if message_obj.get('tool_calls'):
             messages.append(message_obj)
@@ -460,7 +645,7 @@ def answer_question(user, question, history=None):
                 tool_name = tool_call['function']['name']
                 try:
                     args = json.loads(tool_call['function']['arguments'])
-                except:
+                except Exception:
                     args = {}
                     
                 result = "{}"
@@ -488,7 +673,7 @@ def answer_question(user, question, history=None):
         # No tool calls, return final string
         answer = _extract_content(response_payload)
         if not answer:
-            raise AIServiceError('The AI service returned an empty answer. Please try again.')
+            return _local_fallback_answer(user, question, context)
         return answer
     
-    raise AIServiceError('The AI service required too many tool calls. Please try a simpler question.')
+    return _local_fallback_answer(user, question, context)
