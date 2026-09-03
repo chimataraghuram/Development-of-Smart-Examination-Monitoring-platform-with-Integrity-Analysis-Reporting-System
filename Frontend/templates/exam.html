@@ -3494,17 +3494,22 @@ max-width: 100% !important;
                                 sessionStartTime = Date.now() - totalPausedDuration;
                                 startTimer();
                             }
+                            if (typeof restoreOrGenerateExam === 'function' && (!currentExamQuestions || currentExamQuestions.length === 0)) {
+                                restoreOrGenerateExam();
+                            }
                         } else {
-                            startBtn.disabled = false;
-                            togglePauseBtn.disabled = true;
-                            togglePauseBtn.textContent = 'Pause';
-                            togglePauseBtn.classList.remove('resume');
-                            togglePauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
-                            endBtn.disabled = true;
-                            if (cameraStream) stopCamera();
-                            if (timerInterval) {
-                                clearInterval(timerInterval);
-                                timerInterval = null;
+                            if (!currentExamQuestions || currentExamQuestions.length === 0) {
+                                startBtn.disabled = false;
+                                togglePauseBtn.disabled = true;
+                                togglePauseBtn.textContent = 'Pause';
+                                togglePauseBtn.classList.remove('resume');
+                                togglePauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                                endBtn.disabled = true;
+                                if (cameraStream) stopCamera();
+                                if (timerInterval) {
+                                    clearInterval(timerInterval);
+                                    timerInterval = null;
+                                }
                             }
                         }
                     })
@@ -3656,6 +3661,7 @@ max-width: 100% !important;
             }
 
             // ----- Log event (server) -----
+            let lastEventDashboardSync = 0;
             function logEventToServer(type, deducted, screenshotBase64 = null) {
                 const payload = { type, deducted };
                 if (screenshotBase64) payload.screenshot = screenshotBase64;
@@ -3665,8 +3671,15 @@ max-width: 100% !important;
                 })
                 .then(res => res.json())
                 .then(data => {
-                    loadDashboard();
+                    const now = Date.now();
+                    if (now - lastEventDashboardSync > 8000) {
+                        lastEventDashboardSync = now;
+                        loadDashboard();
+                    }
                     return data;
+                })
+                .catch(err => {
+                    console.warn('Background event log warning:', err);
                 });
             }
 
@@ -4286,6 +4299,7 @@ max-width: 100% !important;
                     .then(() => {
                         examRunning = false;
                         examPaused = false;
+                        if (typeof clearExamState === 'function') clearExamState();
                         stopCamera();
                         if (timerInterval) {
                             clearInterval(timerInterval);
@@ -4573,10 +4587,53 @@ max-width: 100% !important;
 
             let currentExamQuestions = [];
             let currentQIndex = 0;
-            let qTimer = 60;
+            let qTimer = 180;
             let qTimerInterval = null;
             let userAnswers = [];
             let currentExamSubject = '';
+
+            function saveExamState() {
+                try {
+                    const state = {
+                        questions: currentExamQuestions,
+                        qIndex: currentQIndex,
+                        answers: userAnswers,
+                        subject: currentExamSubject,
+                        qTimer: qTimer
+                    };
+                    sessionStorage.setItem('active_exam_state', JSON.stringify(state));
+                } catch (e) {}
+            }
+
+            function clearExamState() {
+                try {
+                    sessionStorage.removeItem('active_exam_state');
+                } catch (e) {}
+            }
+
+            function restoreOrGenerateExam() {
+                try {
+                    const saved = sessionStorage.getItem('active_exam_state');
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        if (parsed && Array.isArray(parsed.questions) && parsed.questions.length > 0) {
+                            currentExamQuestions = parsed.questions;
+                            currentQIndex = typeof parsed.qIndex === 'number' ? parsed.qIndex : 0;
+                            userAnswers = Array.isArray(parsed.answers) ? parsed.answers : [];
+                            currentExamSubject = parsed.subject || 'Examination';
+                            qTimer = typeof parsed.qTimer === 'number' && parsed.qTimer > 0 ? parsed.qTimer : 180;
+                            
+                            const titleEl = document.getElementById('examSubjectTitle');
+                            if (titleEl) {
+                                titleEl.innerHTML = `${currentExamSubject} Exam <span style="font-size:14px; font-weight:normal; background: rgba(124,77,255,0.2); padding:4px 12px; border-radius:20px; color:#b8aaff;">${currentExamQuestions.length} Questions</span>`;
+                            }
+                            renderCurrentQuestion();
+                            return;
+                        }
+                    }
+                } catch (e) {}
+                generateExam();
+            }
 
             function generateExam() {
                 const subjects = Object.keys(examBanks);
@@ -4613,6 +4670,7 @@ max-width: 100% !important;
                 currentExamQuestions = combined;
                 currentQIndex = 0;
                 userAnswers = [];
+                qTimer = 180;
                 
                 const titleEl = document.getElementById('examSubjectTitle');
                 if (titleEl) {
@@ -4622,6 +4680,7 @@ max-width: 100% !important;
                 const submitBtn = document.getElementById('submitMockExamBtn');
                 if (submitBtn) submitBtn.style.display = 'none';
 
+                saveExamState();
                 renderCurrentQuestion();
             }
 
@@ -4635,14 +4694,18 @@ max-width: 100% !important;
                 }
 
                 const q = currentExamQuestions[currentQIndex];
-                qTimer = 60;
+                if (!qTimer || qTimer <= 0) qTimer = 180;
                 clearInterval(qTimerInterval);
+                saveExamState();
+
+                const minsInit = Math.floor(qTimer / 60).toString().padStart(2, '0');
+                const secsInit = (qTimer % 60).toString().padStart(2, '0');
 
                 let html = `
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:10px;">
                         <span style="color:rgba(255,255,255,0.6); font-size:14px; font-weight:600;">Question ${currentQIndex + 1} of ${currentExamQuestions.length}</span>
                         <div style="display:flex; align-items:center; gap:8px; color:#ff6b6b; font-weight:700; font-size:16px;">
-                            <i class="fas fa-clock"></i> <span id="qTimerDisplay">01:00</span>
+                            <i class="fas fa-clock"></i> <span id="qTimerDisplay">${minsInit}:${secsInit}</span>
                         </div>
                     </div>
                     <div class="exam-question">
@@ -4651,9 +4714,10 @@ max-width: 100% !important;
                 `;
 
                 q.opts.forEach((opt, optIdx) => {
+                    const isChecked = userAnswers[currentQIndex] === optIdx ? 'checked' : '';
                     html += `
                         <label class="exam-option">
-                            <input type="radio" name="q_current" value="${optIdx}">
+                            <input type="radio" name="q_current" value="${optIdx}" ${isChecked}>
                             ${opt}
                         </label>
                     `;
@@ -4673,8 +4737,9 @@ max-width: 100% !important;
                 container.innerHTML = html;
 
                 document.getElementById('skipQBtn').onclick = () => {
-                    userAnswers.push(null);
+                    userAnswers[currentQIndex] = null;
                     currentQIndex++;
+                    qTimer = 180;
                     renderCurrentQuestion();
                 };
 
@@ -4686,6 +4751,7 @@ max-width: 100% !important;
                     }
                     saveAnswer();
                     currentQIndex++;
+                    qTimer = 180;
                     renderCurrentQuestion();
                 };
 
@@ -4696,15 +4762,17 @@ max-width: 100% !important;
                     const disp = document.getElementById('qTimerDisplay');
                     if (disp) {
                         disp.textContent = `${mins}:${secs}`;
-                        if (qTimer <= 10) {
+                        if (qTimer <= 15) {
                             disp.parentElement.style.animation = 'pulse 1s infinite';
                         }
                     }
 
                     if (qTimer <= 0) {
                         clearInterval(qTimerInterval);
-                        userAnswers.push(null);
+                        showToast('Time for this question finished. Advancing to next.', 'info');
+                        if (userAnswers[currentQIndex] === undefined) userAnswers[currentQIndex] = null;
                         currentQIndex++;
+                        qTimer = 180;
                         renderCurrentQuestion();
                     }
                 }, 1000);
@@ -4712,10 +4780,12 @@ max-width: 100% !important;
 
             function saveAnswer() {
                 const selected = document.querySelector('input[name="q_current"]:checked');
-                userAnswers.push(selected ? parseInt(selected.value) : null);
+                userAnswers[currentQIndex] = selected ? parseInt(selected.value) : null;
+                saveExamState();
             }
 
             function finishMockExam() {
+                clearExamState();
                 clearInterval(qTimerInterval);
                 let correctCount = 0;
                 userAnswers.forEach((ans, i) => {

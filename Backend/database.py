@@ -666,6 +666,14 @@ def get_verification_photo(user_id):
         ).fetchone()
         return row['file_path'] if row else None
 
+def get_all_verification_photos(user_id):
+    with get_db_connection() as conn:
+        rows = conn.execute(
+            "SELECT file_path FROM evidence WHERE user_id = ? AND file_path LIKE '%/verification/%' ORDER BY uploaded_at DESC",
+            (user_id,)
+        ).fetchall()
+        return [row['file_path'] for row in rows if row and row['file_path']]
+
 
 def create_exam(title, exam_date, duration_minutes=60, break_minutes=5, rules='', created_by=None):
     with get_db_connection() as conn:

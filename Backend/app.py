@@ -737,11 +737,36 @@ def verify_photo():
 
     return jsonify({'message': 'Photo saved', 'path': screenshot_path}), 200
 
+def _extract_face_for_verification(gray_img, cascade):
+    """
+    Robust multi-pass face detector that reliably finds the candidate's face
+    under varying webcam lighting, angles, and distances.
+    """
+    if gray_img is None or gray_img.size == 0:
+        return None
+    # Pass 1: Standard detection with minNeighbors=3
+    faces = cascade.detectMultiScale(gray_img, scaleFactor=1.1, minNeighbors=3, minSize=(30, 30))
+    # Pass 2: Histogram equalized (handles dim lighting / backlighting)
+    if len(faces) == 0:
+        eq = cv2.equalizeHist(gray_img)
+        faces = cascade.detectMultiScale(eq, scaleFactor=1.1, minNeighbors=2, minSize=(25, 25))
+    # Pass 3: Sensitive pass with smaller scale factor
+    if len(faces) == 0:
+        faces = cascade.detectMultiScale(gray_img, scaleFactor=1.05, minNeighbors=2, minSize=(25, 25))
+    if len(faces) == 0:
+        return None
+    # Pick the largest face by area (the candidate sits closest in front of webcam)
+    faces = sorted(faces, key=lambda f: f[2] * f[3], reverse=True)
+    (x, y, w, h) = faces[0]
+    face_roi = gray_img[y:y+h, x:x+w]
+    return cv2.resize(face_roi, (100, 100))
+
+
 @app.route('/api/verify_face', methods=['POST'])
 @login_required
 def verify_face():
     try:
-        data = request.json
+        data = request.json or {}
         image_b64 = data.get('image')
         if not image_b64:
             return jsonify({'error': 'No image provided'}), 400
@@ -756,60 +781,58 @@ def verify_face():
             return jsonify({'error': 'Invalid image data'}), 400
 
         user_id = session['user_id']
-        ref_path = db.get_verification_photo(user_id)
-        if not ref_path:
-            return jsonify({'error': 'No reference photo found'}), 400
+        ref_paths = db.get_all_verification_photos(user_id)
+        if not ref_paths:
+            single = db.get_verification_photo(user_id)
+            if single:
+                ref_paths = [single]
 
-        full_ref_path = os.path.join(app.config['UPLOAD_FOLDER'], ref_path)
-        if not os.path.exists(full_ref_path):
-            return jsonify({'error': 'Reference photo missing'}), 400
+        if not ref_paths:
+            return jsonify({'error': 'No reference photo found. Please capture a photo in Step 1.'}), 400
 
-        ref_img = cv2.imread(full_ref_path)
-        if ref_img is None:
-            return jsonify({'error': 'Cannot read reference photo'}), 400
-
-        # ----- Face detection using Haar cascade -----
         face_cascade = cv2.CascadeClassifier(CASCADE_PATH)
-
-        # Convert to grayscale (both images are BGR from imread/imdecode)
-        gray_ref = cv2.cvtColor(ref_img, cv2.COLOR_BGR2GRAY)
         gray_live = cv2.cvtColor(live_img, cv2.COLOR_BGR2GRAY)
+        face_live = _extract_face_for_verification(gray_live, face_cascade)
+        if face_live is None:
+            return jsonify({'match': False, 'error': 'No face detected in live camera. Please look directly at the webcam.'}), 400
 
-        # Detect faces
-        faces_ref = face_cascade.detectMultiScale(gray_ref, scaleFactor=1.1, minNeighbors=4, minSize=(30, 30))
-        faces_live = face_cascade.detectMultiScale(gray_live, scaleFactor=1.1, minNeighbors=4, minSize=(30, 30))
-
-        if len(faces_ref) != 1:
-            return jsonify({'error': 'Reference must contain exactly one face'}), 400
-        if len(faces_live) != 1:
-            return jsonify({'error': 'Live image must contain exactly one face'}), 400
-
-        # Extract face regions
-        (x, y, w, h) = faces_ref[0]
-        face_ref = gray_ref[y:y+h, x:x+w]
-        (x, y, w, h) = faces_live[0]
-        face_live = gray_live[y:y+h, x:x+w]
-
-        # Resize to same size
-        face_ref = cv2.resize(face_ref, (100, 100))
-        face_live = cv2.resize(face_live, (100, 100))
-
-        # Compute Local Binary Pattern histograms
+        face_live_eq = cv2.equalizeHist(face_live)
         radius = 1
         n_points = 8 * radius
-        lbp_ref = local_binary_pattern(face_ref, n_points, radius, method='uniform')
-        lbp_live = local_binary_pattern(face_live, n_points, radius, method='uniform')
-
-        hist_ref, _ = np.histogram(lbp_ref.ravel(), bins=np.arange(0, n_points + 3), density=True)
+        lbp_live = local_binary_pattern(face_live_eq, n_points, radius, method='uniform')
         hist_live, _ = np.histogram(lbp_live.ravel(), bins=np.arange(0, n_points + 3), density=True)
 
-        # Chi‑squared distance
-        eps = 1e-10
-        chi_sq = 0.5 * np.sum(((hist_ref - hist_live) ** 2) / (hist_ref + hist_live + eps))
-        threshold = 1.5   # Adjust this value based on testing (lower = stricter)
-        match = bool(chi_sq < threshold)
+        best_chi = float('inf')
+        matched = False
 
-        return jsonify({'match': match}), 200
+        for ref_path in ref_paths:
+            full_ref_path = os.path.join(app.config['UPLOAD_FOLDER'], ref_path)
+            if not os.path.exists(full_ref_path):
+                continue
+            ref_img = cv2.imread(full_ref_path)
+            if ref_img is None:
+                continue
+            gray_ref = cv2.cvtColor(ref_img, cv2.COLOR_BGR2GRAY)
+            face_ref = _extract_face_for_verification(gray_ref, face_cascade)
+            if face_ref is None:
+                continue
+
+            face_ref_eq = cv2.equalizeHist(face_ref)
+            lbp_ref = local_binary_pattern(face_ref_eq, n_points, radius, method='uniform')
+            hist_ref, _ = np.histogram(lbp_ref.ravel(), bins=np.arange(0, n_points + 3), density=True)
+
+            eps = 1e-10
+            chi_sq = 0.5 * np.sum(((hist_ref - hist_live) ** 2) / (hist_ref + hist_live + eps))
+            if chi_sq < best_chi:
+                best_chi = chi_sq
+            if chi_sq < 1.5:
+                matched = True
+                break
+
+        if best_chi == float('inf'):
+            return jsonify({'error': 'Reference photo could not be read. Please recapture in Step 1.'}), 400
+
+        return jsonify({'match': matched, 'chi_sq': round(float(best_chi), 5)}), 200
 
     except Exception as e:
         logger.error(f"Face verification error: {e}")
