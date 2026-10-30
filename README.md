@@ -3,6 +3,8 @@
 
 *Developed collaboratively as a team project for the Infosys Virtual Internship 7.0 under the mentorship of Subramaniam Sir.*
 
+?? **Live Demo:** [https://lnkd.in/p/g2NGCB-R](https://lnkd.in/p/g2NGCB-R)
+
 ---
 
 ## 📌 About the Project
@@ -191,10 +193,10 @@ The repository contains the required Agile and project documentation located und
 ## 📸 Project Screenshots
 
 **Evidence: Face Absence Detection**
-![Face Absence](evidence/0222/Face%20Not%20Detected_20260812_192430.png)
+![Face Absence](docs/screenshots/face_absence_detection.png)
 
 **Evidence: Multiple Faces Detection**
-![Multiple Faces](evidence/0222/Multiple_Faces_20260825_192620_159041_3fc19b38.png)
+![Multiple Faces](docs/screenshots/multiple_faces_detection.png)
 
 *(Note: Live dashboard screenshots have not been tracked in the repository. The above images demonstrate the real-time computer vision monitoring engine storing evidence.)*
 
@@ -215,6 +217,9 @@ This is a collaborative team project developed by:
 ### CHIMATA RAGHURAM
 - LinkedIn: https://www.linkedin.com/in/chimataraghuram/
 - GitHub: https://github.com/chimataraghuram
+
+### DADI KAVYA SRI
+- GitHub: https://github.com/Dadikavyasri
 
 ### NARLA SAHITHYA REDDY
 - LinkedIn: https://www.linkedin.com/in/narla-sahithya-reddy-056342399/
