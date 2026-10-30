@@ -3,6 +3,8 @@
 
 *Developed collaboratively as a team project for the Infosys Virtual Internship 7.0 under the mentorship of Subramaniam Sir.*
 
+🌐 **Live Demo:** [https://lnkd.in/p/g2NGCB-R](https://lnkd.in/p/g2NGCB-R)
+
 ---
 
 ## 📌 About the Project
@@ -215,6 +217,9 @@ This is a collaborative team project developed by:
 ### CHIMATA RAGHURAM
 - LinkedIn: https://www.linkedin.com/in/chimataraghuram/
 - GitHub: https://github.com/chimataraghuram
+
+### DADI KAVYA SRI
+- GitHub: https://github.com/Dadikavyasri
 
 ### NARLA SAHITHYA REDDY
 - LinkedIn: https://www.linkedin.com/in/narla-sahithya-reddy-056342399/
