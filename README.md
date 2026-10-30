@@ -193,10 +193,10 @@ The repository contains the required Agile and project documentation located und
 ## 📸 Project Screenshots
 
 **Evidence: Face Absence Detection**
-![Face Absence](evidence/0222/Face%20Not%20Detected_20260812_192430.png)
+![Face Absence](docs/screenshots/face_absence_detection.png)
 
 **Evidence: Multiple Faces Detection**
-![Multiple Faces](evidence/0222/Multiple_Faces_20260825_192620_159041_3fc19b38.png)
+![Multiple Faces](docs/screenshots/multiple_faces_detection.png)
 
 *(Note: Live dashboard screenshots have not been tracked in the repository. The above images demonstrate the real-time computer vision monitoring engine storing evidence.)*
 
