@@ -101,3 +101,73 @@ def generate_excel_export(export_type: str) -> io.BytesIO:
     excel_file.seek(0)
     
     return excel_file
+
+def generate_csv_export(export_type: str) -> io.StringIO:
+    """Generate a CSV file string buffer for the requested export type."""
+    import csv
+
+    dashboard = db.get_admin_dashboard_data()
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    if export_type == 'candidates':
+        writer.writerow(['Name', 'Candidate ID', 'Session ID', 'Integrity Score', 'Risk Level', 'Session Status', 'Event Count'])
+        for student in dashboard.get('students', []):
+            writer.writerow([
+                student.get('name', ''),
+                student.get('student_id', ''),
+                student.get('session_id', ''),
+                student.get('integrity_score', ''),
+                student.get('risk_label', ''),
+                student.get('session_status', ''),
+                student.get('event_count', 0)
+            ])
+
+    elif export_type == 'average_students':
+        writer.writerow(['Name', 'Candidate ID', 'Session ID', 'Integrity Score', 'Risk Level', 'Session Status', 'Event Count'])
+        avg_score = dashboard.get('stats', {}).get('average_integrity', 0)
+        sorted_students = sorted(
+            dashboard.get('students', []),
+            key=lambda s: abs(s.get('integrity_score', 0) - avg_score)
+        )
+        for student in sorted_students:
+            writer.writerow([
+                student.get('name', ''),
+                student.get('student_id', ''),
+                student.get('session_id', ''),
+                student.get('integrity_score', ''),
+                student.get('risk_label', ''),
+                student.get('session_status', ''),
+                student.get('event_count', 0)
+            ])
+
+    elif export_type == 'high_risk':
+        writer.writerow(['Name', 'Candidate ID', 'Session ID', 'Integrity Score', 'Risk Level', 'Session Status', 'Event Count'])
+        for student in dashboard.get('students', []):
+            if student.get('risk_label') == 'High Risk':
+                writer.writerow([
+                    student.get('name', ''),
+                    student.get('student_id', ''),
+                    student.get('session_id', ''),
+                    student.get('integrity_score', ''),
+                    student.get('risk_label', ''),
+                    student.get('session_status', ''),
+                    student.get('event_count', 0)
+                ])
+
+    elif export_type == 'suspicious_events':
+        writer.writerow(['Candidate', 'Candidate ID', 'Event Type', 'Timestamp', 'Score Deducted'])
+        for event in dashboard.get('events', []):
+            if int(event.get('deducted', 0)) > 0:
+                writer.writerow([
+                    event.get('student_name', ''),
+                    event.get('student_id', ''),
+                    event.get('type', ''),
+                    str(event.get('timestamp', '')),
+                    event.get('deducted', 0)
+                ])
+    else:
+        writer.writerow(['Unknown export type'])
+
+    output.seek(0)
+    return output

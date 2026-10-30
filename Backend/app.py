@@ -7,7 +7,7 @@ import hashlib
 import sqlite3
 import logging
 import secrets
-from flask import Flask, request, jsonify, send_from_directory, send_file, session, redirect, url_for, render_template, make_response
+from flask import Flask, request, jsonify, send_from_directory, send_file, session, redirect, url_for, render_template, make_response, Response
 
 from flask_cors import CORS
 from functools import wraps
@@ -479,6 +479,15 @@ def admin_dashboard():
 @app.route('/api/admin/export/<export_type>', methods=['GET'])
 @admin_required
 def admin_export(export_type):
+    fmt = request.args.get('format', 'excel').lower()
+    if fmt == 'csv':
+        csv_buffer = export_service.generate_csv_export(export_type)
+        return Response(
+            csv_buffer.getvalue(),
+            mimetype='text/csv',
+            headers={'Content-Disposition': f'attachment; filename=export_{export_type}.csv'}
+        )
+
     excel_file = export_service.generate_excel_export(export_type)
     return send_file(
         excel_file,
@@ -486,6 +495,33 @@ def admin_export(export_type):
         as_attachment=True,
         download_name=f'export_{export_type}.xlsx'
     )
+
+@app.route('/api/admin/analytics/summary', methods=['GET'])
+@admin_required
+def admin_analytics_summary():
+    """Return high-level integrity distribution and session analytics summary."""
+    dashboard = db.get_admin_dashboard_data()
+    students = dashboard.get('students', [])
+    events = dashboard.get('events', [])
+    stats = dashboard.get('stats', {})
+
+    risk_counts = {'Low Risk': 0, 'Medium Risk': 0, 'High Risk': 0}
+    for s in students:
+        label = s.get('risk_label', 'Low Risk')
+        risk_counts[label] = risk_counts.get(label, 0) + 1
+
+    event_type_distribution = {}
+    for ev in events:
+        t = ev.get('type', 'Other')
+        event_type_distribution[t] = event_type_distribution.get(t, 0) + 1
+
+    return jsonify({
+        'summary': stats,
+        'risk_distribution': risk_counts,
+        'event_distribution': event_type_distribution,
+        'candidate_count': len(students),
+        'server_timestamp': datetime.utcnow().isoformat(timespec='seconds') + 'Z'
+    }), 200
 
 # ---------- Event Logging ----------
 @app.route('/api/events', methods=['POST'])
